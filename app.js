@@ -305,4 +305,92 @@ if(!s||$("game").hidden){return}
 if(e.key===" "&&!s.over){e.preventDefault();TrainerEngine.tick(s);render()}
 if(e.key==="s"){$("saveBtn").click()}});
 showSiteCompare();
+
+function r5Show(h){$("r5Out").innerHTML=h}
+function r5esc(x){return String(x).replace(/</g,"&lt;")}
+function r5tbl(rows){return"<table>"+rows.map(function(r){return"<tr>"+r.map(function(c){return"<td>"+r5esc(c)+"</td>"}).join("")+"</tr>"}).join("")+"</table>"}
+function r5need(){if(!s){r5Show("<p>Start a mission first.</p>");return true}return false}
+$("r5CrewBtn").onclick=function(){if(r5need())return;
+r5Show(r5tbl([["Name","Role","Lvl","Health","Morale","Fatigue","Away"]].concat(E().crewSummary(s).map(function(c){return[c.name,c.role,c.level,c.health,c.morale,c.fatigue,c.away]}))))};
+$("r5HealthBtn").onclick=function(){if(r5need())return;
+r5Show(r5tbl([["Avg health",E().crewHealthAvg(s)],["Avg fatigue",E().crewFatigueAvg(s)],["Avg morale",Math.round(E().avgMorale(s)*10)/10],["Total XP",E().crewXpTotal(s)]]))};
+$("r5RolesBtn").onclick=function(){if(r5need())return;var r=E().roleRoster(s),l=E().crewLevels(s);
+r5Show(r5tbl([["Role","Crew"]].concat(Object.keys(r).map(function(k){return[k,r[k].join(", ")]})).concat([["Level 1 / 2 / 3",l[1]+" / "+l[2]+" / "+l[3]]])))};
+$("r5ExhBtn").onclick=function(){if(r5need())return;
+r5Show("<p>Exhausted: "+(E().exhaustedCrew(s).join(", ")||"none")+". Away: "+(E().awayCrew(s).map(function(c){return c.name}).join(", ")||"none")+".</p>")};
+$("r5MoraleBtn").onclick=function(){if(r5need())return;var m=E().moraleSpread(s);
+r5Show(r5tbl([["Min",m.min],["Avg",m.avg],["Max",m.max]]))};
+$("r5ResBtn").onclick=function(){if(r5need())return;var r=E().resLevels(s),q=E().resRatios(s);
+r5Show(r5tbl([["O2",r.o2],["Water",r.water],["Food",r.food],["Parts",r.parts],["Regolith",r.regolith],["Science",r.science],["O2/crew",q.o2PerCrew],["Water/crew",q.waterPerCrew],["Food/crew",q.foodPerCrew],["Lowest",E().resLowest(s)]]))};
+$("r5PaceBtn").onclick=function(){if(r5need())return;var p=E().sciencePace(s);
+if(!p){r5Show("<p>Sol 0: no pace yet.</p>");return}
+r5Show(r5tbl([["Per sol",p.perSol],["Needed",p.needed],["On track",p.onTrack]]))};
+$("r5ProjBtn").onclick=function(){if(r5need())return;var p=E().projectedWin(s);
+if(!p){r5Show("<p>Too early to project.</p>");return}
+r5Show(r5tbl([["Projected science",p.projected],["Target",p.target],["Will win",p.willWin]]))};
+$("r5RunwayBtn").onclick=function(){if(r5need())return;var r=E().runwayTable(s);
+r5Show(r5tbl([["Resource","Sols"]].concat(Object.keys(r).map(function(k){return[k,r[k]===null?"?":(r[k]===Infinity?"inf":r[k])]}))))};
+$("r5ShortBtn").onclick=function(){if(r5need())return;var x=E().shortestRunway(s);
+r5Show("<p>"+(x?x.res+": "+x.sols+" sols of runway.":"No resource trending down.")+"</p>")};
+$("r5DangerBtn").onclick=function(){if(r5need())return;
+r5Show("<p>Danger score: "+E().dangerScore(s)+"/100.</p>")};
+$("r5OddsBtn").onclick=function(){if(r5need())return;
+r5Show("<p>"+r5esc(E().winOddsText(s))+"</p>")};
+$("r5BldBtn").onclick=function(){if(r5need())return;
+r5Show(r5tbl([["Types",E().buildingTypes(s).join(", ")],["Damaged",E().damagedList(s).join(", ")||"none"],["In progress",E().inProgressList(s).map(function(b){return b.type+"("+b.solsLeft+")"}).join(", ")||"none"]]))};
+$("r5CropBtn").onclick=function(){if(r5need())return;var c=E().cropCoverage(s);
+r5Show("<p>"+(Object.keys(c).length?Object.keys(c).map(function(k){return k+": "+c[k]}).join(", "):"No greenhouses yet.")+"</p>")};
+$("r5PowBtn").onclick=function(){if(r5need())return;var m=E().powerMargin(s);var d=E().storeDays(s);
+r5Show(r5tbl([["Generation",m.gen],["Consumption",m.use],["Stored",m.store],["Store days at deficit",d===Infinity?"inf":d]]))};
+$("r5ShieldBtn").onclick=function(){if(r5need())return;var i=E().shieldInfo(s);
+r5Show(r5tbl([["Level",i.level],["Next cost",i.nextCost===null?"maxed":i.nextCost+" parts"]]))};
+$("r5TechBtn").onclick=function(){if(r5need())return;var n=E().nextTechCost(s);
+r5Show("<p>Researched: "+(E().techsResearched(s).join(", ")||"none")+". "+(n?"Cheapest next: "+n.name+" ("+n.cost+" sci).":"All researched.")+"</p>")};
+$("r5Res2Btn").onclick=function(){if(r5need())return;var r=E().researchableNow(s);
+r5Show("<p>"+(r.length?"Affordable now: "+r.join(", "):"Nothing affordable yet.")+"</p>")};
+$("r5AffordBtn").onclick=function(){if(r5need())return;var a=E().affordableBuildings(s);
+r5Show("<p>"+(a.length?"Affordable: "+a.join(", "):"Nothing affordable.")+"</p>")};
+$("r5HistBtn").onclick=function(){if(r5need())return;
+r5Show(r5tbl([["Resource","First half","Second half","Rising"]].concat(["o2","water","food"].map(function(k){var t=E().historyTrend(s,k);return[k,t?t.first:"-",t?t.last:"-",t?t.rising:"-"]}))))};
+$("r5BestBtn").onclick=function(){if(r5need())return;var w=E().worstSol(s,"o2"),b=E().bestSol(s,"o2");
+if(!w){r5Show("<p>No history yet.</p>");return}
+r5Show(r5tbl([["Worst O2","Sol "+w.sol+": "+w.o2],["Best O2","Sol "+b.sol+": "+b.o2]]))};
+$("r5DeltaBtn").onclick=function(){if(r5need())return;var d=E().historyDelta(s,"o2",1,s.sol);
+r5Show("<p>"+(d===null?"No history yet.":"O2 change since sol 1: "+d)+"</p>")};
+$("r5UpBtn").onclick=function(){if(r5need())return;
+r5Show(r5tbl([["Sol","Event"]].concat(E().upcomingEvents(s,5).map(function(u){return[u.sol,u.text]}))))};
+$("r5HazBtn").onclick=function(){if(r5need())return;
+r5Show("<p>"+r5esc(E().calendarNote(s))+"</p>")};
+$("r5CheckBtn").onclick=function(){if(r5need())return;
+r5Show("<ul>"+E().actionChecklist(s).map(function(a){return"<li>"+r5esc(a)+"</li>"}).join("")+"</ul>")};
+$("r5StatusBtn").onclick=function(){if(r5need())return;
+r5Show("<p>"+r5esc(E().missionStatusLine(s))+"</p>")};
+$("r5QuizBtn").onclick=function(){if(r5need())return;
+r5Show("<p>"+r5esc(E().quizStatsText(s))+"</p>")};
+$("r5AchBtn").onclick=function(){if(r5need())return;
+r5Show("<p>Achievements: "+E().achievementPct(s)+"% earned.</p>")};
+function r5dl(name,text){var a=document.createElement("a");
+a.href=URL.createObjectURL(new Blob([text],{type:"text/plain"}));a.download=name;a.click()}
+$("r5CrewCsvBtn").onclick=function(){if(r5need())return;r5dl("crew.csv",E().crewTableCSV(s))};
+$("r5BldCsvBtn").onclick=function(){if(r5need())return;r5dl("buildings.csv",E().buildingsCSV(s))};
+$("r5TechCsvBtn").onclick=function(){if(r5need())return;r5dl("techs.csv",E().techCSV(s))};
+$("r5SchedCsvBtn").onclick=function(){if(r5need())return;r5dl("schedule.csv",E().scheduleCSV(s))};
+$("r5SnapBtn").onclick=function(){if(r5need())return;
+r5Show("<pre>"+r5esc(E().snapshotJSON(s))+"</pre>")};
+$("r5MdBtn").onclick=function(){if(r5need())return;
+r5Show("<pre>"+r5esc(E().missionMd(s))+"</pre>")};
+$("r5AuditBtn").onclick=function(){if(r5need())return;var e=E().stateAudit(s);
+r5Show("<p>"+(e.length?e.join("; "):"State passes audit.")+"</p>")};
+$("r5GlossBtn").onclick=function(){
+r5Show("<dl>"+E().glossaryR5().map(function(g){return"<dt>"+g.term+"</dt><dd>"+g.def+"</dd>"}).join("")+"</dl>")};
+$("r5FaqBtn").onclick=function(){
+r5Show(E().faqR5().map(function(f){return"<p><b>"+f.q+"</b><br>"+f.a+"</p>"}).join(""))};
+$("r5TriviaBtn").onclick=function(){
+r5Show("<p>"+E().triviaR5(Math.floor(Math.random()*97)).fact+"</p>")};
+$("r5Quiz2Btn").onclick=function(){var i=Math.floor(Math.random()*E().QUIZ.length),q=E().QUIZ[i];
+r5Show("<p><b>"+q.q+"</b></p>"+q.a.map(function(a,j){return'<button data-j="'+j+'" class="q01r5">'+a+"</button>"}).join(" ")+'<span id="q01r5msg"></span>');
+Array.prototype.forEach.call(document.querySelectorAll(".q01r5"),function(btn){
+btn.onclick=function(){var r=E().quizCheck01(i,+btn.dataset.j);
+document.getElementById("q01r5msg").textContent=(r.correct?" Correct! ":" Not quite. ")+r.fact}})};
+
 })();
