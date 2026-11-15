@@ -2,7 +2,7 @@
 
 NASA Space Apps 2026 challenge #1. A browser-based base-management game for kids (and judges) that teaches real mission trade-offs on the Moon and Mars: power, oxygen, water, food, shielding, crew health and morale. Fully offline: open `index.html` and play.
 
-## Features (405)
+## Features (611)
 
 Core sim
 1. Two real sites (Lunar South Pole, Mars Jezero Rim) with distinct radiation, ice, sunlight, storm and quake profiles
@@ -444,6 +444,212 @@ Round-5 UI
 403. UI: game-won button
 404. UI: storms-survived button
 405. UI: quiz-correct button
+406. Analytics engine: Site id
+407. Analytics engine: Difficulty
+408. Analytics engine: Current sol
+409. Analytics engine: Mission-over flag
+410. Analytics engine: Mission-won flag
+411. Analytics engine: Mission name
+412. Analytics engine: Oxygen level
+413. Analytics engine: Water level
+414. Analytics engine: Food level
+415. Analytics engine: Parts level
+416. Analytics engine: Regolith level
+417. Analytics engine: Science points
+418. Analytics engine: Resource total
+419. Analytics engine: Minimum consumable
+420. Analytics engine: Maximum consumable
+421. Analytics engine: Crew size
+422. Analytics engine: Crew alive
+423. Analytics engine: Crew lost
+424. Analytics engine: Crew away
+425. Analytics engine: Mean crew health
+426. Analytics engine: Mean crew morale
+427. Analytics engine: Mean crew fatigue
+428. Analytics engine: Crew XP total
+429. Analytics engine: Role tally
+430. Analytics engine: Engineer count
+431. Analytics engine: Weakest crew member
+432. Analytics engine: Lowest-morale crew member
+433. Analytics engine: Building count
+434. Analytics engine: Buildings completed
+435. Analytics engine: Buildings in progress
+436. Analytics engine: Buildings damaged
+437. Analytics engine: Building type tally
+438. Analytics engine: Done buildings by type
+439. Analytics engine: Solar arrays done
+440. Analytics engine: Habitats done
+441. Analytics engine: Crops planted
+442. Analytics engine: Construction sols left
+443. Analytics engine: Techs researched
+444. Analytics engine: Tech check
+445. Analytics engine: Log length
+446. Analytics engine: Latest log entry
+447. Analytics engine: History length
+448. Analytics engine: Storms survived
+449. Analytics engine: Expeditions done
+450. Analytics engine: Quiz correct
+451. Analytics engine: Quiz streak
+452. Analytics engine: Best quiz streak
+453. Analytics engine: Self-sufficient streak
+454. Analytics engine: Shield level
+455. Analytics engine: Objective science
+456. Analytics engine: Objective sols
+457. Analytics engine: Objective progress %
+458. Analytics engine: Sols remaining
+459. Analytics engine: Objective mode
+460. Analytics engine: Rations level
+461. Analytics engine: Manifest
+462. Analytics engine: Scenario
+463. Analytics engine: Shelter-mode flag
+464. Analytics engine: Solar boost sols
+465. Analytics engine: Achievements earned
+466. Analytics engine: Achievement check
+467. Analytics engine: Milestones hit
+468. Analytics engine: Schedule length
+469. Analytics engine: Power stored
+470. Analytics engine: Battery nights
+471. Analytics engine: Last power generated
+472. Analytics engine: Last power used
+473. Analytics engine: Power margin
+474. Analytics engine: Totals tracked
+475. Analytics engine: Sols tracked
+476. Analytics engine: Dose multiplier
+477. Analytics engine: Retrains
+478. Analytics engine: Crop switches
+479. Analytics engine: Mission seed
+480. Analytics engine: Phase
+481. Analytics engine: Quiz pending
+482. Analytics engine: Quiz due sol
+483. Analytics engine: Quiz index
+484. Analytics engine: Site count
+485. Analytics engine: Site id list
+486. Analytics engine: Site name by id
+487. Analytics engine: Site storm chance
+488. Analytics engine: Building catalog size
+489. Analytics engine: Building type list
+490. Analytics engine: Building name by type
+491. Analytics engine: Building cost by type
+492. Analytics engine: Building sols by type
+493. Analytics engine: Total catalog cost
+494. Analytics engine: Cheapest building
+495. Analytics engine: Priciest building
+496. Analytics engine: Room for crew
+497. Analytics engine: Crew capacity
+498. Analytics engine: Bunks free
+499. Analytics engine: Can recruit
+500. Analytics engine: All construction done
+501. Analytics engine: Any damage
+502. Analytics engine: All crew alive
+503. Analytics engine: All crew rested
+504. Analytics engine: Consumables exhausted
+505. Analytics engine: Science objective met
+506. Analytics engine: Past objective deadline
+507. Analytics engine: Food per crew
+508. Analytics engine: Water per crew
+509. Analytics engine: Oxygen per crew
+510. Analytics engine: Mission score estimate
+511. Analytics engine: Oxygen trend
+512. Analytics engine: Latest history row
+513. Analytics engine: History science total
+514. Analytics engine: EVA shield sols
+515. Analytics engine: Ice pocket armed
+516. Analytics engine: Relay fixed until
+517. Analytics engine: Pod light
+518. Analytics engine: Redundancy sol
+519. Analytics engine: First crew name
+520. Analytics engine: Medic count
+521. Analytics engine: Scientist count
+522. Analytics engine: Commander count
+523. Analytics engine: Max crew XP
+524. Analytics engine: Veteran count
+525. Analytics engine: On expedition
+526. Analytics engine: Max crew health
+527. Analytics engine: Morale all OK
+528. Analytics engine: Greenhouses done
+529. Analytics engine: Batteries done
+530. Analytics engine: Shields done
+531. Analytics engine: Comms done
+532. Analytics engine: Workshops done
+533. Analytics engine: Science still needed
+534. Analytics engine: Required science pace
+535. Analytics engine: Regolith available
+536. Analytics engine: Parts available
+537. Analytics engine: Site label
+538. Analytics engine: Sandbox check
+539. Analytics engine: Hard-mode check
+540. Analytics engine: All-crew-lost check
+541. Analytics engine: State snapshot
+542. Analytics engine: State snapshot JSON
+543. Analytics engine: Crew name list
+544. Analytics engine: Crew role list
+545. Analytics engine: Building type list
+546. Analytics engine: Building summary line
+547. Analytics desk: site
+548. Analytics desk: difficulty
+549. Analytics desk: sol
+550. Analytics desk: mission over
+551. Analytics desk: mission won
+552. Analytics desk: mission name
+553. Analytics desk: oxygen
+554. Analytics desk: water
+555. Analytics desk: food
+556. Analytics desk: parts
+557. Analytics desk: regolith
+558. Analytics desk: science
+559. Analytics desk: resource total
+560. Analytics desk: min consumable
+561. Analytics desk: max consumable
+562. Analytics desk: crew size
+563. Analytics desk: crew alive
+564. Analytics desk: crew lost
+565. Analytics desk: crew away
+566. Analytics desk: mean health
+567. Analytics desk: mean morale
+568. Analytics desk: mean fatigue
+569. Analytics desk: XP total
+570. Analytics desk: role tally
+571. Analytics desk: engineers
+572. Analytics desk: weakest crew
+573. Analytics desk: buildings
+574. Analytics desk: buildings done
+575. Analytics desk: in progress
+576. Analytics desk: damaged
+577. Analytics desk: type tally
+578. Analytics desk: solar arrays
+579. Analytics desk: habitats
+580. Analytics desk: techs
+581. Analytics desk: log length
+582. Analytics desk: storms survived
+583. Analytics desk: shield level
+584. Analytics desk: objective science
+585. Analytics desk: objective sols
+586. Analytics desk: progress %
+587. Analytics desk: sols left
+588. Analytics desk: objective mode
+589. Analytics desk: scenario
+590. Analytics desk: achievements
+591. Analytics desk: schedule length
+592. Analytics desk: seed
+593. Analytics desk: phase
+594. Analytics desk: site count
+595. Analytics desk: building catalog
+596. Analytics desk: total build cost
+597. Analytics desk: cheapest build
+598. Analytics desk: priciest build
+599. Analytics desk: crew capacity
+600. Analytics desk: all built
+601. Analytics desk: all alive
+602. Analytics desk: starving
+603. Analytics desk: science met
+604. Analytics desk: food per crew
+605. Analytics desk: water per crew
+606. Analytics desk: oxygen per crew
+607. Analytics desk: mission score
+608. Analytics desk: science needed
+609. Analytics desk: science pace
+610. Analytics desk: site label
+611. Analytics desk: building summary
 
 ## Data and sources
 
@@ -451,7 +657,7 @@ Challenge statement: nasaspaceapps.ae/challenges (Junior Astronaut Mission Train
 
 ## Tested
 
-`node test.js` — 291 checks (62 original + 102 round-4 + 66 round-5 + 61 round-6) covering engine rules, resource math, role effects, tech effects, expeditions, scenarios, sandbox behavior, advisor triggers, forecast correctness and a full playthrough that wins. All pass on Node 22. Round-4 tests cover the new buildings, techs, expeditions, events, ops actions, analytics functions, objective modes, grading and exports. Round-5 tests cover the briefing, runway, plans, advisors, checklists, CSV/JSON/markdown exports, integrity checker and state hash. Round-6 tests cover the new mission-analytics engine functions: resource aggregates, crew metrics, building and tech counters, objective progress, reserve warnings and per-crew ratios.
+`node test.js` — 415 checks (62 original + 102 round-4 + 66 round-5 + 61 round-6 + 124 round-7) covering engine rules, resource math, role effects, tech effects, expeditions, scenarios, sandbox behavior, advisor triggers, forecast correctness and a full playthrough that wins. All pass on Node 22. Round-4 tests cover the new buildings, techs, expeditions, events, ops actions, analytics functions, objective modes, grading and exports. Round-5 tests cover the briefing, runway, plans, advisors, checklists, CSV/JSON/markdown exports, integrity checker and state hash. Round-6 tests cover the new mission-analytics engine functions: resource aggregates, crew metrics, building and tech counters, objective progress, reserve warnings and per-crew ratios.
 
 ## Untested
 
