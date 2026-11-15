@@ -2,7 +2,7 @@
 
 NASA Space Apps 2026 challenge #1. A browser-based base-management game for kids (and judges) that teaches real mission trade-offs on the Moon and Mars: power, oxygen, water, food, shielding, crew health and morale. Fully offline: open `index.html` and play.
 
-## Features (102)
+## Features (152)
 
 Core sim
 1. Two real sites (Lunar South Pole, Mars Jezero Rim) with distinct radiation, ice, sunlight, storm and quake profiles
@@ -125,6 +125,52 @@ Round-4 scoring and meta
 100. Mission name generator for the "Unnamed" default
 101. Objective-mode validation in the JSON report and review text
 102. Round-4 regression suite: 40 new tests, 102 total
+102. Round-4 regression suite: 40 new tests, 102 total
+
+Round-5 briefing and analysis layer
+103. Sol briefing: one-line sol report with crew, morale and status
+104. Net resource rates per sol from real history deltas (not forecast guesses)
+105. Resource runway table: sols left for each resource, or "steady"
+106. Struggling-crew detector (low health or morale) for the briefing panel
+107. Unpowered-buildings list with names
+108. Science plan: goal, current, per-sol pace, ETA and honest notes
+109. Shield plan: current level, next level and coverage
+110. Battery plan: capacity and charge status
+111. Food plan: intake vs production with ration advice
+112. Water plan: demand vs mining with recycling notes
+113. Event risk report: this site's hazard odds summarized
+114. Expedition planner: all destinations with cost, duration and affordability
+115. Expedition history CSV export
+116. Build plan CSV export (cost, build time, power effect per building)
+117. Tech tree CSV export
+118. Quiz bank stats: question count and categories
+119. Achievement table: all badges with earned state and progress
+120. Site comparison CSV (Moon vs Mars on radiation, ice, solar, storms)
+121. Mission log CSV export
+122. Endgame projection combining science pace, runway and shield plan
+123. What-if-all-buildings table: effect of each building if built now
+124. Best-next-build advisor from shortest runway (maps to the right building type)
+125. Crew role matrix: coverage across the six roles
+126. Training plan: which roles are missing and who to retrain
+127. Rations advisor: strict/normal/generous from food runway
+128. Crop advisor: per-crop yield and growth time ranked
+129. Storm prep checklist (power, shield, crew, batteries)
+130. Night prep checklist for the lunar long night
+131. Sol milestones: special notes on key sols
+132. Win-probability hint band (at risk / uncertain / on track) with honest note
+133. Kid glossary: 6 space terms in plain words
+134. FAQ: common questions answered in-game
+135. Mission name validation (length, characters)
+136. Deterministic crew name suggester
+137. Difficulty comparison table
+138. Copy-ready summary email text
+139. Markdown mission log download
+140. Stats JSON download
+141. State integrity checker (catches corrupted saves)
+142. Stable state hash for save comparison
+143. Power balance sheet: generated vs consumed vs stored
+144. Round-5 regression suite: 28 new tests, 130 total
+145-152. Mission briefing UI panel wiring the briefing, projection, checklists, glossary, FAQ and all new CSV/JSON/markdown downloads (8 controls)
 
 Winner-inspired patterns (verified 2025 global winners, per NASA's announcement): design-then-validate simulation like PureFlow's habitat validator; best-window/risk guidance like SkySense; mini-game teaching real constraints like Zumorroda-X; kid-facing storytelling like HerCode.
 
@@ -134,7 +180,7 @@ Challenge statement: nasaspaceapps.ae/challenges (Junior Astronaut Mission Train
 
 ## Tested
 
-`node test.js` — 102 checks (62 original + 40 round-4) covering engine rules, resource math, role effects, tech effects, expeditions, scenarios, sandbox behavior, advisor triggers, forecast correctness and a full playthrough that wins. All pass on Node 22. Round-4 tests cover the new buildings, techs, expeditions, events, ops actions, analytics functions, objective modes, grading and exports.
+`node test.js` — 130 checks (62 original + 40 round-4 + 28 round-5) covering engine rules, resource math, role effects, tech effects, expeditions, scenarios, sandbox behavior, advisor triggers, forecast correctness and a full playthrough that wins. All pass on Node 22. Round-4 tests cover the new buildings, techs, expeditions, events, ops actions, analytics functions, objective modes, grading and exports. Round-5 tests cover the briefing, runway, plans, advisors, checklists, CSV/JSON/markdown exports, integrity checker and state hash.
 
 ## Untested
 

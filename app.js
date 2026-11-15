@@ -229,6 +229,45 @@ $("repAllBtn").onclick=function(){var n=TrainerEngine.repairAll(s);$("opsMsg").t
 $("shelterBtn").onclick=function(){TrainerEngine.shelterMode(s);$("opsMsg").textContent="Shelter mode set for next sol.";render()};
 $("histSel").onchange=drawHistory;
 $("histCsvBtn").onclick=function(){download("resource-history.csv",TrainerEngine.historyCSV(s),"text/csv")};
+$("briefBtn").onclick=function(){
+var E=TrainerEngine;
+var rw=E.resourceRunway(s);
+var runwayLines=Object.keys(rw).map(function(k){var v=rw[k];return k+": "+(v===null?"steady":(v===Infinity?"untracked":v+" sols"))}).join(", ");
+var nr=E.netRates(s);
+var rateLines=Object.keys(nr).map(function(k){var v=nr[k];return k+" "+(v===null?"-":(v>=0?"+":"")+v+"/sol")}).join(", ");
+var b=E.bestNextBuild(s);
+var m=E.solMilestones(s);
+var crit=E.criticalCrew(s);
+var un=E.unpoweredList(s);
+var h="<h3>"+E.solReport(s)+"</h3>";
+h+="<p>Nets: "+rateLines+"</p><p>Runways: "+runwayLines+"</p>";
+h+="<p>Next build: "+b.suggestion+" ("+b.reason+")</p>";
+if(crit.length){h+="<p>Struggling crew: "+crit.map(function(c){return c.name}).join(", ")+"</p>"}
+if(un.length){h+="<p>Unpowered: "+un.map(function(u){return u.name}).join(", ")+"</p>"}
+if(m.length){h+="<p>Milestones: "+m.join(" | ")+"</p>"}
+h+="<p>"+E.winProbabilityHint(s).hint+" - "+E.winProbabilityHint(s).note+"</p>";
+$("briefOut").innerHTML=h;
+var p=E.endgameProjection(s);
+var ph="<p>Science pace: "+p.plan.perSol+"/sol, ETA "+p.plan.etaSols+" sols ("+p.plan.note+"). Shield L"+p.plan.shieldNext+" next. Difficulty: "+p.difficulty+".</p>";
+ph+="<p>Storm checklist: "+E.stormPrepChecklist(s).join("; ")+"</p>";
+$("projOut").innerHTML=ph;
+var gh="<h4>Night prep</h4><p>"+E.nightPrepChecklist(s).join("; ")+"</p>";
+gh+="<h4>Glossary</h4><p>"+E.glossaryTerms().map(function(g){return g.term+": "+g.def}).join("<br>")+"</p>";
+gh+="<h4>FAQ</h4><p>"+E.faqList().map(function(f){return f.q+" - "+f.a}).join("<br>")+"</p>";
+gh+="<h4>Quiz bank</h4><p>"+E.quizBankStats().questions+" questions across "+E.quizBankStats().categories.join(", ")+"</p>";
+$("guideOut").innerHTML=gh};
+$("summaryBtn").onclick=function(){
+var t=TrainerEngine.summaryEmailText(s);
+if(navigator.clipboard){navigator.clipboard.writeText(t)}else{download("mission-summary.txt",t)}
+$("briefOut").innerHTML="<p>Summary copied: "+t+"</p>"};
+$("mdLogBtn").onclick=function(){download("mission-log.md",TrainerEngine.markdownLog(s),"text/markdown")};
+$("statsBtn").onclick=function(){download("mission-stats.json",TrainerEngine.statsJSON(s),"application/json")};
+$("buildCsvBtn").onclick=function(){download("build-plan.csv",TrainerEngine.buildPlanCSV(s),"text/csv")};
+$("techCsvBtn").onclick=function(){download("tech-tree.csv",TrainerEngine.techTreeCSV(),"text/csv")};
+$("sitesCsvBtn").onclick=function(){download("site-comparison.csv",TrainerEngine.siteComparisonCSV(),"text/csv")};
+$("stateCheckBtn").onclick=function(){
+var errs=TrainerEngine.validateState(s);
+$("briefOut").innerHTML=errs.length?("<p>Issues: "+errs.join("; ")+"</p>"):"<p>State integrity OK (hash "+TrainerEngine.stateHash(s)+").</p>"};
 $("crewCsvBtn").onclick=function(){download("crew-roster.csv",TrainerEngine.crewCSV(s),"text/csv")};
 $("shareBtn").onclick=function(){
 var t=TrainerEngine.shareText(s);

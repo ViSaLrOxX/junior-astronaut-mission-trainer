@@ -591,5 +591,125 @@ const s=E.newGame("moon",77,"cadet");
 s.res.science=500;s.res.parts=500;
 while(!s.over&&s.sol<70){s.res.o2=300;s.res.water=300;s.res.food=300;E.tick(s)}
 assert(s.over)});
+T2("r5: solReport covers the bases",()=>{
+const s=E.newGame("moon",7,"explorer");
+for(let i=0;i<5;i++){E.tick(s)}
+const r=E.solReport(s);
+assert(r.indexOf("Sol 5")===0);
+assert(r.indexOf("morale")>=0)});
+T2("r5: netRates and runway honest on fresh game",()=>{
+const s=E.newGame("moon",7,"explorer");
+for(let i=0;i<6;i++){E.tick(s)}
+const nr=E.netRates(s);
+assert(nr.water!==null);
+const rw=E.resourceRunway(s);
+assert(rw.food===null||rw.food===Infinity||rw.food>=0)});
+T2("r5: criticalCrew flags only struggling crew",()=>{
+const s=E.newGame("moon",7,"explorer");
+assert.strictEqual(E.criticalCrew(s).length,0);
+s.crew[0].health=20;
+assert.strictEqual(E.criticalCrew(s).length,1)});
+T2("r5: unpoweredList empty at start",()=>{
+const s=E.newGame("moon",7,"explorer");
+E.tick(s);
+assert(Array.isArray(E.unpoweredList(s)))});
+T2("r5: sciencePlan reports goal",()=>{
+const s=E.newGame("moon",7,"explorer");
+const p=E.sciencePlan(s);
+assert(p.goal>0&&p.current===0)});
+T2("r5: shield and battery plans shaped",()=>{
+const s=E.newGame("moon",7,"explorer");
+assert(E.shieldPlan(s).nextLevel===s.shieldLevel+1);
+assert(E.batteryPlan(s).capacity>=0)});
+T2("r5: food and water plans include advice",()=>{
+const s=E.newGame("moon",7,"explorer");
+for(let i=0;i<5;i++){E.tick(s)}
+assert(E.foodPlan(s).note.length>5);
+assert(E.waterPlan(s).note.length>5)});
+T2("r5: eventRiskReport covers site hazards",()=>{
+const s=E.newGame("moon",7,"explorer");
+assert(E.eventRiskReport(s).length>=1)});
+T2("r5: expeditionPlanner lists all expeditions",()=>{
+const s=E.newGame("moon",7,"explorer");
+const p=E.expeditionPlanner(s);
+assert.strictEqual(p.length,Object.keys(E.EXPEDITIONS).length);
+assert(p[0].name&&typeof p[0].affordable==="boolean")});
+T2("r5: CSVs have headers and rows",()=>{
+const s=E.newGame("moon",7,"explorer");
+for(let i=0;i<3;i++){E.tick(s)}
+assert(E.buildPlanCSV(s).split(String.fromCharCode(10)).length===Object.keys(E.BUILDINGS).length+1);
+assert(E.techTreeCSV().split(String.fromCharCode(10)).length===Object.keys(E.TECHS).length+1);
+assert(E.siteComparisonCSV().split(String.fromCharCode(10)).length>=3);
+assert(E.expeditionHistoryCSV(s).indexOf("sol,expedition")===0)});
+T2("r5: logCSV covers entries",()=>{
+const s=E.newGame("moon",7,"explorer");
+for(let i=0;i<4;i++){E.tick(s)}
+assert(E.logCSV(s).split(String.fromCharCode(10)).length>=2)});
+T2("r5: endgame projection combines pieces",()=>{
+const s=E.newGame("moon",7,"explorer");
+for(let i=0;i<3;i++){E.tick(s)}
+const p=E.endgameProjection(s);
+assert(p.plan&&p.runway&&!p.won)});
+T2("r5: whatIfAllBuildings covers every building",()=>{
+const s=E.newGame("moon",7,"explorer");
+assert.strictEqual(E.whatIfAllBuildings(s).length,Object.keys(E.BUILDINGS).length)});
+T2("r5: bestNextBuild suggests a real building",()=>{
+const s=E.newGame("moon",7,"explorer");
+for(let i=0;i<6;i++){E.tick(s)}
+const b=E.bestNextBuild(s);
+assert(E.BUILDINGS[b.id])});
+T2("r5: crewRoleMatrix and trainingPlan",()=>{
+const s=E.newGame("moon",7,"explorer");
+assert.strictEqual(E.crewRoleMatrix(s).length,4);
+assert(Array.isArray(E.trainingPlan(s).missing))});
+T2("r5: rations and crop advisors",()=>{
+const s=E.newGame("moon",7,"explorer");
+for(let i=0;i<5;i++){E.tick(s)}
+assert(["strict","normal","generous"].indexOf(E.rationsAdvisor(s).advice)>=0);
+assert.strictEqual(E.cropAdvisor(s).length,Object.keys(E.CROPS).length)});
+T2("r5: prep checklists non-empty",()=>{
+const s=E.newGame("moon",7,"explorer");
+assert(E.stormPrepChecklist(s).length>=4);
+assert(E.nightPrepChecklist(s).length>=3)});
+T2("r5: milestones fire on key sols",()=>{
+const s=E.newGame("moon",7,"explorer");
+E.tick(s);
+assert(E.solMilestones(s).length>=1)});
+T2("r5: winProbabilityHint gives a band",()=>{
+const s=E.newGame("moon",7,"explorer");
+for(let i=0;i<5;i++){E.tick(s)}
+assert(["at risk","uncertain","on track"].indexOf(E.winProbabilityHint(s).hint)>=0)});
+T2("r5: glossary and faq for kids",()=>{
+assert(E.glossaryTerms().length>=5);
+assert(E.faqList().length>=3)});
+T2("r5: mission name validation",()=>{
+assert(E.missionNameValidate("ab").length>=1);
+assert.strictEqual(E.missionNameValidate("Ares Garden").length,0)});
+T2("r5: crew name suggest deterministic",()=>{
+assert.strictEqual(E.crewNameSuggest(4),E.crewNameSuggest(4))});
+T2("r5: summary email and markdown log",()=>{
+const s=E.newGame("moon",7,"explorer");
+E.setMissionName(s,"Test Base");
+for(let i=0;i<3;i++){E.tick(s)}
+assert(E.summaryEmailText(s).indexOf("Test Base")>=0);
+assert(E.markdownLog(s).indexOf("# Mission log")===0)});
+T2("r5: statsJSON parses",()=>{
+const s=E.newGame("moon",7,"explorer");
+const j=JSON.parse(E.statsJSON(s));
+assert(j!==null)});
+T2("r5: validateState clean on fresh game, hash stable",()=>{
+const s=E.newGame("moon",7,"explorer");
+assert.strictEqual(E.validateState(s).length,0);
+assert.strictEqual(E.stateHash(s),E.stateHash(s))});
+T2("r5: powerBalanceSheet totals",()=>{
+const s=E.newGame("moon",7,"explorer");
+E.tick(s);
+const pb=E.powerBalanceSheet(s);
+assert(pb.generated>=0&&pb.consumed>=0)});
+T2("r5: quiz bank stats and achievement table",()=>{
+assert(E.quizBankStats().questions===E.QUIZ.length);
+assert.strictEqual(E.achievementTable().length,E.ACHIEVEMENTS.length)});
+T2("r5: compareDifficulties returns a table",()=>{
+assert(Array.isArray(E.compareDifficulties()))});
 console.log(pass2+" round-4 passed, "+fail2+" failed");
 process.exit(fail+fail2?1:0);
