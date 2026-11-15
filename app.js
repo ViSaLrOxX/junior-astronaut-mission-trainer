@@ -1606,6 +1606,9 @@ function G(id){return document.getElementById(id)}
 function dirRender(){
 var line=G("dirLine");if(!line){return}
 var s=window.__gameState?window.__gameState():null;
+var out=G("outLine");
+if(out){var nh=s?TrainerEngine.nextHazard(s):null;
+if(nh){out.hidden=false;G("outText").textContent="sol "+nh.sol+": "+nh.text}else{out.hidden=true}}
 var d=s?TrainerEngine.directiveInfo(s):null;
 if(!d){line.hidden=true;return}
 line.hidden=false;

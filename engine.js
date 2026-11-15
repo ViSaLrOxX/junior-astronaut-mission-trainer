@@ -257,7 +257,7 @@ function batteryCap(s){var cap=0;s.buildings.forEach(function(b){if(b.type==="ba
 function tick(s){
 if(s.over){return s}
 s.sol+=1;
-s._dirPrev={water:s.res.water,food:s.res.food,science:s.totals.science};
+s._dirPrev={o2:s.res.o2,water:s.res.water,food:s.res.food,parts:s.res.parts,science:s.totals.science};
 s.stormActive=false;
 var siteDef=SITES[s.site];
 var events=[];
@@ -344,6 +344,10 @@ else{s.res.parts+=Math.round(12*pod);s.res.food+=Math.round(20*pod);addLog(s,"Re
 if(s.sol===s.quizDue){s.pendingQuiz=s.quizIndex%QUIZ.length}
 [50,100,200].forEach(function(mk){
 if(s.totals.science>=mk&&s.milestonesHit.indexOf(mk)<0){s.milestonesHit.push(mk);s.res.parts+=10;addLog(s,"Data milestone "+mk+": backers send +10 parts.")}});
+if(s._dirPrev){var wrap=[];var dp=s._dirPrev;
+[["O2","o2",s.res.o2],["water","water",s.res.water],["food","food",s.res.food],["parts","parts",s.res.parts]].forEach(function(pair){var d=Math.round(pair[2]-dp[pair[1]]);if(d!==0){wrap.push(pair[0]+" "+(d>0?"+":"")+d)}});
+var ds=Math.round(s.totals.science-dp.science);if(ds!==0){wrap.push("science "+(ds>0?"+":"")+ds)}
+addLog(s,"Sol "+s.sol+" wrap: "+(wrap.length?wrap.join(", ")+".":"reserves held steady."))}
 s.history.push({sol:s.sol,o2:Math.round(s.res.o2),water:Math.round(s.res.water),food:Math.round(s.res.food),parts:s.res.parts,science:Math.round(s.res.science)});
 if(s.history.length>75){s.history.shift()}
 s.sheltered=!!s.shelterNext;s.shelterNext=false;

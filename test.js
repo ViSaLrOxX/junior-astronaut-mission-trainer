@@ -1011,4 +1011,23 @@ assert(q.length===1,"one voice line after one sol");
 for(var i=0;i<4;i++){E.tick(s)}
 q=s.log.filter(function(l){return /: "/.test(l.msg||"")});
 assert(q.length===5,"one voice line per sol")});
+T("sol wrap digest",function(){
+var s=E.newGame("moon",7,"explorer");
+var w0=s.res.water;
+E.tick(s);
+var wrap=s.log.filter(function(l){return (l.msg||"").indexOf("Sol 1 wrap:")===0});
+assert(wrap.length===1,"one wrap line per sol");
+var d=Math.round(s.res.water-w0);
+assert(wrap[0].msg.indexOf("water "+(d>0?"+":"")+d)>=0,"wrap reports the real water delta");
+E.tick(s);E.tick(s);
+var wraps=s.log.filter(function(l){return (l.msg||"").indexOf("Sol ")===0&&(l.msg||"").indexOf("wrap:")>0});
+assert(wraps.length===3,"wrap every sol, no more")});
+T("hazard outlook reads the real schedule",function(){
+var s=E.newGame("moon",7,"explorer");
+var nh=E.nextHazard(s);
+if(nh){
+assert(nh.sol>=s.sol&&nh.sol<=s.sol+10,"hazard within the 10-sol window");
+var sched=s.schedule[nh.sol];
+var ev=E.EVENTS.filter(function(x){return x.id===sched})[0];
+assert(ev&&ev.text===nh.text,"outlook text matches the scheduled event")}});
 process.exit(fail+fail2+fail3+fail4+fail7+(fR8)+(fR9)+(fR10)+(fR11)+(fR12)+(fR13)+(fR14)+(fR15)+(fR16)+(fR17)+(fR18)?1:0);

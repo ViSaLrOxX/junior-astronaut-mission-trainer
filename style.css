@@ -120,6 +120,8 @@ main.anim .panel:nth-of-type(n+4){animation-delay:.08s}
 @media print{header,#controls,#setup,#viewNav,.wbMenu,#wbBack{display:none}body{background:#fff;color:#000}}
 
 .wbMenu{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+#outLine{grid-column:1/-1;font-size:.8rem;color:#ffd9a0;background:rgba(30,22,8,.55);border:1px dashed rgba(255,190,90,.35);border-radius:8px;padding:6px 12px}
+body.hc #outLine{background:#000;border-color:#fff;color:#fff}
 #dirLine{grid-column:1/-1;font-size:.84rem;color:#bfe9ff;background:rgba(10,19,40,.6);border:1px dashed rgba(94,234,212,.3);border-radius:8px;padding:7px 12px}
 #dirLine .chip{margin-left:8px}
 body.hc #dirLine{background:#000;border-color:#fff;color:#fff}
