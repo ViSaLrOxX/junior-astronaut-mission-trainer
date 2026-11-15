@@ -18,6 +18,20 @@ shield:["Stack regolith bags on the wall","regolith",3],medbay:["Restock the fir
 comms:["Align the dish and check the signal","science",2],drill:["Clear the drill bit","regolith",3],workshop:["Sweep up the regolith dust","parts",1],
 algae:["Stir the algae tank","food",2],observatory:["Wipe the telescope dome","morale",2],gym:["Do a workout","health",2],pad:["Walk the pad for loose debris","parts",1]};
 var NAME={mission:"Mission console"};
+/* EVA planning constants. Sources (NASA): ISS suit 7 h max = 15 min egress + 6 h work + 15 min ingress + 30 min reserve; Artemis suit: at least 8 h, 1 h contingency, 2 km/h walking, distance limited by the walk back. Distances and the hours pool are game conventions. */
+var EVA={egress:.25,ingress:.25,speed:2000,reserve:1,cap:8,walkMax:1};
+function evaOn(){return !(window.__walkFast&&!window.__evaReal)}
+function r1(x){return Math.round(x*10)/10}
+function isOut(m){return !!OUT[m.kind]||m.kind==="stake"}
+function dmOf(m){return m.dm||Math.max(40,Math.abs(m.wx+12)*3)}
+function planOf(s,m,j){var w=W(s),tr=dmOf(m)/EVA.speed,tot=r1(EVA.egress+EVA.ingress+2*tr+j.cost),why="",wc=j.kind==="fix"?1:0;
+var alive=s.crew.filter(function(c){return c.health>0&&!(c.away>0)});
+if(alive.length<2){why="EVA is done in pairs. You need one more crew member who is home and well."}
+else if(tr>EVA.walkMax){why="Too far for this game: the walk back would take "+r1(tr)+" h at 2 km/h. The game caps it at "+EVA.walkMax+" h, an invented conservative rule. NASA plans real EVA range around the walk back, but this 1 h cutoff is not a NASA figure."}
+else if(tot+wc+EVA.reserve>EVA.cap){why="This sortie needs "+tot+(wc?" h (plus 1 h if you misdiagnose)":" h")+" plus the "+EVA.reserve+" h reserve, over the suit's "+EVA.cap+" h."}
+else if(tot+wc>w.hours){why="The plan needs "+tot+" h"+(wc?" (up to "+(tot+wc)+" h if you misdiagnose)":"")+" but you have "+w.hours+" h left today."}
+var su=null;if(!why&&window.__suit){su=window.__suit.project(s,tot+wc,j.kind);if(su.why){why=su.why}}
+return{wc:wc,suit:su,total:tot,travel:r1(tr),dm:Math.round(dmOf(m)),task:j.cost,why:why,ok:!why,buddy:null,alive:alive.map(function(c){return c.name})}}
 var cv,cx,panel,jobsEl,infoEl,hoursEl,msgEl,warnEl;
 var P={x:-12,z:0,yaw:0,tgt:null,auto:false,act:null,prog:0,t:0,step:0},keys={},npcs=[],lastT=0,wasStorm=false,fx=[];
 function S(){return window.__S?window.__S():null}
@@ -41,39 +55,71 @@ var j=JOB[m.kind];if(!j){return{kind:"none",label:"Nothing to do here",cost:0,ok
 if(w.done[key(m)]){return{kind:"chore",label:j[0],cost:0,ok:false,done:true,why:"Done for this sol."}}
 if(storm&&OUT[m.kind]){return{kind:"chore",label:j[0],cost:COST.chore,ok:false,why:"Too dangerous outside during the storm."}}
 return{kind:"chore",label:j[0],cost:COST.chore,ok:true,why:""}}
+var planEl=null;
+function hidePlan(){P.pend=null;if(planEl){planEl.hidden=true}}
+function go(buddy){var p=P.pend;if(!p){return}if(p.plan.alive.indexOf(buddy)<0){buddy=p.plan.alive[0]}p.plan.buddy=buddy;P.act={m:p.m,j:p.j,plan:p.plan};P.prog=0;P.tgt=null;P.mini=null;hidePlan();say(p.j.label+"...");if(window.__suit&&p.plan&&!(window.__walkFast&&!window.__evaReal)){window.__suit.begin(P.act)}}
+function propose(s,m,j){var pl=planOf(s,m,j);if(!pl.ok){say(pl.why);return}
+P.pend={m:m,j:j,plan:pl};
+if(window.__walkFast){go(pl.alive[0]);return}
+var o="<b>EVA plan: "+esc2(j.label)+"</b> ("+esc2(m.name)+")<br>Egress "+EVA.egress+" h + walk out "+pl.travel+" h ("+pl.dm+" m at 2 km/h) + task "+pl.task+" h + walk back "+pl.travel+" h + ingress "+EVA.ingress+" h = <b>"+pl.total+" h</b> of your "+W(s).hours+" h left.<br>Time reserve kept: "+EVA.reserve+" h (real suits carry a reserve: the ISS suit keeps 30 min and the Artemis suit spec has 1 h of contingency). Walk-back check: on foot it takes "+pl.travel+" h, under this game's invented cap of "+EVA.walkMax+" h (NASA limits real range by the walk back, but the 1 h cap is the game's own rule). You and your buddy each take the full outside dose for every hour out; it is not split."+(window.__suit?window.__suit.planHtml(pl):"")+"<br><label>Your EVA buddy <select id='wkBuddy'>"+pl.alive.map(function(n){return"<option>"+esc2(n)+"</option>"}).join("")+"</select></label> <button type='button' id='wkGo'>Start EVA</button> <button type='button' id='wkNo'>Cancel</button><br><small>Simplified for play: distances are invented, walking is sped up, and the 8 working hours a sol are a game rule. Not a validated EVA timeline.</small>";
+planEl.innerHTML=o;planEl.hidden=false;say("Review the EVA plan below, then press Start EVA.");
+document.getElementById("wkGo").onclick=function(){go(document.getElementById("wkBuddy").value)};document.getElementById("wkNo").onclick=function(){hidePlan();say("EVA cancelled.")}}
+function esc2(t){return String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;")}
+function lockMini(){var s=S(),q=P.mini;if(!s||!q){return}var hit=Math.abs(q.x-.5)<((P.act&&P.act.j&&P.act.j.tol)||.13);q.n++;if(hit){q.hits++}q.v+=.35;say((hit?"Good seat":"Missed the mark")+" ("+q.hits+" of "+q.n+").");
+if(q.n>=3){var a=P.act;a.j.hits=q.hits;P.act=null;P.mini=null;P.prog=0;apply(s,a.m,a.j,a.plan)}}
+function miniStep(dt){var q=P.mini||(P.mini={n:0,hits:0,x:0,d:1,v:reduce?.45:.9});q.x+=q.d*q.v*dt;if(q.x>=1){q.x=1;q.d=-1}if(q.x<=0){q.x=0;q.d=1}}
 function start(){
 var s=S();if(!s||s.over){return}
+if(P.act&&P.mini){lockMini();return}
+if(P.act&&P.act.plan){say("Finish this sortie first: answer the question on screen or wait for the task.");return}
+if(P.pend){return}
+var sv=window.__survey&&window.__survey.find(s,P.x,P.z,P.yaw);
+if(sv){if(isStorm(s)){say("Too dangerous outside during the storm.");return}
+return propose(s,{name:"fictional survey map",idx:-99,dm:sv.dm,kind:"stake",rad:3},{kind:"survey",label:"Survey reading at "+sv.name,cost:1,spot:sv.id})}
 var m=near(s,true);if(!m){say("Walk up to a module and face it first.");return}
 var j=jobFor(s,m),w=W(s);
 if(!j.ok){say(j.why||"Nothing to do here.");return}
+if(isOut(m)&&evaOn()&&(j.kind==="chore"||j.kind==="fix")){return propose(s,m,j)}
 if(w.hours<j.cost){say("Not enough hours left today. Press Advance one sol to start a new day.");return}
 if(j.kind==="fix"){}
 P.act={m:m,j:j};P.prog=0;P.tgt=null;say(j.label+"...")}
-function apply(s,m,j){
-var w=W(s);w.hours-=j.cost;w.jobs++;var E_=E();var msg="";
-if(j.kind==="mission"){var y=missionYield(s);s.res.science+=y;s.totals.science=(s.totals.science||0)+y;w.exp++;msg="Experiment finished: +"+y+" science.";}
-else if(j.kind==="fix"){var before=s.res.parts;var ok=E_.repair(s,m.idx);if(!ok){w.hours+=j.cost;w.jobs--;say("Not enough parts to patch it. Parts: "+Math.floor(s.res.parts));return}msg="Fault patched ("+(before-s.res.parts)+" parts)."}
+function apply(s,m,j,plan){
+var w=W(s),cost=(plan&&plan.total!=null)?plan.total:j.cost;w.hours=r1(w.hours-cost);w.jobs++;var E_=E();var msg="";
+if(j.kind==="mission"){var y=missionYield(s);s.res.science+=y;s.totals.science=(s.totals.science||0)+y;w.exp++;msg="Experiment finished: +"+y+" science.";if(window.__lab){msg+=" "+window.__lab.reading(s)}}
+else if(j.kind==="fix"){var before=s.res.parts;var ok=E_.repair(s,m.idx);if(!ok){w.hours=r1(w.hours+cost);w.jobs--;say("Not enough parts to patch it. Parts: "+Math.floor(s.res.parts));return}msg="Fault patched ("+(before-s.res.parts)+" parts).";if(j.hits!=null){var rf=Math.max(0,j.hits-1);if(rf){s.res.parts+=rf}msg+=" Steady hands: "+j.hits+" of 3 on the mark, "+rf+" part"+(rf===1?"":"s")+" saved."}}
+else if(j.kind==="survey"){msg=window.__survey.take(s,j.spot)}
 else{var d=JOB[m.kind],amt=d[2],urgent=(d[1]==="o2"||d[1]==="water"||d[1]==="food")&&s.res[d[1]]<40;if(urgent){amt*=2}
 w.done[key(m)]=1;
 if(d[1]==="morale"){s.crew.forEach(function(c){if(c.health>0){c.morale=Math.min(100,c.morale+amt)}});msg="Crew morale +"+amt+"."}
 else if(d[1]==="health"){var lo=s.crew.filter(function(c){return c.health>0}).sort(function(a,b){return a.health-b.health})[0];if(lo){lo.health=Math.min(100,lo.health+amt)}msg="Health +"+amt+" for the crew member who needed it most."}
 else if(d[1]==="science"){s.res.science+=amt;s.totals.science=(s.totals.science||0)+amt;msg="+"+amt+" science."}
 else{s.res[d[1]]=(s.res[d[1]]||0)+amt;msg="+"+amt+" "+d[1]+(urgent?" (urgent, doubled).":".")}}
+if(plan){var bd=s.crew.filter(function(c){return c.name===plan.buddy})[0];if(bd){bd.fatigue=Math.min(100,(bd.fatigue||0)+Math.round(plan.total*3))}
+if(window.__lab&&window.__lab.evaDose){window.__lab.evaDose(s,plan.buddy,plan.total)}
+msg+=" EVA "+plan.total+" h with "+(plan.buddy||"your buddy")+".";if(window.__suit&&plan.suit){msg+=window.__suit.finish(s,plan,j,{act:{ev:j.ev}})}}
 s.log.unshift({sol:s.sol,msg:"Walk: "+j.label+(msg?" "+msg:"")});
 if(window.__render){window.__render()}
 say(msg+" "+w.hours+" hour"+(w.hours===1?"":"s")+" left today.");
 for(var i=0;i<14;i++){fx.push({x:cv.width/2+(Math.random()*120-60),y:cv.height*.7,vx:Math.random()*4-2,vy:-2-Math.random()*3,l:1,c:j.kind==="fix"?"#ffd166":"#7be0a0"})}
 list()}
+function abortEva(a,ev){var s=S(),w=W(s),pl=a.plan,tot=r1(EVA.egress+EVA.ingress+2*pl.travel+a.j.cost*.5);
+P.act=null;P.mini=null;P.prog=0;w.hours=r1(Math.max(0,w.hours-tot));w.jobs++;
+var bd=s.crew.filter(function(c){return c.name===pl.buddy})[0];if(bd){bd.fatigue=Math.min(100,(bd.fatigue||0)+Math.round(tot*3))}
+if(window.__lab&&window.__lab.evaDose){window.__lab.evaDose(s,pl.buddy,tot)}
+var msg=(ev?"EVA aborted after "+ev.t.charAt(0).toLowerCase()+ev.t.slice(1):"EVA called off because you left the walk view.")+" No task result. "+tot+" h spent with "+(pl.buddy||"your buddy")+".";
+if(window.__suit){msg+=window.__suit.finish(s,pl,a.j,{act:a,abort:true,total:tot})}
+s.log.unshift({sol:s.sol,msg:"Walk: "+a.j.label+" - "+msg});if(window.__render){window.__render()}
+say(msg+" "+w.hours+" hour"+(w.hours===1?"":"s")+" left today.");list()}
 function list(){
-var s=S();if(!s||!jobsEl){return}
+var s=S();if(!s||!jobsEl){return}if(window.__suit){window.__suit.refresh()}
 var w=W(s),ms=mods(s);
 hoursEl.innerHTML="<b>Hours left today: "+w.hours+" / "+w.total+"</b> &middot; Return window: sol "+s.sol+" of "+s.objectiveSols+" &middot; Mission science: "+Math.floor(s.res.science)+" / "+s.objectiveScience;
 var h="";
 ms.forEach(function(m){var j=jobFor(s,m);if(j.kind==="none"){return}
-var lab=(j.done?"\u2713 ":"")+m.name+": "+j.label+(j.cost?" ("+j.cost+" h)":"");
+var lab=(j.done?"\u2713 ":"")+m.name+": "+j.label+(j.cost?" ("+j.cost+" h"+(isOut(m)&&evaOn()&&j.kind!=="mission"?" + EVA":"")+")":"");
 h+='<button type="button" class="wkJob'+(j.kind==="fix"?" wkFix":"")+(j.kind==="mission"?" wkMis":"")+'" data-i="'+m.idx+'"'+((j.ok&&w.hours>=j.cost)?"":" disabled")+'>'+lab.replace(/&/g,"&amp;").replace(/</g,"&lt;")+'</button>'});
 jobsEl.innerHTML=h;
-jobsEl.querySelectorAll(".wkJob").forEach(function(b){b.onclick=function(){var i=parseInt(b.dataset.i,10);var m=mods(S()).filter(function(x){return x.idx===i})[0];if(m){P.tgt=m;P.auto=true;say("Walking to "+m.name+"...")}}});
+jobsEl.querySelectorAll(".wkJob").forEach(function(b){b.onclick=function(){var i=parseInt(b.dataset.i,10);var m=mods(S()).filter(function(x){return x.idx===i})[0];if(P.act&&P.act.plan){say("Finish this sortie first.");return}if(m){P.tgt=m;P.auto=true;say("Walking to "+m.name+"...")}}});
 var fc=E().forecast?E().forecast(s,1):null;
 var warn=isStorm(s)?"STORM: outdoor jobs are unsafe and the day is shorter. Stay inside and keep the lights on.":(fc&&fc.id==="storm"?"Storm warning for next sol: finish outdoor jobs now and make sure shielding is ready.":"");
 warnEl.textContent=warn;warnEl.hidden=!warn;
@@ -152,7 +198,7 @@ default:box(x,0,z,4.5,3.5,3,col,storm,al)}
 if(!m.done){var top=pr(x,h+1,z);if(top){cx.strokeStyle="#ffd166";cx.setLineDash([4,3]);cx.strokeRect(top.x-60*F/500/ (top.d/10),top.y,120*F/500/(top.d/10),60*F/500/(top.d/10));cx.setLineDash([])}}
 var lab=pr(x,h+2.2,z),st=S();
 if(m.damaged&&lab){var bk=reduce||Math.sin(t*8)>0;if(bk){var l2=pr(x,h+.8,z);if(l2){cx.fillStyle="rgba(255,70,70,.9)";cx.beginPath();cx.arc(l2.x,l2.y,Math.max(3,60/l2.d),0,6.3);cx.fill()}}
-if(!reduce){for(var sp=0;sp<4;sp++){var ph=(t*.6+sp*.25)%1,sm=pr(x+(sp-1.5)*.3,h+ph*5,z);if(sm){cx.fillStyle="rgba(150,150,150,"+(.5*(1-ph))+")";cx.beginPath();cx.arc(sm.x,sm.y,(.5+ph*1.4)*F/sm.d/2,0,6.3);cx.fill()}}}}
+if(!reduce){for(var sp=0;sp<4;sp++){var ph=Math.abs((t*.6+sp*.25)%1),sm=pr(x+(sp-1.5)*.3,h+ph*5,z);if(sm){cx.fillStyle="rgba(150,150,150,"+(.5*(1-ph))+")";cx.beginPath();cx.arc(sm.x,sm.y,(.5+ph*1.4)*F/sm.d/2,0,6.3);cx.fill()}}}}
 if(lab&&m.done&&!m.damaged&&st){var avail=(k==="mission"?W(st).exp<2:(JOB[k]&&!W(st).done[key(m)]&&!(isStorm(st)&&OUT[k])));if(avail){var by=reduce?0:Math.sin(t*3)*.25;var mk=pr(x,h+1.6+by,z);if(mk){var sz=Math.max(4,.5*F/mk.d);cx.fillStyle=k==="mission"?"#6fd3ff":"#7be0a0";cx.beginPath();cx.moveTo(mk.x,mk.y);cx.lineTo(mk.x-sz,mk.y-sz*1.6);cx.lineTo(mk.x+sz,mk.y-sz*1.6);cx.fill()}}}
 if(lab&&d0<42){cx.fillStyle="rgba(232,242,255,"+(1-d0/42)+")";cx.font=Math.max(10,Math.min(15,220/lab.d*1))+"px Verdana";cx.textAlign="center";cx.fillText(m.name,lab.x,lab.y);cx.textAlign="left"}}
 function drawAstro(sx,gy,scale,suit,vis,work){
@@ -177,13 +223,15 @@ var storm=isStorm(s),ms=mods(s);
 var dt=lastT?Math.min(.05,(now-lastT)/1000):0;lastT=now;P.t+=dt;
 var turn=(keys.r?1:0)-(keys.l?1:0),fwd=(keys.u?1:0)-(keys.d?1:0);
 var sp=(storm?2.2:3.4);
-if(turn||fwd){P.tgt=null;P.auto=false;P.act=null}
+if(P.act&&P.act.plan&&(turn||fwd)){turn=0;fwd=0}
+if(turn||fwd){P.tgt=null;P.auto=false;P.act=null;P.mini=null;if(P.pend){hidePlan()}}
 if(P.tgt){var dx=P.tgt.wx-P.x,dz=P.tgt.wz-P.z,dd=Math.sqrt(dx*dx+dz*dz),want=Math.atan2(dz,dx),df=want-P.yaw;while(df>Math.PI){df-=6.2832}while(df<-Math.PI){df+=6.2832}
 P.yaw+=Math.max(-3*dt,Math.min(3*dt,df));
 if(Math.abs(df)<.35){if(dd>P.tgt.rad+7){fwd=1}else{P.tgt=null;if(P.auto){P.auto=false;start()}}}}
 P.yaw+=turn*1.9*dt;cosY=Math.cos(P.yaw);sinY=Math.sin(P.yaw);
-if(fwd){var nx=P.x+cosY*sp*dt*fwd,nz=P.z+sinY*sp*dt*fwd;var ok=true;ms.forEach(function(m){if(dist2(nx,nz,m.wx,m.wz)<m.rad+0.8){ok=false}});if(ok){P.x=nx;P.z=nz}P.step+=dt*(reduce?0:8)}
-if(P.act){P.prog+=window.__walkFast?1:dt/1.1;if(P.prog>=1){var a=P.act;P.act=null;P.prog=0;apply(s,a.m,a.j)}}
+if(fwd){var nx=P.x+cosY*sp*dt*fwd,nz=P.z+sinY*sp*dt*fwd;var ok=true;ms.forEach(function(m){if(dist2(nx,nz,m.wx,m.wz)<m.rad+0.8){ok=false}});if(!ok&&P.tgt){var offs=[.8,-.8,1.4,-1.4,1.9,-1.9];for(var oi=0;oi<offs.length&&!ok;oi++){var ax=P.x+Math.cos(P.yaw+offs[oi])*sp*dt,az=P.z+Math.sin(P.yaw+offs[oi])*sp*dt,ok2=true;ms.forEach(function(m){var dn=dist2(ax,az,m.wx,m.wz);if(dn<m.rad+0.8&&dn<dist2(P.x,P.z,m.wx,m.wz)+0.002){ok2=false}});if(ok2){nx=ax;nz=az;ok=true}}}
+if(ok){P.x=nx;P.z=nz}P.step+=dt*(reduce?0:8)}
+if(P.act&&P.act.paused){}else if(P.act){if(P.act.j.kind==="fix"&&!window.__walkFast){miniStep(dt)}else{P.prog+=window.__walkFast?1:dt/1.1;if(P.act.plan&&window.__suit&&!P.act.chk&&P.act.j.kind!=="fix"&&(P.prog>=.5||window.__walkFast)&&!(window.__walkFast&&!window.__evaReal)){P.act.chk=1;window.__suit.mid(P.act)}if(P.act&&!P.act.paused&&P.prog>=1){var a=P.act;P.act=null;P.prog=0;apply(s,a.m,a.j,a.plan)}}}
 if(storm!==wasStorm){wasStorm=storm;list()}
 var bob=(!reduce&&fwd)?Math.sin(P.step)*3:0;HZ=ch*.5+bob;
 var t=P.t;
@@ -206,11 +254,13 @@ if(!ok){return}cx.beginPath();cx.moveTo(ring[0].x,ring[0].y);for(var j=1;j<ring.
 var items=[];
 rocks.forEach(function(r){var d=dist(r.x,r.z);if(d<1.5||d>110){return}var dx=r.x-P.x,dz=r.z-P.z;var dep=dx*cosY+dz*sinY;if(dep<.4){return}items.push({d:d,t:"r",r:r})});
 ms.forEach(function(m){var d=dist(m.wx,m.wz);items.push({d:d,t:"m",m:m})});
+if(window.__survey){window.__survey.spots(s).forEach(function(o){items.push({d:dist(o.x,o.z),t:"s",o:o})})}
 var npcl=drawNpcs(s,ms,dt,storm);npcl.forEach(function(o){items.push({d:o.p.d,t:"n",o:o})});
 items.sort(function(a,b){return b.d-a.d});
 items.forEach(function(it){
 if(it.t==="r"){var p=pr(it.r.x,0,it.r.z);if(!p){return}var rr=Math.max(1,it.r.s*F/p.d),f=fogOf(it.d,storm);cx.fillStyle=shade([70,72,82],1,f);cx.beginPath();cx.ellipse(p.x,p.y-rr*.3,rr,rr*.6,0,0,6.3);cx.fill();cx.fillStyle="rgba(0,0,0,.3)";cx.beginPath();cx.ellipse(p.x+rr*.7,p.y,rr*1.2,rr*.25,0,0,6.3);cx.fill()}
 else if(it.t==="m"){drawMod(it.m,s,storm,t)}
+else if(it.t==="s"){window.__survey.draw(it.o,cx,pr,F,fogOf,storm,t,s)}
 else{var o=it.o,sc=(1.8*F/o.p.d)/72;drawAstro(o.p.x,o.p.y,sc,o.n.col,"#334",false)}});
 /* storm dust */
 if(storm){cx.fillStyle="rgba(120,80,50,.22)";cx.fillRect(0,0,cw,ch);if(!reduce){cx.strokeStyle="rgba(235,205,170,.4)";cx.lineWidth=1;for(var d2=0;d2<70;d2++){var px=((d2*71+t*520)%(cw+80))-40,py=(d2*37+t*50)%ch;cx.beginPath();cx.moveTo(cw-px,py);cx.lineTo(cw-px-30-d2%20,py+3);cx.stroke()}}}
@@ -229,9 +279,11 @@ glove(cw*.28,hy+wk);glove(cw*.72,hy-wk);
 var w=W(s);cx.font="bold 13px Verdana";cx.fillStyle="rgba(111,211,255,.9)";cx.fillText("HRS "+w.hours+"/"+w.total,cw*.12,34);cx.fillText("SOL "+s.sol+"/"+s.objectiveSols,cw*.12,52);cx.textAlign="right";cx.fillText("SCI "+Math.floor(s.res.science)+"/"+s.objectiveScience,cw*.88,34);cx.fillText("O2 "+Math.floor(s.res.o2),cw*.88,52);cx.textAlign="left";
 /* crosshair + prompt */
 cx.strokeStyle="rgba(255,255,255,.5)";cx.lineWidth=1;cx.beginPath();cx.moveTo(cw/2-8,HZ);cx.lineTo(cw/2+8,HZ);cx.moveTo(cw/2,HZ-8);cx.lineTo(cw/2,HZ+8);cx.stroke();
-if(P.act){cx.fillStyle="rgba(0,0,0,.6)";cx.fillRect(cw/2-70,ch*.62,140,10);cx.fillStyle="#7be0a0";cx.fillRect(cw/2-70,ch*.62,140*Math.min(1,P.prog),10)}
+if(P.act&&P.mini){var q=P.mini,bx=cw/2-110,by=ch*.6;cx.fillStyle="rgba(0,0,0,.65)";cx.fillRect(bx-6,by-22,232,52);cx.fillStyle="#2b3350";cx.fillRect(bx,by,220,14);cx.fillStyle="#3fbf7a";cx.fillRect(bx+220*.37,by,220*.26,14);cx.fillStyle="#fff";cx.fillRect(bx+220*q.x-2,by-4,4,22);cx.font="12px Verdana";cx.textAlign="center";cx.fillStyle="#cfe6ff";cx.fillText("Seat the patch: press E when the bar is in the green ("+q.n+"/3)",cw/2,by-8);cx.textAlign="left"}
+else if(P.act){cx.fillStyle="rgba(0,0,0,.6)";cx.fillRect(cw/2-70,ch*.62,140,10);cx.fillStyle="#7be0a0";cx.fillRect(cw/2-70,ch*.62,140*Math.min(1,P.prog),10)}
 var nm=near(s,true);var txt="";
 if(nm&&!P.act){var j=jobFor(s,nm);txt=nm.name+": "+(j.kind==="none"?j.label:(j.ok?j.label+"  [E]":(j.why||j.label)))}else if(!P.act){var any=near(s,false);if(any){txt="Turn to face "+any.name+" (arrow keys or A and D)"}}
+if(!txt&&!P.act&&!P.pend&&window.__survey){var svp=window.__survey.prompt(s,P.x,P.z,P.yaw);if(svp){txt=svp}}
 if(txt){cx.fillStyle="rgba(0,0,0,.62)";cx.fillRect(cw*.1,ch*.84,cw*.8,24);cx.fillStyle="#fff";cx.font="13px Verdana";cx.textAlign="center";cx.fillText(txt,cw/2,ch*.84+16);cx.textAlign="left"}}
 function dist2(a,b,c,d){return Math.sqrt((a-c)*(a-c)+(b-d)*(b-d))}
 function loop(now){drawFP(now);requestAnimationFrame(loop)}
@@ -243,16 +295,16 @@ panel.innerHTML='<h2>Walk the base</h2><p class="hint">You are the astronaut, se
 '<div id="wkHours"></div><div id="wkWarn" class="wkWarn" hidden></div><div id="wkInfo"></div>'+
 '<canvas id="wkCv" width="800" height="450" tabindex="0" aria-label="First-person view of the outpost. Left and right arrows turn, up and down arrows walk, E does the job you are facing."></canvas>'+
 '<div class="wkPad"><button type="button" id="wkL" aria-label="Turn left">&#8630;</button><button type="button" id="wkU" aria-label="Walk forward">&#9650;</button><button type="button" id="wkD" aria-label="Walk back">&#9660;</button><button type="button" id="wkR" aria-label="Turn right">&#8631;</button><button type="button" id="wkAct">Do job (E)</button></div>'+
-'<div id="wkMsg" role="status" aria-live="polite">Walk to a module to start.</div><h3 class="wkH">Today\'s jobs</h3><div id="wkJobs"></div>'+
+'<div id="wkMsg" role="status" aria-live="polite">Walk to a module to start.</div><div id="wkPlan" class="labBox" hidden></div><h3 class="wkH">Today\'s jobs</h3><div id="wkJobs"></div>'+
 '<p class="hint">Small rewards, small costs: jobs are simplified teaching rules. Advance one sol ends the day and unused hours are lost.</p>';
 var sp=$("statusPanel");g.insertBefore(panel,sp);
-cv=$("wkCv");cx=cv.getContext("2d");jobsEl=$("wkJobs");infoEl=$("wkInfo");hoursEl=$("wkHours");msgEl=$("wkMsg");warnEl=$("wkWarn");
+cv=$("wkCv");cx=cv.getContext("2d");jobsEl=$("wkJobs");planEl=$("wkPlan");infoEl=$("wkInfo");hoursEl=$("wkHours");msgEl=$("wkMsg");warnEl=$("wkWarn");
 function hold(id,k){var b=$(id);var on=function(e){e.preventDefault();keys[k]=true},off=function(){keys[k]=false};b.addEventListener("pointerdown",on);b.addEventListener("pointerup",off);b.addEventListener("pointerleave",off);b.addEventListener("pointercancel",off)}
 hold("wkL","l");hold("wkR","r");hold("wkU","u");hold("wkD","d");$("wkAct").onclick=start;
 document.addEventListener("keydown",function(e){var gm=$("game");if(!gm||gm.dataset.feat!=="walk"){return}var t=e.target&&e.target.tagName;if(t==="INPUT"||t==="SELECT"||t==="TEXTAREA"){return}
 var k=e.key;if(k==="ArrowLeft"||k==="a"||k==="A"){keys.l=true;e.preventDefault()}else if(k==="ArrowRight"||k==="d"||k==="D"){keys.r=true;e.preventDefault()}else if(k==="ArrowUp"||k==="w"||k==="W"){keys.u=true;e.preventDefault()}else if(k==="ArrowDown"||k==="s"||k==="S"){keys.d=true;e.preventDefault()}else if(k==="e"||k==="E"||(k===" "&&e.target===cv)){start();e.preventDefault()}});
 document.addEventListener("keyup",function(e){var k=e.key;if(k==="ArrowLeft"||k==="a"||k==="A"){keys.l=false}else if(k==="ArrowRight"||k==="d"||k==="D"){keys.r=false}else if(k==="ArrowUp"||k==="w"||k==="W"){keys.u=false}else if(k==="ArrowDown"||k==="s"||k==="S"){keys.d=false}});
-cv.addEventListener("click",function(e){var s=S();if(!s){return}var r=cv.getBoundingClientRect(),mx=(e.clientX-r.left)*cv.width/r.width,best=null,bd=1e9;mods(s).forEach(function(m){var p=pr(m.wx,2,m.wz);if(p){var d=Math.abs(p.x-mx);if(d<bd&&d<cv.width*.18){bd=d;best=m}}});if(best){P.tgt=best;P.auto=false;P.act=null;say("Walking to "+best.name+"...")}});
+cv.addEventListener("click",function(e){var s=S();if(!s){return}if(P.act&&P.mini){lockMini();return}var r=cv.getBoundingClientRect(),mx=(e.clientX-r.left)*cv.width/r.width,best=null,bd=1e9;mods(s).forEach(function(m){var p=pr(m.wx,2,m.wz);if(p){var d=Math.abs(p.x-mx);if(d<bd&&d<cv.width*.18){bd=d;best=m}}});if(best){P.tgt=best;P.auto=false;P.act=null;say("Walking to "+best.name+"...")}});
 /* menu card, first in the Mission menu */
 var card=document.createElement("button");card.className="wbCard wkCard";card.setAttribute("data-feat","walk");card.innerHTML="<b>Walk the base</b><span>Play the astronaut: daily jobs, faults and the mission clock</span>";
 var first=document.querySelector('.wbCard[data-feat="status"]');if(first&&first.parentNode){first.parentNode.insertBefore(card,first)}
@@ -262,6 +314,10 @@ var prev=window.__featRefresh.walk;window.__featRefresh.walk=function(){list();i
 setInterval(function(){var gm=$("game");if(gm&&gm.dataset.feat==="walk"){list()}},1500);
 window.__walkHome=function(){var t=$("tour");return !(t&&!t.hidden)};
 window.__walk={near:function(){return near(S(),true)},state:function(){var s=S();return s?W(s):null},teleport:function(x){var m=mods(S()).filter(function(q){return q.x===x})[0];if(m){P.x=m.wx-m.rad-7;P.z=m.wz;P.yaw=0;P.tgt=null}},pose:function(){return{x:P.x,z:P.z,yaw:P.yaw}},start:start,hours:function(){var s=S();return s?W(s).hours:0},mods:function(){return mods(S())},tick:function(ms){drawFP(performance.now()+ms)}};
+window.__walk.goto=function(x,z){if(P.act&&P.act.plan){say("Finish this sortie first.");return}P.tgt={wx:x,wz:z,rad:-4,name:"stake"};P.auto=true;P.act=null;P.mini=null;hidePlan();say("Walking out to the survey stake...")};
+window.__walk.teleportXZ=function(x,z,yaw){P.x=x;P.z=z;P.yaw=yaw||0;P.tgt=null};
+window.__walk.mini=function(x){if(P.mini&&x!=null){P.mini.x=x}return P.mini};
+window.__walk.pend=function(){return P.pend};window.__walk.go=function(b){go(b||(P.pend&&P.pend.plan.alive[0]))};window.__walk.plan=planOf;window.__walk._abort=abortEva;window.__walk.busy=function(){return !!(P.act&&P.act.plan)};window.__walk.callOff=function(){if(P.act&&P.act.plan){var a=P.act;a.paused=false;abortEva(a,null);if(window.__suit){window.__suit.hideCard()}}};
 requestAnimationFrame(loop)}
 if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",build)}else{build()}
 })();

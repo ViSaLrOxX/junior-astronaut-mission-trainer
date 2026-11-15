@@ -30,3 +30,23 @@ body.storyOn #cockpitWrap{padding:4px 12px;margin:6px 0}
 body.hc #stOv{background:#000}
 body.hc #stCard{background:#000;border:2px solid #fff}
 body.hc #stCard button{background:#000;color:#fff;border:2px solid #fff}
+
+/* science notebook */
+.labBox{border:1px solid rgba(80,220,200,.35);border-radius:8px;padding:10px 12px;margin:10px 0;background:rgba(8,16,28,.55)}
+.labTb{border-collapse:collapse;width:100%;font-size:.9em;margin:6px 0}
+.labTb th,.labTb td{border-bottom:1px solid rgba(255,255,255,.12);padding:3px 6px;text-align:left}
+.labBox a{color:#7fe3d6;word-break:break-all}
+.labLog{font-style:italic;line-height:1.5}
+#labPatch{max-width:100%;height:auto}
+#labPanel{grid-column:1/-1;max-width:100%;box-sizing:border-box}
+#labPanel select{max-width:100%;width:auto}
+
+/* radio calls: while Walk the base is open, the story card sits inline in the walk panel under the controls. It does not cover the view, the walk buttons or the footer. */
+#stOv.docked{position:static;inset:auto;background:none;display:block;padding:0;margin:8px 0;z-index:auto}
+#stOv.docked #stCard{max-height:none;max-width:none;width:auto;border-left:4px solid var(--acc)}
+#stOv.docked #stCard::before{content:"RADIO CALL - you can keep walking";display:block;font-size:.72rem;letter-spacing:.08em;color:var(--ok);margin-bottom:6px}
+#wkPlan{margin:8px 0;line-height:1.5}#wkPlan button{margin:4px 6px 0 0}
+#stOv.docked[hidden]{display:none}
+#wkCheck{margin:8px 0}#wkObj{margin-bottom:4px}#wkCheck button,.wkOpt{margin:4px 6px 0 0}
+#wkPlan .wkBtns{display:flex;flex-direction:column;gap:6px;margin-top:8px}#wkPlan .wkOpt{display:block;width:100%;text-align:left;margin:0}
+#wkPlan ul{margin:6px 0 6px 18px}

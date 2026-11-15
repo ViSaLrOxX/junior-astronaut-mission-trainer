@@ -527,3 +527,6 @@ main.wb-open[data-feat="walk"] section.panel[data-feat="walk"]:not([hidden]){dis
 #r650HuntOut{font-size:1.05rem}
 .r580card{font-size:1rem}
 main.wb-open[data-feat="lab"] section.panel[data-feat="lab"]:not([hidden]){display:block!important}
+#ckFrame{position:fixed;inset:0;pointer-events:none;z-index:-1}
+main{padding-bottom:150px}
+body{padding-bottom:150px}
