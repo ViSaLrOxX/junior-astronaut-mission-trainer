@@ -127,6 +127,9 @@ $("quizOpts").innerHTML="";
 setTimeout(function(){qp.hidden=true;render()},4200);
 render()}});
 }else{qp.hidden=true}
+var quizNow=s.pendingQuiz!==null&&!s.over;
+if(quizNow&&!window.__quizWas&&window.__openFeat){window.__openFeat("quiz")}
+window.__quizWas=quizNow;
 var lg="";
 s.log.forEach(function(e){lg+='<div><span class="sol">Sol '+e.sol+":</span> "+e.msg+"</div>"});
 $("log").innerHTML=lg;
@@ -202,7 +205,7 @@ if(sc){TrainerEngine.setScenario(s,sc)}
 TrainerEngine.setMissionName(s,$("nameSel").value);
 TrainerEngine.setObjectiveMode(s,$("objSel").value);
 $("setup").hidden=true;$("game").hidden=false;render();if(window.__tourEvent){window.__tourEvent("launch")}};
-$("solBtn").onclick=function(){if(!s)return;TrainerEngine.tick(s);render();var sp=$("statusPanel");sp.classList.remove("pulse");void sp.offsetWidth;sp.classList.add("pulse")};
+$("solBtn").onclick=function(){if(!s)return;TrainerEngine.tick(s);render();if(window.__openFeat&&!window.__quizWas){window.__openFeat("status")}var sp=$("statusPanel");sp.classList.remove("pulse");void sp.offsetWidth;sp.classList.add("pulse")};
 $("autoBtn").onclick=function(){
 if(!s)return;
 if(autoTimer){clearInterval(autoTimer);autoTimer=null;$("autoBtn").textContent="Auto: off";return}
@@ -437,19 +440,30 @@ var steps=[
 {text:"Hi, future commander! This is your mission control. Let me show you around - it takes about a minute."},
 {target:"setup",text:"First, set up your mission: give it a name, pick the Moon or Mars, and choose how hard it should be. The table shows what each site is like."},
 {target:"startBtn",text:"When it looks good, press Launch and the tour continues inside your base.",wait:"launch"},
-{target:"statusPanel",text:"These are your gauges: oxygen, water, food, parts and science. If air, water or food hits zero, your crew is in real trouble."},
-{target:"buildList",text:"Spend parts to build. A Solar Array for power and an O2 Generator for air are great first choices."},
-{target:"techList",text:"Research spends science points on upgrades that last the whole mission."},
-{target:"crewList",text:"This is your crew. Keep them healthy, rested and cheerful - tired or sad astronauts work worse."},
-{target:"solBtn",text:"Now live one sol (one day) at a time. Press this and watch your gauges move."},
-{target:"log",text:"The log writes down everything that happens, sol by sol."},
+{target:"menuMission",menu:true,text:"Your base is a set of workbenches. Each card opens one; the Back to menu button returns here. The tour will open a few for you."},
+{target:"statusPanel",feat:"status",text:"These are your gauges: oxygen, water, food, parts and science. If air, water or food hits zero, your crew is in real trouble."},
+{target:"buildList",feat:"build",text:"Spend parts to build. A Solar Array for power and an O2 Generator for air are great first choices."},
+{target:"techList",feat:"research",text:"Research spends science points on upgrades that last the whole mission."},
+{target:"crewList",feat:"crew",text:"This is your crew. Keep them healthy, rested and cheerful - tired or sad astronauts work worse."},
+{target:"solBtn",menu:true,text:"Now live one sol (one day) at a time. Press this and the status board opens so you can watch your gauges move."},
+{target:"log",feat:"log",text:"The log writes down everything that happens, sol by sol."},
+{target:"viewNav",menu:true,text:"Up here you switch rooms: Mission to run the base, Learn & play for quizzes and drills, Reports for charts and downloads."},
 {text:"You are ready, commander! Press How to play any time you want this tour again. Good luck!"}
 ];
 var cur=0,active=false;
 function clearGlow(){document.querySelectorAll(".tourGlow").forEach(function(x){x.classList.remove("tourGlow")})}
+function openFeat(f){
+var m=G("game");
+m.classList.add("wb-open");
+m.dataset.feat=f;
+if(f==="quiz"&&G("quizPanel").hidden){G("quizPanel").hidden=false;if(!G("quizQ").textContent){G("quizQ").textContent="Mission Control will call with a quiz when something interesting happens."}}
+m.classList.remove("anim");void m.offsetWidth;m.classList.add("anim")}
+function closeFeat(){var m=G("game");m.classList.remove("wb-open");delete m.dataset.feat;m.classList.remove("anim");void m.offsetWidth;m.classList.add("anim")}
+window.__openFeat=openFeat;
 function showStep(){
 clearGlow();
 var st=steps[cur];
+if(st.feat){openFeat(st.feat)}else if(st.menu){closeFeat()}
 G("tourText").textContent="Step "+(cur+1)+" of "+steps.length+": "+st.text;
 G("tourNext").textContent=cur===steps.length-1?"Done":"Next";
 if(st.target){var el=G(st.target);if(el){el.classList.add("tourGlow");try{el.scrollIntoView({block:"center",behavior:"smooth"})}catch(e){el.scrollIntoView()}}}
@@ -466,16 +480,19 @@ G("tourSkip").onclick=tourEnd;
 window.__tourEvent=function(name){if(active&&steps[cur].wait===name){cur++;showStep()}};
 G("helpBtn").onclick=tourStart;
 G("helpSetup").onclick=tourStart;
+document.querySelectorAll(".wbCard").forEach(function(b){b.onclick=function(){openFeat(b.dataset.feat)}});
+G("wbBack").onclick=closeFeat;
 try{if(!localStorage.getItem("tourDone")){tourStart()}}catch(e){tourStart()}
 var navBtns=document.querySelectorAll(".navBtn");
 navBtns.forEach(function(b){b.onclick=function(){
 var m=G("game");
+m.classList.remove("wb-open");delete m.dataset.feat;
 m.dataset.view=b.dataset.view;
 navBtns.forEach(function(x){x.classList.toggle("on",x===b)});
 m.classList.remove("anim");void m.offsetWidth;m.classList.add("anim")}});
 var cmd=false;
 try{cmd=localStorage.getItem("cmdMode")==="1"}catch(e){}
-function applyCmd(){document.body.classList.toggle("kid",!cmd);G("cmdBtn").textContent="Commander mode: "+(cmd?"on":"off")}
+function applyCmd(){document.body.classList.toggle("kid",!cmd);G("cmdBtn").textContent="Commander mode: "+(cmd?"on":"off");closeFeat()}
 G("cmdBtn").onclick=function(){cmd=!cmd;try{localStorage.setItem("cmdMode",cmd?"1":"0")}catch(e){};applyCmd()};
 applyCmd();
 var tips={"r5CrewBtn":"Table of your astronauts: role, level, health and morale","r5HealthBtn":"Average health, fatigue and morale","r5RolesBtn":"Who does what job, and their levels","r5ExhBtn":"Who is exhausted or away from base","r5MoraleBtn":"Highest, lowest and average morale","r5ResBtn":"Resource levels and how much each astronaut has","r5PaceBtn":"Science earned per sol versus the goal","r5ProjBtn":"Predicted final science and whether you win","r5RunwayBtn":"How many sols each resource will last","r5ShortBtn":"The resource that runs out first","r5DangerBtn":"Overall danger score from 0 to 100","r5OddsBtn":"Your chances of winning, in words","r5BldBtn":"Building types, damage and construction progress","r5CropBtn":"What your greenhouses are growing","r5PowBtn":"Power made, used and stored","r5ShieldBtn":"Radiation shield level and next upgrade cost","r5TechBtn":"Researched tech and the cheapest next one","r5Res2Btn":"Upgrades you can afford right now","r5AffordBtn":"Buildings you can afford right now","r5HistBtn":"How oxygen, water and food changed over time","r5BestBtn":"Your best and worst sol for oxygen","r5DeltaBtn":"Oxygen change since sol 1","r5UpBtn":"Events coming up soon","r5HazBtn":"The next danger on the calendar","r5CheckBtn":"Suggested next actions","r5StatusBtn":"One-line mission summary","r5QuizBtn":"Your quiz record","r5AchBtn":"How many badges you have earned","r5CrewCsvBtn":"Download the crew table as CSV","r5BldCsvBtn":"Download the buildings table as CSV","r5TechCsvBtn":"Download the tech table as CSV","r5SchedCsvBtn":"Download the event schedule as CSV","r5SnapBtn":"Download the full mission state as JSON","r5MdBtn":"Download the mission as a markdown document","r5AuditBtn":"Check the mission state for mistakes","r5GlossBtn":"Words a commander should know","r5FaqBtn":"Common questions and answers","r5TriviaBtn":"A fun space fact","r5Quiz2Btn":"Try one quiz question right now"};

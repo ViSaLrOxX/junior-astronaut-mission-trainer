@@ -46,25 +46,54 @@
 </section>
 <main id="game" hidden data-view="mission">
 <nav id="viewNav"><button class="navBtn on" data-view="mission">Mission</button><button class="navBtn" data-view="learn">Learn &amp; play</button><button class="navBtn" data-view="reports">Reports</button></nav>
-<section class="panel v-mission" id="statusPanel">
+<div class="wbMenu v-mission" id="menuMission">
+<button class="wbCard" data-feat="status"><b>Status board</b><span>Your gauges: air, water, food and power</span></button>
+<button class="wbCard" data-feat="build"><b>Build</b><span>Construct buildings and recruit crew</span></button>
+<button class="wbCard" data-feat="research"><b>Research</b><span>Upgrades that last the whole mission</span></button>
+<button class="wbCard" data-feat="crew"><b>Crew</b><span>Roster, rations and resupply</span></button>
+<button class="wbCard" data-feat="exped"><b>Expeditions</b><span>Send astronauts outside for supplies</span></button>
+<button class="wbCard" data-feat="outpost"><b>Outpost</b><span>Everything you have built</span></button>
+<button class="wbCard" data-feat="advisor"><b>Advisor</b><span>Hints from Mission Control</span></button>
+<button class="wbCard" data-feat="ops"><b>Ops actions</b><span>Quick fixes for the base</span></button>
+<button class="wbCard" data-feat="log"><b>Log</b><span>Everything that happened, sol by sol</span></button>
+</div>
+<div class="wbMenu v-learn" id="menuLearn">
+<button class="wbCard" data-feat="stats"><b>Stats &amp; records</b><span>How this mission is going, and best runs</span></button>
+<button class="wbCard" data-feat="daily"><b>Daily briefing</b><span>A new space fact every day</span></button>
+<button class="wbCard" data-feat="drill"><b>Event drill</b><span>Practice handling real emergencies</span></button>
+<button class="wbCard" data-feat="passport"><b>Knowledge passport</b><span>Master space facts one by one</span></button>
+<button class="wbCard" data-feat="marathon"><b>Quiz marathon</b><span>Twenty questions, three lives</span></button>
+<button class="wbCard" data-feat="timeline"><b>Event timeline</b><span>What can happen at each site</span></button>
+<button class="wbCard" data-feat="ach"><b>Achievements</b><span>Badges for smart commanding</span></button>
+<button class="wbCard" data-feat="hunt"><b>Achievement hunt</b><span>How close you are to each badge</span></button>
+</div>
+<div class="wbMenu v-reports" id="menuReports">
+<button class="wbCard" data-feat="analytics"><b>Analytics</b><span>A closer look at your mission numbers</span></button>
+<button class="wbCard" data-feat="history"><b>Resource history</b><span>Charts and data downloads</span></button>
+<button class="wbCard" data-feat="briefing"><b>Mission briefing</b><span>Reports, checklists and downloads</span></button>
+<button class="wbCard advOnly" data-feat="deep"><b>Deep analysis</b><span>Commander-level dashboards</span></button>
+<button class="wbCard advOnly" data-feat="workbench"><b>Mission workbench</b><span>Live reports over the mission</span></button>
+</div>
+<button id="wbBack">Back to menu</button>
+<section data-feat="status" class="panel v-mission" id="statusPanel">
 <h2 id="solLine">Sol 0</h2>
 <div id="objective"></div>
 <div id="bars"></div>
 <div id="powerLine"></div>
 <div id="forecastLine"></div>
 </section>
-<section class="panel v-mission">
+<section data-feat="build" class="panel v-mission">
 <h2>Build</h2>
 <p class="hint">Spend parts to construct buildings. Power and air come first.</p>
 <div id="buildList"></div>
 <button id="recruitBtn">Recruit crew (25 parts)</button>
 </section>
-<section class="panel v-mission">
+<section data-feat="research" class="panel v-mission">
 <h2>Research</h2>
 <p class="hint">Spend science points on upgrades that last the whole mission.</p>
 <div id="techList"></div>
 </section>
-<section class="panel v-mission">
+<section data-feat="crew" class="panel v-mission">
 <h2>Crew</h2>
 <p class="hint">Your astronauts. Keep them healthy, rested and cheerful.</p>
 <div id="crewList"></div>
@@ -81,33 +110,33 @@
 <option value="parts">Parts-heavy</option>
 </select></label>
 </section>
-<section class="panel v-mission">
+<section data-feat="exped" class="panel v-mission">
 <h2>Expeditions</h2>
 <p class="hint">Send crew outside to bring back resources and science.</p>
 <div id="expedList"></div>
 </section>
-<section class="panel v-mission">
+<section data-feat="outpost" class="panel v-mission">
 <h2>Outpost</h2>
 <p class="hint">Everything you have built, and what shape it is in.</p>
 <div id="baseList"></div>
 </section>
-<section class="panel v-mission" id="quizPanel" hidden>
+<section data-feat="quiz" class="panel v-mission" id="quizPanel" hidden>
 <h2>Mission Control Quiz</h2>
 <div id="quizQ"></div>
 <div id="quizOpts"></div>
 <div id="quizFact"></div>
 </section>
-<section class="panel v-mission">
+<section data-feat="advisor" class="panel v-mission">
 <h2>Mission advisor</h2>
 <div id="advice"></div>
 </section>
-<section class="panel v-learn">
+<section data-feat="stats" class="panel v-learn">
 <h2>Stats</h2>
 <p class="hint">How this mission is going, and your best runs.</p>
 <div id="statsPanel"></div>
 <div id="highScores"></div>
 </section>
-<section class="panel v-mission">
+<section data-feat="log" class="panel v-mission">
 <h2>Log</h2>
 <p class="hint">Everything that happens, sol by sol.</p>
 <div id="log"></div>
@@ -123,12 +152,12 @@
 <button id="newBtn">New mission</button>
 </div>
 <div id="endBanner" class="v-mission" hidden></div>
-<section class="panel v-learn">
+<section data-feat="ach" class="panel v-learn">
 <h2>Achievements</h2>
 <p class="hint">Badges for smart commanding.</p>
 <div id="ach"></div>
 </section>
-<section class="panel v-mission">
+<section data-feat="ops" class="panel v-mission">
 <h2>Ops actions</h2>
 <p class="hint">Quick fixes for the base.</p>
 <button id="cleanBtn">Clean panels (2 parts)</button>
@@ -137,7 +166,7 @@
 <button id="shelterBtn">Shelter mode next sol</button>
 <p class="hint" id="opsMsg"></p>
 </section>
-<section class="panel v-reports" style="grid-column:1/-1">
+<section data-feat="analytics" class="panel v-reports" style="grid-column:1/-1">
 <h2>Analytics</h2>
 <p class="hint">A closer look at your mission numbers.</p>
 <div id="analytics"></div>
@@ -145,7 +174,7 @@
 <div id="dryOut"></div>
 <details><summary>Event almanac for this site</summary><div id="evPreview"></div></details>
 </section>
-<section class="panel v-reports" style="grid-column:1/-1">
+<section data-feat="history" class="panel v-reports" style="grid-column:1/-1">
 <h2>Resource history</h2>
 <canvas id="histCv" width="1100" height="220"></canvas>
 <label>Trace <select id="histSel"><option value="o2">Oxygen</option><option value="water">Water</option><option value="food">Food</option><option value="parts">Parts</option><option value="science">Science</option></select></label>
@@ -153,7 +182,7 @@
 <button id="crewCsvBtn">Download crew CSV</button>
 <button id="shareBtn">Copy share text</button>
 </section>
-<section class="panel v-reports" style="grid-column:1/-1">
+<section data-feat="briefing" class="panel v-reports" style="grid-column:1/-1">
 <h2>Mission briefing</h2>
 <button id="reportBtn">Download report</button>
 <button id="reportJsonBtn">Report JSON</button>
@@ -169,7 +198,7 @@
 <details><summary>Endgame projection</summary><div id="projOut"></div></details>
 <details><summary>Checklists, glossary and FAQ</summary><div id="guideOut"></div></details>
 </section>
-<section class="panel advOnly v-reports" style="grid-column:1/-1">
+<section data-feat="deep" class="panel advOnly v-reports" style="grid-column:1/-1">
 <h2>Deep analysis</h2>
 <button id="dashBtn">Refresh dashboard</button>
 <button id="timelineCsvBtn">Download timeline CSV</button>
@@ -179,7 +208,7 @@
 <input id="logSearchIn" placeholder="log search term" style="max-width:140px">
 <div id="dashOut"></div>
 </section>
-<section class="panel advOnly v-reports" style="grid-column:1/-1"><h2>Mission workbench</h2>
+<section data-feat="workbench" class="panel advOnly v-reports" style="grid-column:1/-1"><h2>Mission workbench</h2>
 <p class="hint">Live reports over the running mission. Pick one; the table appears below.</p>
 <div class="row">
 <button id="r5CrewBtn">Crew summary</button>
@@ -233,26 +262,26 @@
 <div id="r5Out"></div>
 </section>
 
-<section class="panel v-learn">
+<section data-feat="daily" class="panel v-learn">
 <h2>Daily briefing</h2>
 <div class="r580card" id="r580Brief">-</div>
 <button id="r580BriefBtn">Show today's briefing</button>
 <button id="r580Trained">Mark today trained</button>
 <div id="r580Streak">Streak: 0</div>
 </section>
-<section class="panel v-learn">
+<section data-feat="drill" class="panel v-learn">
 <h2>Event drill</h2>
 <div id="r580DrillQ">-</div>
 <div id="r580DrillBtns"></div>
 <div id="r580DrillOut">-</div>
 </section>
-<section class="panel v-learn">
+<section data-feat="passport" class="panel v-learn">
 <h2>Knowledge passport</h2>
 <div id="r580PassBar">0% mastered</div>
 <div id="r580PassList"></div>
 <button id="r580PassExport">Copy passport</button>
 </section>
-<section class="panel v-learn">
+<section data-feat="marathon" class="panel v-learn">
 <h2>Quiz marathon</h2>
 <p class="hint">Twenty questions, three lives. Wrong answers cost a life; streaks pay bonus points.</p>
 <div id="r650Q">-</div>
@@ -260,13 +289,13 @@
 <div id="r650MarOut">-</div>
 <button id="r650Start">Start marathon</button>
 </section>
-<section class="panel v-learn">
+<section data-feat="timeline" class="panel v-learn">
 <h2>Event timeline</h2>
 <label>Site <select id="r650Site"><option value="">all sites</option><option value="moon">Moon</option><option value="mars">Mars</option></select></label>
 <button id="r650Tl">Show timeline</button>
 <div id="r650TlOut">-</div>
 </section>
-<section class="panel v-learn">
+<section data-feat="hunt" class="panel v-learn">
 <h2>Achievement hunt</h2>
 <div id="r650HuntOut">-</div>
 </section>

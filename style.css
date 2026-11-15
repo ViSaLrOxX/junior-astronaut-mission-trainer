@@ -87,9 +87,49 @@ main[data-view="mission"] .v-learn,main[data-view="mission"] .v-reports{display:
 main[data-view="learn"] .v-mission,main[data-view="learn"] .v-reports{display:none!important}
 main[data-view="reports"] .v-mission,main[data-view="reports"] .v-learn{display:none!important}
 @keyframes viewIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-main.anim .panel,main.anim #controls{animation:viewIn .25s ease both}
+main.anim .panel,main.anim #controls,main.anim .wbMenu{animation:viewIn .25s ease both}
 main.anim .panel:nth-of-type(n+2){animation-delay:.04s}
 main.anim .panel:nth-of-type(n+4){animation-delay:.08s}
 #log div{animation:viewIn .25s ease both}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
-@media print{header,#controls,#setup{display:none}body{background:#fff;color:#000}}
+@media print{main section.panel[data-feat]{display:block!important}}
+@media print{header,#controls,#setup,#viewNav,.wbMenu,#wbBack{display:none}body{background:#fff;color:#000}}
+
+.wbMenu{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+.wbCard{display:flex;flex-direction:column;align-items:flex-start;gap:2px;background:#fff;color:#1c2430;border:1px solid #dfe4ec;border-radius:10px;padding:12px 14px;text-align:left;transition:border-color .15s ease,transform .15s ease,box-shadow .15s ease}
+.wbCard b{font-size:.95rem;color:#33405a;font-weight:650}
+.wbCard span{font-size:.8rem;color:#5b6675}
+.wbCard:hover{background:#fff;border-color:#2058c9;transform:translateY(-2px);box-shadow:0 4px 12px rgba(16,24,40,.08)}
+#wbBack{grid-column:1/-1;justify-self:start;display:none;background:#fff;color:#2058c9;border:1px solid #c9d2e0}
+#wbBack:hover{background:#eef2fa;border-color:#2058c9}
+main section.panel[data-feat]{display:none!important}
+main.wb-open .wbMenu{display:none}
+main.wb-open #wbBack{display:block}
+main.wb-open section.panel[data-feat]{display:none!important}
+main.wb-open[data-feat="status"] section.panel[data-feat="status"]:not([hidden]),
+main.wb-open[data-feat="build"] section.panel[data-feat="build"]:not([hidden]),
+main.wb-open[data-feat="research"] section.panel[data-feat="research"]:not([hidden]),
+main.wb-open[data-feat="crew"] section.panel[data-feat="crew"]:not([hidden]),
+main.wb-open[data-feat="exped"] section.panel[data-feat="exped"]:not([hidden]),
+main.wb-open[data-feat="outpost"] section.panel[data-feat="outpost"]:not([hidden]),
+main.wb-open[data-feat="quiz"] section.panel[data-feat="quiz"]:not([hidden]),
+main.wb-open[data-feat="advisor"] section.panel[data-feat="advisor"]:not([hidden]),
+main.wb-open[data-feat="stats"] section.panel[data-feat="stats"]:not([hidden]),
+main.wb-open[data-feat="log"] section.panel[data-feat="log"]:not([hidden]),
+main.wb-open[data-feat="ach"] section.panel[data-feat="ach"]:not([hidden]),
+main.wb-open[data-feat="ops"] section.panel[data-feat="ops"]:not([hidden]),
+main.wb-open[data-feat="analytics"] section.panel[data-feat="analytics"]:not([hidden]),
+main.wb-open[data-feat="history"] section.panel[data-feat="history"]:not([hidden]),
+main.wb-open[data-feat="briefing"] section.panel[data-feat="briefing"]:not([hidden]),
+main.wb-open[data-feat="deep"] section.panel[data-feat="deep"]:not([hidden]),
+main.wb-open[data-feat="workbench"] section.panel[data-feat="workbench"]:not([hidden]),
+main.wb-open[data-feat="daily"] section.panel[data-feat="daily"]:not([hidden]),
+main.wb-open[data-feat="drill"] section.panel[data-feat="drill"]:not([hidden]),
+main.wb-open[data-feat="passport"] section.panel[data-feat="passport"]:not([hidden]),
+main.wb-open[data-feat="marathon"] section.panel[data-feat="marathon"]:not([hidden]),
+main.wb-open[data-feat="timeline"] section.panel[data-feat="timeline"]:not([hidden]),
+main.wb-open[data-feat="hunt"] section.panel[data-feat="hunt"]:not([hidden]){display:block!important;grid-column:1/-1}
+@keyframes solPulse{0%{box-shadow:0 0 0 0 rgba(32,88,201,.3)}100%{box-shadow:0 0 0 12px rgba(32,88,201,0)}}
+.pulse{animation:solPulse .6s ease-out}
+body.hc .wbCard{background:#000;border-color:#fff}
+body.hc .wbCard b,body.hc .wbCard span{color:#fff}

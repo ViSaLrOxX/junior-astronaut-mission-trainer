@@ -8,7 +8,7 @@ Open index.html in any browser. No build step, no server, no network.
 
 First-timers get a short guided tour that walks through setup, launch, the gauges, building, research and living sol by sol. It can be skipped and reopened any time with the How to play button.
 
-The game is split into three views, switched from the top: Mission (gauges, building, research, crew, expeditions, the log), Learn & play (quizzes, drills, the daily briefing, passport and achievements) and Reports (analytics, history charts, briefings and downloads). Switching views is a quick fade; motion stays off for anyone with reduced-motion turned on. The dense analysis panels stay hidden until Commander mode is switched on. To run the logic tests: node test.js.
+The game is split into three rooms, switched from the top: Mission, Learn & play, and Reports. Each room opens as a menu of cards, and each card opens one dedicated workbench: the status board, the build yard, research, crew, expeditions, the log, quizzes, drills, the daily briefing, the passport, charts, briefings and downloads. One thing fills the screen at a time, and a Back to menu button returns to the cards. Pressing Advance one sol brings up the status board so you can watch the gauges move, and when Mission Control calls with a quiz, it opens on its own. Workbenches and rooms fade in gently, bars ease as values change, and motion stays off for anyone with reduced-motion turned on. The dense analysis panels stay hidden until Commander mode is switched on. To run the logic tests: node test.js.
 
 ## What's inside
 
