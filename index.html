@@ -166,8 +166,8 @@
 <input id="logSearchIn" placeholder="log search term" style="max-width:140px">
 <div id="dashOut"></div>
 </section>
-<section class="card"><h2>Round-5 workbench</h2>
-<p>Live-state analysis over the running mission.</p>
+<section class="panel" style="grid-column:1/-1"><h2>Mission workbench</h2>
+<p class="hint">Live reports over the running mission. Pick one; the table appears below.</p>
 <div class="row">
 <button id="r5CrewBtn">Crew summary</button>
 <button id="r5HealthBtn">Health/morale/fatigue averages</button>
@@ -219,432 +219,46 @@
 </div>
 <div id="r5Out"></div>
 </section>
-<section>
-<h2>Mission Analytics (round 6)</h2>
-<div>
-<button id="r16a">Total resources</button>
-<button id="r16b">Science points</button>
-<button id="r16c">Lowest resource</button>
-<button id="r16d">Highest resource</button>
-<button id="r16e">Crew aboard</button>
-<button id="r16f">Average crew XP</button>
-<button id="r16g">Healthy crew</button>
-<button id="r16h">Low morale crew</button>
-<button id="r16i">Buildings complete</button>
-<button id="r16j">Damaged buildings</button>
-<button id="r16k">Unfinished builds</button>
-<button id="r16l">Habitat count</button>
-<button id="r16m">Techs researched</button>
-<button id="r16n">Achievements earned</button>
-<button id="r16o">Building histogram</button>
-<button id="r16p">Role histogram</button>
-<button id="r16q">Total fatigue</button>
-<button id="r16r">Average health</button>
-<button id="r16s">Average morale</button>
-<button id="r16t">Crew away</button>
-<button id="r16u">Hurt crew list</button>
-<button id="r16v">Top XP crew</button>
-<button id="r16w">Lowest morale crew</button>
-<button id="r16x">Solar tech?</button>
-<button id="r16y">Rad shield tech?</button>
-<button id="r16z">Adv crops tech?</button>
-<button id="r16aa">AI assist tech?</button>
-<button id="r16ab">Shield raised?</button>
-<button id="r16ac">Air+water</button>
-<button id="r16ad">Food+regolith</button>
-<button id="r16ae">Parts on hand</button>
-<button id="r16af">O2 per crew</button>
-<button id="r16ag">Water per crew</button>
-<button id="r16ah">Food per crew</button>
-<button id="r16ai">Current sol</button>
-<button id="r16aj">Mars site?</button>
-<button id="r16ak">Game over?</button>
-<button id="r16al">Game won?</button>
-<button id="r16am">Storms survived</button>
-<button id="r16an">Quiz correct</button>
-</div>
-<div id="r16Out"></div>
-</section>
 </main>
-<h3>Mission analytics</h3><p><output id="r156Out"></output></p><div class="grid">
-<button id="r156a">Site</button>
-<button id="r156b">Difficulty</button>
-<button id="r156c">Sol</button>
-<button id="r156d">Mission over</button>
-<button id="r156e">Mission won</button>
-<button id="r156f">Mission name</button>
-<button id="r156g">Oxygen</button>
-<button id="r156h">Water</button>
-<button id="r156i">Food</button>
-<button id="r156j">Parts</button>
-<button id="r156k">Regolith</button>
-<button id="r156l">Science</button>
-<button id="r156m">Resource total</button>
-<button id="r156n">Min consumable</button>
-<button id="r156o">Max consumable</button>
-<button id="r156p">Crew size</button>
-<button id="r156q">Crew alive</button>
-<button id="r156r">Crew lost</button>
-<button id="r156s">Crew away</button>
-<button id="r156t">Mean health</button>
-<button id="r156u">Mean morale</button>
-<button id="r156v">Mean fatigue</button>
-<button id="r156w">XP total</button>
-<button id="r156x">Role tally</button>
-<button id="r156y">Engineers</button>
-<button id="r156z">Weakest crew</button>
-<button id="r156ba">Buildings</button>
-<button id="r156bb">Buildings done</button>
-<button id="r156bc">In progress</button>
-<button id="r156bd">Damaged</button>
-<button id="r156be">Type tally</button>
-<button id="r156bf">Solar arrays</button>
-<button id="r156bg">Habitats</button>
-<button id="r156bh">Techs</button>
-<button id="r156bi">Log length</button>
-<button id="r156bj">Storms survived</button>
-<button id="r156bk">Shield level</button>
-<button id="r156bl">Objective science</button>
-<button id="r156bm">Objective sols</button>
-<button id="r156bn">Progress %</button>
-<button id="r156bo">Sols left</button>
-<button id="r156bp">Objective mode</button>
-<button id="r156bq">Scenario</button>
-<button id="r156br">Achievements</button>
-<button id="r156bs">Schedule length</button>
-<button id="r156bt">Seed</button>
-<button id="r156bu">Phase</button>
-<button id="r156bv">Site count</button>
-<button id="r156bw">Building catalog</button>
-<button id="r156bx">Total build cost</button>
-<button id="r156by">Cheapest build</button>
-<button id="r156bz">Priciest build</button>
-<button id="r156ca">Crew capacity</button>
-<button id="r156cb">All built</button>
-<button id="r156cc">All alive</button>
-<button id="r156cd">Starving</button>
-<button id="r156ce">Science met</button>
-<button id="r156cf">Food per crew</button>
-<button id="r156cg">Water per crew</button>
-<button id="r156ch">O2 per crew</button>
-<button id="r156ci">Mission score</button>
-<button id="r156cj">Science needed</button>
-<button id="r156ck">Science pace</button>
-<button id="r156cl">Site label</button>
-<button id="r156cm">Building summary</button>
-</div>
-<h3>Round 8 feature deck</h3>
-<div class="r300out" id="r300Out">-</div>
-<button id="r300a">storm id</button>
-<button id="r300b">storm w</button>
-<button id="r300c">storm sites n</button>
-<button id="r300d">storm sites first</button>
-<button id="r300e">storm text wc</button>
-<button id="r300f">micro id</button>
-<button id="r300g">micro w</button>
-<button id="r300h">micro sites n</button>
-<button id="r300i">micro sites first</button>
-<button id="r300j">micro text wc</button>
-<button id="r300k">illness id</button>
-<button id="r300l">illness w</button>
-<button id="r300m">illness sites n</button>
-<button id="r300n">illness sites first</button>
-<button id="r300o">illness text wc</button>
-<button id="r300p">aurora id</button>
-<button id="r300q">aurora w</button>
-<button id="r300r">aurora sites n</button>
-<button id="r300s">aurora sites first</button>
-<button id="r300t">aurora text wc</button>
-<button id="r300u">quake id</button>
-<button id="r300v">quake w</button>
-<button id="r300w">quake sites n</button>
-<button id="r300x">quake sites first</button>
-<button id="r300y">quake text wc</button>
-<button id="r300z">find id</button>
-<button id="r300aa">find w</button>
-<button id="r300ab">find sites n</button>
-<button id="r300ac">find sites first</button>
-<button id="r300ad">find text wc</button>
-<button id="r300ae">relay id</button>
-<button id="r300af">relay w</button>
-<button id="r300ag">relay sites n</button>
-<button id="r300ah">relay sites first</button>
-<button id="r300ai">relay text wc</button>
-<button id="r300aj">calm id</button>
-<button id="r300ak">calm text</button>
-<button id="r300al">calm w</button>
-<button id="r300am">calm sites n</button>
-<button id="r300an">calm sites first</button>
-<button id="r300ao">calm text wc</button>
-<button id="r300ap">flare id</button>
-<button id="r300aq">flare text</button>
-<button id="r300ar">flare w</button>
-<button id="r300as">flare sites n</button>
-<button id="r300at">flare sites first</button>
-<button id="r300au">flare text wc</button>
-<button id="r300av">birthday id</button>
-<button id="r300aw">birthday text</button>
-<button id="r300ax">birthday w</button>
-<button id="r300ay">birthday sites n</button>
-<button id="r300az">birthday sites first</button>
-<button id="r300ba">birthday text wc</button>
-<button id="r300bb">stowaway id</button>
-<button id="r300bc">stowaway w</button>
-<button id="r300bd">stowaway sites n</button>
-<button id="r300be">stowaway sites first</button>
-<button id="r300bf">stowaway text wc</button>
-<button id="r300bg">coolant id</button>
-<button id="r300bh">coolant w</button>
-<button id="r300bi">coolant sites n</button>
-<button id="r300bj">coolant sites first</button>
-<button id="r300bk">coolant text wc</button>
-<button id="r300bl">podbonus id</button>
-<button id="r300bm">podbonus w</button>
-<button id="r300bn">podbonus sites n</button>
-<button id="r300bo">podbonus sites first</button>
-<button id="r300bp">podbonus text wc</button>
-<button id="r300bq">breakthrough id</button>
-<button id="r300br">breakthrough w</button>
-<button id="r300bs">breakthrough sites n</button>
-<button id="r300bt">breakthrough sites first</button>
-<button id="r300bu">breakthrough text wc</button>
-<button id="r300bv">homesick id</button>
-<button id="r300bw">homesick text</button>
-<button id="r300bx">homesick w</button>
-<button id="r300by">homesick sites n</button>
-<button id="r300bz">homesick sites first</button>
-<button id="r300ca">homesick text wc</button>
-<button id="r300cb">meteorshower id</button>
-<button id="r300cc">meteorshower w</button>
-<button id="r300cd">meteorshower sites n</button>
-<button id="r300ce">meteorshower sites first</button>
-<button id="r300cf">meteorshower text wc</button>
-<button id="r300cg">o2leak id</button>
-<button id="r300ch">o2leak w</button>
-<button id="r300ci">o2leak sites n</button>
-<button id="r300cj">o2leak sites first</button>
-<button id="r300ck">o2leak text wc</button>
-<button id="r300cl">blight id</button>
-<button id="r300cm">blight w</button>
-<button id="r300cn">blight sites n</button>
-<button id="r300co">blight sites first</button>
-<button id="r300cp">blight text wc</button>
-<button id="r300cq">argument id</button>
-<button id="r300cr">argument w</button>
-<button id="r300cs">argument sites n</button>
-<button id="r300ct">argument sites first</button>
-<button id="r300cu">argument text wc</button>
-<button id="r300cv">dustdevil id</button>
-<button id="r300cw">dustdevil w</button>
-<button id="r300cx">dustdevil sites n</button>
-<button id="r300cy">dustdevil sites first</button>
-<button id="r300cz">dustdevil text wc</button>
-<button id="r300da">suitpuncture id</button>
-<button id="r300db">suitpuncture w</button>
-<button id="r300dc">suitpuncture sites n</button>
-<button id="r300dd">suitpuncture sites first</button>
-<button id="r300de">suitpuncture text wc</button>
-<button id="r300df">icepocket id</button>
-<button id="r300dg">icepocket w</button>
-<button id="r300dh">icepocket sites n</button>
-<button id="r300di">icepocket sites first</button>
-<button id="r300dj">icepocket text wc</button>
-<button id="r300dk">what did nasa s moxie experi c</button>
-<button id="r300dl">what did nasa s moxie experi a n</button>
-<button id="r300dm">what did nasa s moxie experi a first</button>
-<button id="r300dn">what did nasa s moxie experi q wc</button>
-<button id="r300do">what did nasa s moxie experi fact wc</button>
-<button id="r300dp">why do planners target the m c</button>
-<h3>Round 8 feature deck</h3>
-<div class="r370out" id="r370Out">-</div>
-<button id="r370a">quiz has making</button>
-<button id="r370b">quiz has planners</button>
-<button id="r370c">quiz has shadowed</button>
-<button id="r370d">quiz has light</button>
-<button id="r370e">quiz has shielding</button>
-<button id="r370f">quiz has night</button>
-<button id="r370g">quiz has local</button>
-<button id="r370h">quiz has return</button>
-<button id="r370i">quiz has sofia</button>
-<button id="r370j">quiz has tubes</button>
-<button id="r370k">quiz has apollo</button>
-<button id="r370l">quiz has experiment</button>
-<button id="r370m">quiz has produce</button>
-<button id="r370n">quiz has toward</button>
-<button id="r370o">quiz has rocket</button>
-<button id="r370p">quiz has target</button>
-<button id="r370q">quiz has craters</button>
-<button id="r370r">quiz has traps</button>
-<button id="r370s">quiz has preserve</button>
-<button id="r370t">quiz has close</button>
-<h3>Round 8 feature deck</h3>
-<div class="r440out" id="r440Out">-</div>
-<button id="r440a">achievements scenario hash</button>
-<button id="r440b">achievements hoarder hash</button>
-<button id="r440c">events tag mars</button>
-<button id="r440d">events tag moon</button>
-<button id="r440e">events sites distinct</button>
-<button id="r440f">quiz tag oxygen</button>
-<button id="r440g">quiz tag water</button>
-<button id="r440h">quiz tag methane</button>
-<button id="r440i">quiz tag hydrogen</button>
-<button id="r440j">quiz tag permanently shadowed craters</button>
-<button id="r440k">quiz tag it is the warmest region</button>
-<button id="r440l">quiz tag it has the strongest gravity</button>
-<button id="r440m">quiz tag it is closest to earth</button>
-<button id="r440n">quiz tag 24 hours 37 minutes</button>
-<button id="r440o">quiz tag 12 hours</button>
-<button id="r440p">quiz tag 48 hours</button>
-<button id="r440q">quiz tag 29 5 days</button>
-<button id="r440r">quiz tag carbon dioxide</button>
-<button id="r440s">quiz tag nitrogen</button>
-<button id="r440t">quiz tag 3 to 22 minutes</button>
-<button id="r440u">quiz tag instant</button>
-<button id="r440v">quiz tag 2 seconds</button>
-<button id="r440w">quiz tag 3 hours</button>
-<button id="r440x">quiz tag earth s magnetosphere</button>
-<button id="r440y">quiz tag thick glass</button>
-<button id="r440z">quiz tag lead walls</button>
-<button id="r440aa">quiz tag the solar arrays</button>
-<button id="r440ab">quiz tag about 29 5 earth days</button>
-<button id="r440ac">quiz tag 24 hours</button>
-<button id="r440ad">quiz tag 7 days</button>
-<button id="r440ae">quiz tag 365 days</button>
-<button id="r440af">quiz tag heat from decaying plutonium</button>
-<button id="r440ag">quiz tag burning methane</button>
-<button id="r440ah">quiz tag wind turbines</button>
-<button id="r440ai">quiz tag coal cells</button>
-<button id="r440aj">quiz tag resupply from earth is slow </button>
-<button id="r440ak">quiz tag plants glow nicely</button>
-<button id="r440al">quiz tag soil is free in space</button>
-<button id="r440am">quiz tag it removes all co2</button>
-<button id="r440an">quiz tag dust blocks sunlight and coa</button>
-<h3>Round 8 feature deck</h3>
-<div class="r510out" id="r510Out">-</div>
-<button id="r510a">what did nasa s moxie experi has soil is free in space</button>
-<button id="r510b">what did nasa s moxie experi has it removes all co2</button>
-<button id="r510c">what did nasa s moxie experi has dust blocks sunlight and coa</button>
-<button id="r510d">what did nasa s moxie experi has dust freezes panels</button>
-<button id="r510e">what did nasa s moxie experi has dust conducts electricity</button>
-<button id="r510f">what did nasa s moxie experi has no hazard</button>
-<button id="r510g">what did nasa s moxie experi has artemis</button>
-<button id="r510h">what did nasa s moxie experi has apollo</button>
-<button id="r510i">why do planners target the m has oxygen</button>
-<button id="r510j">why do planners target the m has methane</button>
-<button id="r510k">why do planners target the m has water</button>
-<button id="r510l">why do planners target the m has hydrogen</button>
-<button id="r510m">why do planners target the m has permanently shadowed craters</button>
-<button id="r510n">why do planners target the m has it is the warmest region</button>
-<button id="r510o">why do planners target the m has it has the strongest gravity</button>
-<button id="r510p">why do planners target the m has it is closest to earth</button>
-<button id="r510q">why do planners target the m has 24 hours 37 minutes</button>
-<button id="r510r">why do planners target the m has 12 hours</button>
-<button id="r510s">why do planners target the m has 48 hours</button>
-<button id="r510t">why do planners target the m has 29 5 days</button>
-<button id="r510u">why do planners target the m has carbon dioxide</button>
-<button id="r510v">why do planners target the m has nitrogen</button>
-<button id="r510w">why do planners target the m has 3 to 22 minutes</button>
-<button id="r510x">why do planners target the m has instant</button>
-<button id="r510y">why do planners target the m has 2 seconds</button>
-<button id="r510z">why do planners target the m has 3 hours</button>
-<button id="r510aa">why do planners target the m has earth s magnetosphere</button>
-<button id="r510ab">why do planners target the m has thick glass</button>
-<button id="r510ac">why do planners target the m has lead walls</button>
-<button id="r510ad">why do planners target the m has the solar arrays</button>
-<button id="r510ae">why do planners target the m has about 29 5 earth days</button>
-<button id="r510af">why do planners target the m has 24 hours</button>
-<button id="r510ag">why do planners target the m has 7 days</button>
-<button id="r510ah">why do planners target the m has 365 days</button>
-<button id="r510ai">why do planners target the m has heat from decaying plutonium</button>
-<button id="r510aj">why do planners target the m has burning methane</button>
-<button id="r510ak">why do planners target the m has wind turbines</button>
-<button id="r510al">why do planners target the m has coal cells</button>
-<button id="r510am">why do planners target the m has resupply from earth is slow </button>
-<button id="r510an">why do planners target the m has plants glow nicely</button>
-<button id="r510ao">why do planners target the m has soil is free in space</button>
-<button id="r510ap">why do planners target the m has it removes all co2</button>
-<button id="r510aq">why do planners target the m has dust blocks sunlight and coa</button>
-<button id="r510ar">why do planners target the m has dust freezes panels</button>
-<button id="r510as">why do planners target the m has dust conducts electricity</button>
-<button id="r510at">why do planners target the m has no hazard</button>
-<button id="r510au">why do planners target the m has artemis</button>
-<button id="r510av">why do planners target the m has apollo</button>
-<button id="r510aw">about how long is one martia has oxygen</button>
-<button id="r510ax">about how long is one martia has methane</button>
-<button id="r510ay">about how long is one martia has water</button>
-<button id="r510az">about how long is one martia has hydrogen</button>
-<button id="r510ba">about how long is one martia has permanently shadowed craters</button>
-<button id="r510bb">about how long is one martia has it is the warmest region</button>
-<button id="r510bc">about how long is one martia has it has the strongest gravity</button>
-<button id="r510bd">about how long is one martia has it is closest to earth</button>
-<button id="r510be">about how long is one martia has 24 hours 37 minutes</button>
-<button id="r510bf">about how long is one martia has 12 hours</button>
-<button id="r510bg">about how long is one martia has 48 hours</button>
-<button id="r510bh">about how long is one martia has 29 5 days</button>
-<button id="r510bi">about how long is one martia has carbon dioxide</button>
-<button id="r510bj">about how long is one martia has nitrogen</button>
-<button id="r510bk">about how long is one martia has 3 to 22 minutes</button>
-<button id="r510bl">about how long is one martia has instant</button>
-<button id="r510bm">about how long is one martia has 2 seconds</button>
-<button id="r510bn">about how long is one martia has 3 hours</button>
-<button id="r510bo">about how long is one martia has earth s magnetosphere</button>
-<button id="r510bp">about how long is one martia has thick glass</button>
-<button id="r510bq">about how long is one martia has lead walls</button>
-<button id="r510br">about how long is one martia has the solar arrays</button>
-<button id="r510bs">about how long is one martia has about 29 5 earth days</button>
-<button id="r510bt">about how long is one martia has 24 hours</button>
-<button id="r510bu">about how long is one martia has 7 days</button>
-<button id="r510bv">about how long is one martia has 365 days</button>
-<button id="r510bw">about how long is one martia has heat from decaying plutonium</button>
-<button id="r510bx">about how long is one martia has burning methane</button>
-<button id="r510by">about how long is one martia has wind turbines</button>
-<button id="r510bz">about how long is one martia has coal cells</button>
-<button id="r510ca">about how long is one martia has resupply from earth is slow </button>
-<button id="r510cb">about how long is one martia has plants glow nicely</button>
-<button id="r510cc">about how long is one martia has soil is free in space</button>
-<button id="r510cd">about how long is one martia has it removes all co2</button>
-<button id="r510ce">about how long is one martia has dust blocks sunlight and coa</button>
-<button id="r510cf">about how long is one martia has dust freezes panels</button>
-<button id="r510cg">about how long is one martia has dust conducts electricity</button>
-<button id="r510ch">about how long is one martia has no hazard</button>
-<button id="r510ci">about how long is one martia has artemis</button>
-<button id="r510cj">about how long is one martia has apollo</button>
-<button id="r510ck">what is the main component o has oxygen</button>
-<button id="r510cl">what is the main component o has methane</button>
-<button id="r510cm">what is the main component o has water</button>
-<button id="r510cn">what is the main component o has hydrogen</button>
-<button id="r510co">what is the main component o has permanently shadowed craters</button>
-<button id="r510cp">what is the main component o has it is the warmest region</button>
-<button id="r510cq">what is the main component o has it has the strongest gravity</button>
-<button id="r510cr">what is the main component o has it is closest to earth</button>
-<button id="r510cs">what is the main component o has 24 hours 37 minutes</button>
-<button id="r510ct">what is the main component o has 12 hours</button>
-<button id="r510cu">what is the main component o has 48 hours</button>
-<button id="r510cv">what is the main component o has 29 5 days</button>
-<h3>Daily briefing and knowledge passport</h3>
+<main id="arcade">
+<section class="panel">
+<h2>Daily briefing</h2>
 <div class="r580card" id="r580Brief">-</div>
 <button id="r580BriefBtn">Show today's briefing</button>
 <button id="r580Trained">Mark today trained</button>
 <div id="r580Streak">Streak: 0</div>
-<h3>Event drill</h3>
+</section>
+<section class="panel">
+<h2>Event drill</h2>
 <div id="r580DrillQ">-</div>
 <div id="r580DrillBtns"></div>
 <div id="r580DrillOut">-</div>
-<h3>Knowledge passport</h3>
+</section>
+<section class="panel">
+<h2>Knowledge passport</h2>
 <div id="r580PassBar">0% mastered</div>
 <div id="r580PassList"></div>
 <button id="r580PassExport">Copy passport</button>
-<h3>Quiz marathon</h3>
-<div>Twenty questions, three lives. Wrong answers cost a life; streaks pay bonus points.</div>
+</section>
+<section class="panel">
+<h2>Quiz marathon</h2>
+<p class="hint">Twenty questions, three lives. Wrong answers cost a life; streaks pay bonus points.</p>
 <div id="r650Q">-</div>
 <div id="r650Opts"></div>
 <div id="r650MarOut">-</div>
 <button id="r650Start">Start marathon</button>
-<h3>Event timeline</h3>
-<div>Site <select id="r650Site"><option value="">all sites</option><option value="moon">Moon</option><option value="mars">Mars</option></select> <button id="r650Tl">Show timeline</button></div>
+</section>
+<section class="panel">
+<h2>Event timeline</h2>
+<label>Site <select id="r650Site"><option value="">all sites</option><option value="moon">Moon</option><option value="mars">Mars</option></select></label>
+<button id="r650Tl">Show timeline</button>
 <div id="r650TlOut">-</div>
-<h3>Achievement hunt</h3>
+</section>
+<section class="panel">
+<h2>Achievement hunt</h2>
 <div id="r650HuntOut">-</div>
+</section>
+</main>
 <script src="engine.js"></script>
 <script src="app.js"></script>
 </body>
