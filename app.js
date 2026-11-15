@@ -36,7 +36,7 @@ var g=actx.createGain();g.gain.value=0;o.connect(g);g.connect(actx.destination);
 var t0=actx.currentTime+p[1];
 g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime(p[0],t0+.03);g.gain.exponentialRampToValueAtTime(.0001,t0+1.8);
 o.start(t0);o.stop(t0+1.9)})}
-var musMode="space";try{musMode=localStorage.getItem("musMode")||"space"}catch(e){}
+var musMode="shanty";try{musMode=localStorage.getItem("musMode")||"shanty"}catch(e){}
 function noiseSrc(){
 var nb=actx.createBuffer(1,actx.sampleRate*2,actx.sampleRate);
 var nd=nb.getChannelData(0);for(var i=0;i<nd.length;i++){nd[i]=Math.random()*2-1}
@@ -53,7 +53,20 @@ if(!actx){actx=new (window.AudioContext||window.webkitAudioContext)()}
 if(actx.state==="suspended"){actx.resume()}
 var g=actx.createGain();g.gain.value=0;g.connect(actx.destination);
 var oscs=[],extra=[],ping=null;
-if(musMode==="matter"){
+if(musMode==="shanty"){
+var sh=actx.createGain();sh.gain.value=2.4;sh.connect(g);var sb=shantyBed(actx,sh,actx.currentTime,36000);extra=extra.concat(sb);
+var beat=60/SHANTY_BPM,nxt=actx.currentTime+.3,si=0;
+ping=setInterval(function(){if(!musNodes){return}while(nxt<actx.currentTime+.6){shantyStep(actx,sh,si,nxt);nxt+=beat;si++}},120)
+}else if(musMode==="eerie"){
+/* Eerie ship ambience: low hum, dissonant drone (minor second / tritone), slow filter sweep, feedback echo, sparse distant pings. */
+var eb=musRoot*2;
+var dly=actx.createDelay(2);dly.delayTime.value=.9;var fb=actx.createGain();fb.gain.value=.55;var wet=actx.createGain();wet.gain.value=.5;
+dly.connect(fb);fb.connect(dly);dly.connect(wet);wet.connect(g);
+var ef=actx.createBiquadFilter();ef.type="lowpass";ef.frequency.value=560;ef.Q.value=3;ef.connect(g);ef.connect(dly);
+extra.push(lfoTo(.05,280,ef.frequency));
+[eb,eb*1.0595*2,eb*1.4142*2,eb*1.5*1.0595].forEach(function(f,i){var o=actx.createOscillator();o.type=(i===0||i===3)?"sine":"triangle";o.frequency.value=f;o.detune.value=(i-1.5)*7;var og=actx.createGain();og.gain.value=i===0?.5:.18;o.connect(og);og.connect(ef);o.start();oscs.push(o)});
+ping=setTimeout(function tick(){if(!musNodes){return}musPing();musNodes.ping=setTimeout(tick,6000+Math.random()*9000)},4000)
+}else if(musMode==="matter"){
 oscs.push(drone(musRoot*.5,"sine",.42,g));
 oscs.push(drone(musRoot*.75,"sine",.16,g));
 oscs.push(drone(musRoot*.25,"triangle",.14,g));
@@ -84,8 +97,30 @@ ping=setTimeout(function tick(){if(!musNodes){return}musPing();musNodes.ping=set
 }
 g.gain.setTargetAtTime(musVol,actx.currentTime,2.5);
 musNodes={g:g,oscs:oscs,extra:extra,ping:ping}}
+
+/* Dark shanty: an ORIGINAL slow, low, sea-shanty-style bass march in D minor (slow 3/4, deep bass line, heavy low drum, choir-like pad, sea swell).
+   Not a copy of any existing tune. All synthesised in the browser. */
+var SHANTY_BPM=62,SHANTY_ROOT=73.42;
+var SHANTY_BARS=[[0,null,7],[0,5,3],[-4,null,3],[-2,5,-2],[0,null,7],[3,2,0],[-4,0,3],[-2,-2,0]];
+function shantyStep(ctx,dest,i,t){
+var beat=60/SHANTY_BPM,bar=Math.floor(i/3)%SHANTY_BARS.length,b=i%3,sem=SHANTY_BARS[bar][b];
+if(sem!==null){var f=SHANTY_ROOT*Math.pow(2,sem/12);
+var o=ctx.createOscillator();o.type="sawtooth";o.frequency.value=f;var lp=ctx.createBiquadFilter();lp.type="lowpass";lp.frequency.setValueAtTime(520,t);lp.frequency.exponentialRampToValueAtTime(180,t+beat*.8);
+var g=ctx.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.42,t+.03);g.gain.exponentialRampToValueAtTime(.18,t+beat*.7);g.gain.linearRampToValueAtTime(0,t+beat*.95);
+o.connect(lp);lp.connect(g);g.connect(dest);o.start(t);o.stop(t+beat);
+var s=ctx.createOscillator();s.type="sine";s.frequency.value=f;var sg=ctx.createGain();sg.gain.setValueAtTime(0,t);sg.gain.linearRampToValueAtTime(.7,t+.04);sg.gain.linearRampToValueAtTime(0,t+beat*.95);s.connect(sg);sg.connect(dest);s.start(t);s.stop(t+beat)}
+if(b===0||b===2){var k=ctx.createOscillator();k.type="sine";k.frequency.setValueAtTime(b===0?110:90,t);k.frequency.exponentialRampToValueAtTime(38,t+.18);var kg=ctx.createGain();kg.gain.setValueAtTime(b===0?1.1:.55,t);kg.gain.exponentialRampToValueAtTime(.001,t+.45);k.connect(kg);kg.connect(dest);k.start(t);k.stop(t+.5)}
+if(b===0&&bar%2===0){var vf=SHANTY_ROOT*2*Math.pow(2,SHANTY_BARS[bar][2]/12*0);[1,1.003].forEach(function(dt,ix){var vo=ctx.createOscillator();vo.type="sawtooth";vo.frequency.value=vf*dt*(ix?1:1);var b1=ctx.createBiquadFilter();b1.type="bandpass";b1.frequency.value=620;b1.Q.value=5;var b2=ctx.createBiquadFilter();b2.type="bandpass";b2.frequency.value=1050;b2.Q.value=6;var vg=ctx.createGain();vg.gain.setValueAtTime(0,t);vg.gain.linearRampToValueAtTime(.16,t+beat*1.2);vg.gain.linearRampToValueAtTime(0,t+beat*5.6);vo.connect(b1);vo.connect(b2);b1.connect(vg);b2.connect(vg);vg.connect(dest);vo.start(t);vo.stop(t+beat*5.7)})}}
+function shantyBed(ctx,dest,t0,dur){
+var out=[];
+[[SHANTY_ROOT*2,0],[SHANTY_ROOT*3,4]].forEach(function(d){var o=ctx.createOscillator();o.type="sawtooth";o.frequency.value=d[0];o.detune.value=d[1];var lp=ctx.createBiquadFilter();lp.type="lowpass";lp.frequency.value=300;var g=ctx.createGain();g.gain.value=.07;var l=ctx.createOscillator();l.frequency.value=.07;var lg=ctx.createGain();lg.gain.value=120;l.connect(lg);lg.connect(lp.frequency);o.connect(lp);lp.connect(g);g.connect(dest);o.start(t0);l.start(t0);o.stop(t0+dur);l.stop(t0+dur);out.push(o,l)});
+var nb=ctx.createBuffer(1,ctx.sampleRate*2,ctx.sampleRate),nd=nb.getChannelData(0);for(var i=0;i<nd.length;i++){nd[i]=Math.random()*2-1}
+var ns=ctx.createBufferSource();ns.buffer=nb;ns.loop=true;var nf=ctx.createBiquadFilter();nf.type="lowpass";nf.frequency.value=380;var ng=ctx.createGain();ng.gain.value=.05;var wl=ctx.createOscillator();wl.frequency.value=.09;var wg=ctx.createGain();wg.gain.value=.04;wl.connect(wg);wg.connect(ng.gain);ns.connect(nf);nf.connect(ng);ng.connect(dest);ns.start(t0);wl.start(t0);ns.stop(t0+dur);wl.stop(t0+dur);out.push(ns,wl);
+return out}
+window.__shantyRender=function(seconds,cb){var sr=22050,oc=new OfflineAudioContext(1,sr*seconds,sr),m=oc.createGain();m.gain.value=.6;m.connect(oc.destination);var beat=60/SHANTY_BPM;shantyBed(oc,m,0,seconds);for(var i=0;i*beat<seconds-.3;i++){shantyStep(oc,m,i,i*beat+.1)}
+oc.startRendering().then(function(buf){cb(Array.prototype.slice.call(buf.getChannelData(0)))})};
 function musStop(){if(!musNodes){return}var n=musNodes;musNodes=null;if(n.ping){clearTimeout(n.ping)}n.g.gain.setTargetAtTime(0,actx.currentTime,.3);setTimeout(function(){n.oscs.concat(n.extra).forEach(function(o){try{o.stop()}catch(e){}})},1200)}
-function setRoom(v){musRoot=ROOTS[v]||ROOTS.mission;if(musNodes){musNodes.oscs.forEach(function(o,i){var f=musMode==="matter"?musRoot*(i===2?.25:(i===1?.75:.5)):(musMode==="hum"?musRoot*(i===2?3:(i===1?2:1)):musRoot*(i===2?8:(i===1?6:4)));o.frequency.setTargetAtTime(f,actx.currentTime,1.2)})}}
+function setRoom(v){musRoot=ROOTS[v]||ROOTS.mission;if(musNodes&&musMode==="shanty"){}else if(musNodes&&musMode==="eerie"){if(musNodes.oscs[0]){musNodes.oscs[0].frequency.setTargetAtTime(musRoot*2,actx.currentTime,2)}}else if(musNodes){musNodes.oscs.forEach(function(o,i){var f=musMode==="matter"?musRoot*(i===2?.25:(i===1?.75:.5)):(musMode==="hum"?musRoot*(i===2?3:(i===1?2:1)):musRoot*(i===2?8:(i===1?6:4)));o.frequency.setTargetAtTime(f,actx.currentTime,1.2)})}}
 function musModeSet(m){musMode=m;try{localStorage.setItem("musMode",m)}catch(e){};if(musNodes){musStop();musStart()}}
 function musSetVol(v){musVol=Math.max(0,Math.min(.12,v));try{localStorage.setItem("musVol",String(musVol))}catch(e){}if(musNodes){musNodes.g.gain.setTargetAtTime(musVol,actx.currentTime,.15)}}
 var burstP=[];
@@ -124,10 +159,11 @@ ctx.globalAlpha=1;
 if(!limb){
 ctx.beginPath();ctx.arc(W*.08,Hpx*.14,26,0,6.29);ctx.fillStyle="rgba(255,240,200,.9)";ctx.fill();
 ctx.beginPath();ctx.arc(W*.08,Hpx*.14,44,0,6.29);ctx.fillStyle="rgba(255,240,200,.12)";ctx.fill()}}
+var bgPh=0,bgLast=0;window.__warp=1;window.__warpTo=1;
 function bgTick(){
-var t=performance.now()/1000;
+var now=performance.now()/1000;var dt=bgLast?Math.min(.1,now-bgLast):0;bgLast=now;window.__warp+=(window.__warpTo-window.__warp)*Math.min(1,dt*3);bgPh+=dt*(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches?0:window.__warp);var t=bgPh;
 var W=bgCv.width,Hpx=bgCv.height;
-drawScene(bgX,W,Hpx,t*0.02,false);
+drawScene(bgX,W,Hpx,t*0.6,false);
 if(shootIn--<0&&!shoot){shoot={x:Math.random()*W*.8,y:Math.random()*Hpx*.3,vx:9,vy:4,life:1};shootIn=400+Math.random()*600}
 if(shoot){bgX.globalAlpha=shoot.life;bgX.strokeStyle="#fff";bgX.beginPath();bgX.moveTo(shoot.x,shoot.y);bgX.lineTo(shoot.x-30,shoot.y-13);bgX.stroke();bgX.globalAlpha=1;shoot.x+=shoot.vx;shoot.y+=shoot.vy;shoot.life-=.02;if(shoot.life<=0){shoot=null}}
 for(var i=burstP.length-1;i>=0;i--){var p=burstP[i];p.x+=p.vx;p.y+=p.vy;p.vy+=.08;p.life-=.025;
@@ -229,7 +265,7 @@ function render(){
 if(!s){return}
 if(!s.flags){s.flags={}}
 $("solLine").textContent=(s.missionName?s.missionName+" — ":"")+TrainerEngine.SITES[s.site].name+" — Sol "+s.sol;
-$("objective").textContent=s.difficulty==="sandbox"?"Sandbox: build freely, no fail states.":("Goal: "+s.objectiveScience+" science by sol "+s.objectiveSols+". Quiz every 5 sols. Score now: "+TrainerEngine.score(s));
+$("objective").textContent=s.difficulty==="sandbox"?"Sandbox: build freely, no fail states.":("Goal: "+s.objectiveScience+" science by sol "+s.objectiveSols+(s.story?". Score now: ":". Quiz every 5 sols. Score now: ")+TrainerEngine.score(s));
 var bars="";
 RES.forEach(function(r){
 if(s.sol<2&&(r[0]==="parts"||r[0]==="regolith"||r[0]==="science")){return}
@@ -424,7 +460,7 @@ if(r.correct){sndRight(s.quizStreak);burstFrom(btn)}else{sndWrong()}
 Array.prototype.forEach.call(document.querySelectorAll("[data-quiz]"),function(x){x.disabled=true});
 $("quizFact").textContent=(r.correct?"Correct! +6 parts, +5 data. ":"Not quite. ")+r.fact+(s.quizStreak>1?" Streak: "+s.quizStreak+".":"");
 if(r.correct){$("hudSci").textContent=Math.floor(s.res.science);$("hudParts").textContent=s.res.parts;hudFlash("hudParts");hudFlash("hudSci");window.__hudPrev={p:s.res.parts,d:s.res.science}}
-if(window.__tourEvent){window.__tourEvent(r.correct?"quiz":"quizwrong")}
+if(window.__quizAnswered){window.__quizAnswered(r.correct)}
 setTimeout(function(){qp.hidden=true;if(window.__closeFeat){window.__closeFeat()}if(s.flags&&s.flags.ctxPending!==undefined&&window.__openFeat){window.__openFeat("status")}render()},4200)}});
 }else{qp.hidden=true}
 var quizNow=s.pendingQuiz!==null&&!s.over;
@@ -592,6 +628,8 @@ function outpostLoop(){outpostT+=0.12;var cv=document.getElementById("outpostCv"
 if(!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches)){requestAnimationFrame(outpostLoop)}
 function storyArm(){
 if(!s||s.difficulty==="sandbox"){return}
+/* Moon + science + no scenario + not commander: handled by the RIM CAMP story layer (story.js) instead */
+if(s.site==="moon"&&!s.scenario&&s.objectiveMode==="science"&&s.difficulty!=="commander"){return}
 s.flags=s.flags||{};
 if(s.flags.storyArmed){return}
 var want=s.site==="mars"?"storm":"aurora";
@@ -700,12 +738,12 @@ TrainerEngine.setMissionName(s,$("nameSel").value);
 TrainerEngine.setObjectiveMode(s,$("objSel").value);
 var lv=$("launchVeil");
 if(lv&&!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches)){lv.hidden=false;void lv.offsetWidth;lv.classList.add("go");setTimeout(function(){lv.classList.remove("go");setTimeout(function(){lv.hidden=true},320)},380)}
-storyArm();
-window.__gameState=function(){return s};
+storyArm();window.__warpTo=14;setTimeout(function(){window.__warpTo=1},1400);
+window.__gameState=function(){return s};window.__S=function(){return s};window.__render=function(){render()};
 window.__armQuiz=function(){if(s&&s.pendingQuiz===null&&!s.over){s.pendingQuiz=s.quizIndex%TrainerEngine.QUIZ.length;render()}};
 window.__fx.setRoom("mission");
-$("setup").hidden=true;$("game").hidden=false;render();restoreView();if(window.__applyDiff){window.__applyDiff(s.difficulty)}if(window.__tourEvent){window.__tourEvent("launch")}};
-$("solBtn").onclick=function(){if(!s)return;TrainerEngine.tick(s);sndSol();if(window.__tourEvent){window.__tourEvent("sol")}postTick();render();if(window.__openFeat&&!window.__quizWas){window.__openFeat("status")}var sp=$("statusPanel");sp.classList.remove("pulse");void sp.offsetWidth;sp.classList.add("pulse")};
+$("setup").hidden=true;$("game").hidden=false;render();restoreView();if(window.__walkHome&&window.__walkHome()&&window.__openFeat&&document.getElementById("walkPanel")&&!(document.getElementById("game").dataset.feat)){window.__openFeat("walk")}if(window.__applyDiff){window.__applyDiff(s.difficulty)}if(window.__tourEvent){window.__tourEvent("launch")}};
+$("solBtn").onclick=function(){if(!s)return;TrainerEngine.tick(s);sndSol();if(window.__tourEvent){window.__tourEvent("sol")}postTick();render();if(window.__openFeat&&!window.__quizWas){window.__openFeat(window.__walkHome&&window.__walkHome()&&document.getElementById("walkPanel")?"walk":"status")}var sp=$("statusPanel");sp.classList.remove("pulse");void sp.offsetWidth;sp.classList.add("pulse")};
 $("autoBtn").onclick=function(){
 if(!s)return;
 if(autoTimer){clearInterval(autoTimer);autoTimer=null;$("autoBtn").querySelector(".lb").textContent="Auto: off";return}
@@ -719,7 +757,7 @@ var raw=localStorage.getItem("jamtrainer");
 if(!raw){return}
 s=JSON.parse(raw);
 window.__fx.setRoom("mission");
-$("setup").hidden=true;$("game").hidden=false;render();restoreView();if(window.__applyDiff){window.__applyDiff(s.difficulty)}if(window.__tourEvent){window.__tourEvent("launch")}};
+$("setup").hidden=true;$("game").hidden=false;render();restoreView();if(window.__walkHome&&window.__walkHome()&&window.__openFeat&&document.getElementById("walkPanel")&&!(document.getElementById("game").dataset.feat)){window.__openFeat("walk")}if(window.__applyDiff){window.__applyDiff(s.difficulty)}if(window.__tourEvent){window.__tourEvent("launch")}};
 $("contrastBtn").onclick=function(){document.body.classList.toggle("hc")};
 $("recruitBtn").onclick=function(){if(!s)return;TrainerEngine.recruit(s);render()};
 $("sndBtn").onclick=function(){sndOn=!sndOn;try{localStorage.setItem("sndOn",sndOn?"1":"0")}catch(e){};applySnd();if(sndOn){tone(660,.1,"sine",.06)}};
@@ -727,7 +765,7 @@ applySnd();
 function applyTheme(t){if(["teal","amber","violet","crimson"].indexOf(t)<0){t="teal"}document.body.dataset.theme=t;try{localStorage.setItem("btnTheme",t)}catch(e){}}
 var initTheme="teal";try{initTheme=localStorage.getItem("btnTheme")||"teal"}catch(e){}
 if($("themeSel")){$("themeSel").value=initTheme;$("themeSel").onchange=function(){applyTheme($("themeSel").value)};applyTheme(initTheme)}
-if($("musModeSel")){try{$("musModeSel").value=localStorage.getItem("musMode")||"space"}catch(e){}$("musModeSel").onchange=function(){musModeSet($("musModeSel").value)}}
+if($("musModeSel")){try{$("musModeSel").value=localStorage.getItem("musMode")||"shanty"}catch(e){}$("musModeSel").onchange=function(){musModeSet($("musModeSel").value)}}
 var idleMins=10;try{var im=parseInt(localStorage.getItem("idleMins")||"10",10);if(im===5||im===10||im===0){idleMins=im}}catch(e){}
 var idleT=null;
 function idleFire(){if(!s){return}var m=$("game");if(m.dataset.feat&&m.dataset.feat!=="quiz"&&window.__closeFeat){window.__closeFeat()}}
@@ -995,7 +1033,11 @@ workbench:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-wid
 comms:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 13a6 6 0 016-6"/><path d="M3 13l2-2"/><circle cx="4" cy="12" r="1"/><path d="M7 3a6 6 0 016 6"/></svg>',
 eva:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="5"/><path d="M4 9h8"/><path d="M6 13l-1 2M10 13l1 2"/></svg>',
 grav:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="6" r="4"/><path d="M8 11v3M6 12l2 2 2-2"/></svg>',
-cards:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="4" width="12" height="9" rx="1"/><path d="M2 5l6 5 6-5"/></svg>'};
+cards:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="4" width="12" height="9" rx="1"/><path d="M2 5l6 5 6-5"/></svg>',
+scout:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="7" cy="7" r="4"/><path d="M10 10l4 4"/></svg>',
+dayplan:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="6"/><path d="M8 4v4l3 2"/></svg>',
+dock:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="6" width="5" height="4"/><rect x="10" y="6" width="4" height="4"/><path d="M7 8h3"/></svg>',
+rocket:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M8 2l2 4v6H6V6z"/><path d="M6 12l-2 2M10 12l2 2"/></svg>'};;
 document.querySelectorAll(".wbCard").forEach(function(cd){var f=cd.getAttribute("data-feat");if(FEATICONS[f]){var ic=document.createElement("span");ic.className="wi";ic.innerHTML=FEATICONS[f];cd.insertBefore(ic,cd.firstChild)}});
 r580Drill();r580Pass();
 if(reduceMotion){var bg0=document.getElementById("spaceBg");if(bg0){bgCv=bg0;bgX=bg0.getContext("2d");bg0.width=innerWidth;bg0.height=innerHeight;stars=[];for(var si=0;si<160;si++){stars.push({x:Math.random(),y:Math.random(),z:Math.random(),tw:0})}bgStatic()}}
@@ -1033,13 +1075,15 @@ var steps=[
 {text:"Hi, future commander! This is Mission Control. I will walk you through your first sol, one small step at a time. You do the tapping, I keep score."},
 {target:"setup",text:"First, set up your mission: give it a name, pick the Moon or Mars, and choose a class. The table shows what each site is like."},
 {target:"startBtn",wait:"launch",text:"Your turn: press Launch to begin."},
-{sel:"#menuMission .wbCard[data-feat='status']",menu:true,wait:"feat:status",text:"Your base is a menu of workbenches. Your turn: open the Status board."},
+{sel:"#menuMission .wbCard[data-feat='walk']",menu:true,wait:"feat:walk",text:"You play as the astronaut. Your base is a menu of workbenches, and the first one is Walk the base. Your turn: open it."},
+{target:"walkPanel",text:"This is your base, seen through your own helmet. Turn with the left and right arrows (or A and D), walk with up and down (or W and S) or the on-screen buttons, face a module and press E. Or tap a job in the list and you will be walked there. Jobs keep the base alive and fix faults."},
+{target:"wkHours",text:"Time is limited. Each sol gives you a short working day of hours, and every job spends some. Mission experiments cost the most. When you Advance one sol, unused hours are lost, and the return window counts down. Reach the science goal before it closes."},
+{sel:"#menuMission .wbCard[data-feat='status']",menu:true,wait:"feat:status",text:"Back to the menu. Your turn: open the Status board."},
 {target:"statusPanel",text:"These gauges keep your crew alive: oxygen, water, food, plus parts and data. If air, water or food runs out, the crew is in real trouble."},
 {sel:"#menuMission .wbCard[data-feat='build']",menu:true,wait:"feat:build",text:"Back to the menu. Your turn: open the Build yard."},
 {target:"buildList",text:"Spend parts here. A Solar Array and an O2 Generator are smart first builds."},
 {target:"solBtn",menu:true,wait:"sol",text:"Your turn: press Advance one sol and live your first day."},
-{target:"quizPanel",arm:"quiz",wait:"quiz",top:true,text:"Time to earn for real: Mission Control is calling with a real question. Answer it - a right answer pays +6 parts and +5 data, straight into your counters."},
-{target:"hud",text:"See the counters at the top? Your quiz winnings are already in there. Data and parts stay in view, and the + buttons show you how to earn more."},
+{target:"hud",text:"See the counters at the top? Data and parts, always in view. After this tour, those + buttons open a full guided walkthrough for every way to earn more - facts first, then the real thing."},
 {target:"hudPartsPlus",wait:"hudparts",text:"Try it now: tap the + next to Parts."},
 {target:"partsHelp",text:"There it is: every way to get more parts - drills and workshops, salvage trips, pods, quizzes and milestones."},
 {target:"hudSciPlus",menu:true,wait:"hudsci",text:"Now tap the + next to Data."},
@@ -1066,9 +1110,7 @@ window.__closeFeat=closeFeat;
 function showStep(){
 clearGlow();
 var st=steps[cur];
-G("tour").classList.toggle("tourTop",!!st.top);
 if(st.feat){openFeat(st.feat)}else if(st.menu){closeFeat()}
-if(st.arm==="quiz"&&window.__armQuiz){window.__armQuiz()}
 G("tourText").textContent="Step "+(cur+1)+" of "+steps.length+": "+st.text;
 var nb=G("tourNext");
 nb.textContent=cur===steps.length-1?"Done":"Next";
@@ -1083,13 +1125,8 @@ cur++;
 if(cur>=steps.length){tourEnd();return}
 showStep()};
 G("tourSkip").onclick=tourEnd;
-window.__tourEvent=function(name){
-if(!active){return}
-if(name==="quizwrong"&&steps[cur].wait==="quiz"){
-if(window.__armQuiz){window.__armQuiz()}
-G("tourText").textContent="Step "+(cur+1)+" of "+steps.length+": Not quite - Mission Control has another question for you. Give this one a try!";
-return}
-if(steps[cur].wait===name){cur++;showStep()}};
+window.__tourActive=function(){return active};
+window.__tourEvent=function(name){if(active&&steps[cur].wait===name){cur++;showStep()}};
 G("helpBtn").onclick=tourStart;
 G("musBtn").onclick=function(){var on=window.__fx.musToggle();G("musBtn").querySelector(".lb").textContent="Music: "+(on?"on":"off")};
 G("musBtn").querySelector(".lb").textContent="Music: "+(window.__fx.musState()?"on":"off");
@@ -1099,8 +1136,8 @@ G("volR").oninput=function(){window.__fx.musSetVol(parseInt(G("volR").value,10)/
 G("helpSetup").onclick=tourStart;
 document.querySelectorAll(".wbCard").forEach(function(b){b.onclick=function(){var need=window.__fx.featLocked(b.dataset.feat);if(need){window.__fx.toast("That console unlocks at sol "+need+". Finish settling in first!");return}openFeat(b.dataset.feat)}});
 G("wbBack").onclick=closeFeat;
-G("hudPartsPlus").onclick=function(){openFeat("build");var ph=G("partsHelp");var d=ph&&ph.querySelector("details");if(d){d.open=true}if(window.__tourEvent){window.__tourEvent("hudparts")}};
-G("hudSciPlus").onclick=function(){openFeat("research");var sh=G("sciHelp");var d2=sh&&sh.querySelector("details");if(d2){d2.open=true}if(window.__tourEvent){window.__tourEvent("hudsci")}};
+G("hudPartsPlus").onclick=function(){if(window.__tourActive&&window.__tourActive()){openFeat("build");var ph=G("partsHelp");var d=ph&&ph.querySelector("details");if(d){d.open=true}if(window.__tourEvent){window.__tourEvent("hudparts")}return}if(window.__startGuide){window.__startGuide("parts")}};
+G("hudSciPlus").onclick=function(){if(window.__tourActive&&window.__tourActive()){openFeat("research");var sh=G("sciHelp");var d2=sh&&sh.querySelector("details");if(d2){d2.open=true}if(window.__tourEvent){window.__tourEvent("hudsci")}return}if(window.__startGuide){window.__startGuide("data")}};
 try{if(!localStorage.getItem("tourDone")){tourStart()}}catch(e){tourStart()}
 var navBtns=document.querySelectorAll(".navBtn");
 navBtns.forEach(function(b){b.onclick=function(){
@@ -1119,6 +1156,7 @@ applyCmd();
 var tips={"r5CrewBtn":"Table of your astronauts: role, level, health and morale","r5HealthBtn":"Average health, fatigue and morale","r5RolesBtn":"Who does what job, and their levels","r5ExhBtn":"Who is exhausted or away from base","r5MoraleBtn":"Highest, lowest and average morale","r5ResBtn":"Resource levels and how much each astronaut has","r5PaceBtn":"Data earned per sol versus the goal","r5ProjBtn":"Predicted final data and whether you win","r5RunwayBtn":"How many sols each resource will last","r5ShortBtn":"The resource that runs out first","r5DangerBtn":"Overall danger score from 0 to 100","r5OddsBtn":"Your chances of winning, in words","r5BldBtn":"Building types, damage and construction progress","r5CropBtn":"What your greenhouses are growing","r5PowBtn":"Power made, used and stored","r5ShieldBtn":"Radiation shield level and next upgrade cost","r5TechBtn":"Researched tech and the cheapest next one","r5Res2Btn":"Upgrades you can afford right now","r5AffordBtn":"Buildings you can afford right now","r5HistBtn":"How oxygen, water and food changed over time","r5BestBtn":"Your best and worst sol for oxygen","r5DeltaBtn":"Oxygen change since sol 1","r5UpBtn":"Events coming up soon","r5HazBtn":"The next danger on the calendar","r5CheckBtn":"Suggested next actions","r5StatusBtn":"One-line mission summary","r5QuizBtn":"Your quiz record","r5AchBtn":"How many badges you have earned","r5CrewCsvBtn":"Download the crew table as CSV","r5BldCsvBtn":"Download the buildings table as CSV","r5TechCsvBtn":"Download the tech table as CSV","r5SchedCsvBtn":"Download the event schedule as CSV","r5SnapBtn":"Download the full mission state as JSON","r5MdBtn":"Download the mission as a markdown document","r5AuditBtn":"Check the mission state for mistakes","r5GlossBtn":"Words a commander should know","r5FaqBtn":"Common questions and answers","r5TriviaBtn":"A fun space fact","r5Quiz2Btn":"Try one quiz question right now"};
 Object.keys(tips).forEach(function(id){var el=G(id);if(el){el.title=tips[id]}})
 })();
+
 (function(){
 function G(id){return document.getElementById(id)}
 var rm=false;try{rm=window.matchMedia("(prefers-reduced-motion: reduce)").matches}catch(e){}
@@ -1181,3 +1219,158 @@ list.slice().reverse().forEach(function(c){h+='<div class="pcard"><b>Sol '+c.sol
 G("cardList").innerHTML=h}
 if(window.__featRefresh){window.__featRefresh.cards=cardsRender}
 })();
+(function(){
+function G(id){return document.getElementById(id)}
+var scRound=0,scRight=0;
+function scRender(){
+var r=TrainerEngine.fa5SiteRound(scRound);
+G("scBrief").textContent="Goal "+r.round+" of "+r.total+" ("+r.goal+"): "+r.prompt;
+var list=G("scList");list.innerHTML="";
+r.sites.forEach(function(name,i){
+var b=document.createElement("button");
+b.className="scSite";b.textContent=name;
+b.onclick=function(){
+var res=TrainerEngine.fa5SiteScore(scRound,i);
+b.classList.add(res.ok?"ok":"no");
+if(res.ok){scRight++;window.__fx.burstFrom(b)}
+Array.prototype.forEach.call(list.children,function(x){x.disabled=true});
+G("scOut").textContent=(res.ok?"Good pick. ":"Not this one - "+res.correctName+" wins here. ")+res.why;
+scRound++;
+setTimeout(function(){if(scRound>=r.total){G("scBrief").textContent="Site scout complete: "+scRight+" of "+r.total+" goals matched to the right ground.";G("scList").innerHTML="";G("scOut").textContent="";scRound=0;scRight=0}else{scRender()}},1800)};
+list.appendChild(b)})}
+scRender();
+var dpPlan=TrainerEngine.fa5DayNew();
+function dpRender(){
+var list=G("dpList");list.innerHTML="";
+TrainerEngine.fa5DayCats().forEach(function(c){
+var row=document.createElement("div");row.className="dpRow";
+row.innerHTML="<b>"+c.name+"</b>";
+var ctl=document.createElement("span");ctl.className="dpCtl";
+var minus=document.createElement("button");minus.textContent="-";
+var val=document.createElement("span");val.textContent=dpPlan[c.id]+" h";val.style.minWidth="38px";val.style.textAlign="center";
+var plus=document.createElement("button");plus.textContent="+";
+minus.onclick=function(){dpPlan[c.id]=Math.max(0,dpPlan[c.id]-1);dpRender()};
+plus.onclick=function(){dpPlan[c.id]=Math.min(16,dpPlan[c.id]+1);dpRender()};
+ctl.appendChild(minus);ctl.appendChild(val);ctl.appendChild(plus);
+row.appendChild(ctl);list.appendChild(row)});
+var sc=TrainerEngine.fa5DayScore(dpPlan);
+G("dpTotal").textContent="Total: "+sc.total+" of 24 hours"}
+G("dpGo").onclick=function(){
+var sc=TrainerEngine.fa5DayScore(dpPlan);
+if(sc.ok){G("dpOut").innerHTML='<p class="hint">Plan approved. '+sc.note+" ("+sc.stars+" of 3 stars for science time.)</p>";window.__fx.toast("Crew day approved!");window.__fx.burstFrom(G("dpGo"))}
+else{G("dpOut").innerHTML="<p class='hint'>Not yet:</p>"+sc.problems.map(function(p){return "<p class='hint'>- "+p+"</p>"}).join("")}};
+dpRender();
+var dkSt=TrainerEngine.fa5DockNew();
+function dkRender(){
+G("dkStat").innerHTML="Range: <b>"+dkSt.range+" m</b> &middot; closing speed: <b>"+dkSt.speed+" m/s</b> &middot; burn "+Math.min(dkSt.phase+1,dkSt.phases)+" of "+dkSt.phases;
+G("dkOut").textContent=dkSt.note;
+G("dkRetry").hidden=!dkSt.over;
+document.querySelectorAll("[data-burn]").forEach(function(b){b.disabled=dkSt.over})}
+document.querySelectorAll("[data-burn]").forEach(function(b){
+b.onclick=function(){dkSt=TrainerEngine.fa5DockBurn(dkSt,b.getAttribute("data-burn"));if(dkSt.over&&dkSt.won){window.__fx.toast("Docked!");window.__fx.burstFrom(b)}dkRender()}});
+G("dkRetry").onclick=function(){dkSt=TrainerEngine.fa5DockNew();dkRender()};
+dkRender();
+var rkRound=0,rkPicked=[],rkDone=0;
+function rkRender(){
+var r=TrainerEngine.fa5RocketRound(rkRound);
+G("rkBrief").textContent="Rocket "+r.round+" of "+r.total+": "+r.name+" - tap the parts in stacking order, booster first, capsule last.";
+var st=G("rkStack");st.innerHTML="";
+rkPicked.forEach(function(p){var d=document.createElement("div");d.className="rkPart";d.textContent=p;st.appendChild(d)});
+var list=G("rkList");list.innerHTML="";
+r.show.forEach(function(name){
+if(rkPicked.indexOf(name)>=0){return}
+var b=document.createElement("button");b.textContent=name;
+b.onclick=function(){
+rkPicked.push(name);
+var chk=TrainerEngine.fa5RocketCheck(rkRound,rkPicked);
+if(!chk.prefixOk){rkPicked=[];G("rkOut").textContent="That part goes elsewhere - the "+chk.shouldBe+" sits lower in the stack. Start the stack again.";rkRender();return}
+if(chk.done){rkDone++;G("rkOut").textContent="Stack complete and launch-ready!";window.__fx.toast("Rocket stacked!");rkRound++;setTimeout(function(){if(rkRound>=r.total){G("rkBrief").textContent="All three rockets stacked. Mission Control approves.";G("rkList").innerHTML="";G("rkStack").innerHTML="";G("rkOut").textContent="";rkRound=0;rkDone=0}else{rkPicked=[];rkRender()}},1600)}
+else{rkRender()}};
+list.appendChild(b)})}
+rkRender();
+})();
+
+(function(){
+function G(id){return document.getElementById(id)}
+var gKind=null,gPath=null,gStep=0;
+var PATHS={
+parts:[
+{id:"quiz",name:"Mission Control quizzes",sub:"+6 parts per correct answer"},
+{id:"drill",name:"Drill and workshop line",sub:"steady parts every sol"},
+{id:"salvage",name:"Debris Salvage expeditions",sub:"+12 parts per trip"},
+{id:"pods",name:"Resupply pods",sub:"free deliveries from Earth"},
+{id:"miles",name:"Data milestones",sub:"backers send +10 parts"}],
+data:[
+{id:"quiz",name:"Mission Control quizzes",sub:"+5 data per correct answer, +10 for every 3 in a row"},
+{id:"lab",name:"Labs and observatories",sub:"data every sol, forever"},
+{id:"survey",name:"Survey expeditions",sub:"big data hauls"},
+{id:"relay",name:"Comms Dish relays",sub:"+15 data per relay"},
+{id:"debrief",name:"Debrief questions",sub:"+5 data each"}]};
+var STEPS={
+drill:[{text:"A Regolith Drill digs regolith out of the ground every sol on its own. Regolith is raw material - useless until it gets processed."},{text:"A Regolith Workshop does the processing: every 10 regolith becomes 3 parts each sol, 4 once you research sintering. Drill first, workshop second, and parts flow in forever.",go:"build",goLabel:"Open the Build yard"},{text:"Check the yard now: if you can afford both buildings, your parts problem is solved. The drill keeps digging while the workshop sinters.",go:"build",goLabel:"Open the Build yard"}],
+salvage:[{text:"Expeditions send crew outside to bring supplies home. The Debris Salvage trip brings back 12 parts for 2 crew over 2 sols."},{text:"Expeditions unlock at sol 6. When they open, send your fittest pair - tired crew bring back less.",go:"exped",goLabel:"Open Expeditions"}],
+pods:[{text:"Pods land every few sols with whatever manifest you picked. The parts manifest carries the most parts."},{text:"Check the crew console for the resupply manifest. If parts are tight, switch the next pod to parts before it launches.",go:"crew",goLabel:"Open the Crew console"}],
+miles:[{text:"Every time your total data crosses a milestone, backers on Earth celebrate with a shipment of +10 parts. Earning data feeds your parts supply too."},{text:"Watch the objective line on the Status board - each milestone crossed is another parts shipment on the way.",go:"status",goLabel:"Open the Status board"}],
+lab:[{text:"A Science Lab makes 7 data every sol and an Observatory makes 4. Once built, they never stop."},{text:"A crew member with the Scientist role boosts lab output further. Build a lab, then check crew roles.",go:"build",goLabel:"Open the Build yard"}],
+survey:[{text:"Crater Survey, Ice Core and Lava Tube expeditions each bring home 25 to 35 data. They are the fastest data in the game."},{text:"Surveys unlock at sol 6. When sol 6 lands, send a fresh crew pair out and watch the data counter jump.",go:"exped",goLabel:"Open Expeditions"}],
+relay:[{text:"With a Comms Dish online, satellite relay events beam down +15 data each. The dish works all mission long."},{text:"Build the dish early and keep it repaired - every relay after that is free data.",go:"build",goLabel:"Open the Build yard"}],
+debrief:[{text:"After big story moments, Mission Control asks a debrief question about what just happened. Each good answer pays +5 data."},{text:"Debriefs appear on the Status board as messages from Earth. The answer is always in the message you just read.",go:"status",goLabel:"Open the Status board"}]};
+function stateNow(){return window.__gameState?window.__gameState():null}
+function nextQuiz(){var s=stateNow();if(!s){return null}return TrainerEngine.QUIZ[s.quizIndex%TrainerEngine.QUIZ.length]}
+function closeGuide(){G("guide").hidden=true;window.__quizAnswered=null;gPath=null;gStep=0}
+function showChooser(){
+gPath=null;gStep=0;
+var noun=gKind==="parts"?"parts":"data";
+var h="<b>How to get more "+noun+" - pick one and I will walk you through it:</b><div class='guidePaths'>";
+PATHS[gKind].forEach(function(p){h+="<button data-gpath='"+p.id+"'><b>"+p.name+"</b><br><small>"+p.sub+"</small></button>"});
+h+="</div>";
+G("guideText").innerHTML=h;
+G("guideBack").hidden=true;
+G("guideNext").hidden=true;
+Array.prototype.forEach.call(document.querySelectorAll("[data-gpath]"),function(b){b.onclick=function(){gPath=b.getAttribute("data-gpath");gStep=0;showStep()}})}
+function armAndHide(){
+window.__quizAnswered=function(correct){setTimeout(function(){showQuizResult(correct)},4400)};
+if(window.__armQuiz){window.__armQuiz()}
+if(window.__openFeat){window.__openFeat("quiz")}
+G("guide").hidden=true}
+function showQuizTeach(again){
+var q=nextQuiz();
+var lead=again?"No penalty for a miss - the streak just resets. Here is the fact for your next question.":"The trick to quizzes: learn the fact first, then take the question. Mission Control's next question is about this:";
+G("guideText").innerHTML=lead+(q?"<div class='guideFact'>"+q.fact+"</div>":"")+"Read it twice, then take the question - a correct answer pays +6 parts and +5 data.";
+G("guideBack").hidden=false;
+G("guideNext").hidden=false;
+G("guideNext").textContent=again?"Ask me another":"Ask me the question";
+G("guideNext").onclick=armAndHide}
+function showQuizResult(correct){
+G("guide").hidden=false;
+if(correct){
+gPath=null;
+G("guideText").innerHTML="<b>You earned it - +6 parts and +5 data, already in your counters.</b> That is every quiz from now on: learn the fact, take the question, collect. Every 3 correct in a row pays +10 bonus data.";
+G("guideBack").hidden=true;
+G("guideNext").hidden=true;
+window.__quizAnswered=null}
+else{showQuizTeach(true)}}
+function showStep(){
+if(!gPath){showChooser();return}
+if(gPath==="quiz"){showQuizTeach(false);return}
+var st=STEPS[gPath][gStep];
+var h="<b>"+STEPS[gPath].length+"-step guide ("+(gStep+1)+"/"+STEPS[gPath].length+"):</b> "+st.text;
+G("guideText").innerHTML=h;
+G("guideBack").hidden=false;
+G("guideNext").hidden=false;
+G("guideNext").textContent=st.go?st.goLabel:(gStep<STEPS[gPath].length-1?"Next":"Got it");
+G("guideNext").onclick=function(){
+if(st.go){if(window.__openFeat){window.__openFeat(st.go)}closeGuide();return}
+if(gStep<STEPS[gPath].length-1){gStep++;showStep()}else{closeGuide()}}}
+G("guideBack").onclick=function(){
+if(!gPath){closeGuide();return}
+if(gPath==="quiz"||gStep===0){showChooser();return}
+gStep--;showStep()};
+G("guideClose").onclick=closeGuide;
+window.__startGuide=function(kind){
+if(!stateNow()){return}
+gKind=kind==="data"?"data":"parts";
+G("guide").hidden=false;
+showChooser()};
+})();
+

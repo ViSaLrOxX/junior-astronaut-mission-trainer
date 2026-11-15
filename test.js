@@ -859,4 +859,39 @@ s.sol=26;assert(E.fa4Postcards(s).length===8);
 s.over=true;s.won=true;
 var last=E.fa4Postcards(s).slice(-1)[0];
 assert(last.who==="Mission Control")});
+T("site scout scoring",function(){
+var r=E.fa5SiteRound(0);
+assert(r.total===3&&r.sites.length===3);
+var win=E.fa5SiteScore(0,0);
+assert(win.ok&&win.why.indexOf("sunlight")>0);
+var lose=E.fa5SiteScore(0,1);
+assert(!lose.ok&&lose.correctName.indexOf("Shackleton")>=0);
+assert(E.fa5SiteScore(1,0).ok)});
+T("docking win and crash paths",function(){
+var st=E.fa5DockNew();
+["gentle","strong","strong"].forEach(function(k){st=E.fa5DockBurn(st,k)});
+assert(st.over&&st.won&&st.range===0&&st.speed===2);
+var st2=E.fa5DockNew();
+st2=E.fa5DockBurn(st2,"hold");st2=E.fa5DockBurn(st2,"hold");
+assert(st2.over&&!st2.won&&st2.note.indexOf("docking ring")>0);
+var st3=E.fa5DockNew();
+["strong","strong","strong","hold"].forEach(function(k){st3=E.fa5DockBurn(st3,k)});
+assert(st3.over&&!st3.won&&st3.note.indexOf("Window missed")===0)});
+T("rocket stacking order",function(){
+var r=E.fa5RocketRound(0);
+assert(r.total===3&&r.show.length===3);
+var bad=E.fa5RocketCheck(0,["Apollo command module"]);
+assert(!bad.prefixOk&&bad.wrongAt===0&&bad.shouldBe==="S-IC first stage");
+var good=E.fa5RocketCheck(0,["S-IC first stage","S-II second stage","Apollo command module"]);
+assert(good.prefixOk&&good.done)});
+T("crew day rules",function(){
+var d=E.fa5DayNew();
+var sc=E.fa5DayScore(d);
+assert(sc.total===24&&sc.ok&&sc.stars===3);
+var d2=E.fa5DayNew();d2.sleep=5;d2.sci=9;
+var sc2=E.fa5DayScore(d2);
+assert(!sc2.ok&&sc2.problems.some(function(p){return p.indexOf("Sleep")===0}));
+var d3=E.fa5DayNew();d3.sci=2;d3.rest=10;
+var sc3=E.fa5DayScore(d3);
+assert(sc3.ok&&sc3.stars===1)});
 process.exit(fail+fail2+fail3+fail4+fail7+(fR8)+(fR9)+(fR10)+(fR11)+(fR12)+(fR13)+(fR14)+(fR15)+(fR16)+(fR17)+(fR18)?1:0);
