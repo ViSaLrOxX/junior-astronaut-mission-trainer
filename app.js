@@ -51,8 +51,9 @@ var tl="";
 Object.keys(TrainerEngine.TECHS).forEach(function(k){
 var t=TrainerEngine.TECHS[k];
 var has=!!s.techs[k];
-var ok=!has&&s.res.science>=t.cost;
-tl+='<div class="bld"><div><strong>'+t.name+'</strong> ('+t.cost+' science)<small>'+t.desc+"</small></div>"+(has?'<span class="chip on">researched</span>':'<button data-tech="'+k+'"'+(ok?"":" disabled")+">Research</button>")+"</div>"});
+var cost=TrainerEngine.researchCost(s,k);
+var ok=!has&&s.res.science>=cost;
+tl+='<div class="bld"><div><strong>'+t.name+'</strong> ('+cost+' science)<small>'+t.desc+"</small></div>"+(has?'<span class="chip on">researched</span>':'<button data-tech="'+k+'"'+(ok?"":" disabled")+">Research</button>")+"</div>"});
 $("techList").innerHTML=tl;
 Array.prototype.forEach.call(document.querySelectorAll("[data-tech]"),function(btn){
 btn.onclick=function(){TrainerEngine.research(s,btn.getAttribute("data-tech"));render()}});
@@ -60,17 +61,20 @@ var cl="";
 s.crew.forEach(function(c,i){
 var lvl=TrainerEngine.cLevel(c);
 var st=c.health<=0?"DECEASED":(c.away>0?"ON EXPEDITION ("+c.away+" sol)":("H "+Math.round(c.health)+" / M "+Math.round(c.morale)+" / F "+Math.round(c.fatigue||0)+" / Lv"+lvl));
-cl+='<div class="crew"><span>'+c.name+" <small>("+c.role+")</small></span>"+'<span class="h'+(c.health<40?" low":"")+'">'+st+"</span>"+'<select data-retrain="'+i+'"><option value="">retrain…</option>'+TrainerEngine.ROLES.map(function(r){return '<option value="'+r+'"'+(r===c.role?" disabled":"")+">"+r+"</option>"}).join("")+"</select></div>"});
+cl+='<div class="crew"><span>'+c.name+" <small>("+c.role+")</small></span>"+'<button data-rest="'+i+'"'+(c.health<=0||c.away>0?" disabled":"")+">Rest</button>"+'<span class="h'+(c.health<40?" low":"")+'">'+st+"</span>"+'<select data-retrain="'+i+'"><option value="">retrain…</option>'+TrainerEngine.ROLES.map(function(r){return '<option value="'+r+'"'+(r===c.role?" disabled":"")+">"+r+"</option>"}).join("")+"</select></div>"});
 $("crewList").innerHTML=cl;
 Array.prototype.forEach.call(document.querySelectorAll("[data-retrain]"),function(sel){
 sel.onchange=function(){if(sel.value){TrainerEngine.retrain(s,parseInt(sel.getAttribute("data-retrain"),10),sel.value);render()}}});
+Array.prototype.forEach.call(document.querySelectorAll("[data-rest]"),function(btn){
+btn.onclick=function(){TrainerEngine.rest(s,parseInt(btn.getAttribute("data-rest"),10));render()}});
 $("recruitBtn").disabled=!(s.res.parts>=25&&s.crew.length<TrainerEngine.crewCapacity(s));
 $("rationSel").value=String(s.rations);
 $("manifestSel").value=s.manifest;
 var el="";
 Object.keys(TrainerEngine.EXPEDITIONS).forEach(function(k){
 var x=TrainerEngine.EXPEDITIONS[k];
-el+='<div class="bld"><div><strong>'+x.name+'</strong> ('+x.cost+" parts, "+x.sols+' sols)<small>'+(x.science?"+"+x.science+" science":x.water?"+"+x.water+" water":"+"+x.parts+" parts")+", tiring, 10% breakdown risk</small></div>"+'<button data-exped="'+k+'">Send 2 crew</button></div>'});
+var yieldTxt=[x.science?"+"+x.science+" science":null,x.water?"+"+x.water+" water":null,x.parts?"+"+x.parts+" parts":null,x.relay?"relay buff":null].filter(Boolean).join(", ");
+el+='<div class="bld"><div><strong>'+x.name+'</strong> ('+x.cost+" parts, "+x.sols+' sols)<small>'+yieldTxt+", tiring, 10% breakdown risk</small></div>"+'<button data-exped="'+k+'">Send 2 crew</button></div>'});
 $("expedList").innerHTML=el;
 Array.prototype.forEach.call(document.querySelectorAll("[data-exped]"),function(btn){
 btn.onclick=function(){var r=TrainerEngine.expedition(s,btn.getAttribute("data-exped"));if(!r.ok){alert(r.msg)}render()}});
@@ -102,6 +106,8 @@ $("advice").innerHTML=th;
 var st2=TrainerEngine.statsSummary(s);
 $("statsPanel").innerHTML='<div class="score">Science earned: '+st2.scienceEarned+" | Power generated: "+st2.powerGenerated+" | Water mined: "+st2.waterMined+"</div>"+'<div class="score">Expeditions: '+st2.expeditions+" | Storms survived: "+st2.stormsSurvived+" | Quiz correct: "+st2.quizCorrect+" | Achievements: "+st2.achievements+"/"+TrainerEngine.ACHIEVEMENTS.length+"</div>";
 renderHighScores();
+renderAnalytics();
+drawHistory();
 var qp=$("quizPanel");
 if(s.pendingQuiz!==null&&!s.over){
 qp.hidden=false;
@@ -114,7 +120,7 @@ $("quizOpts").innerHTML=opts;
 Array.prototype.forEach.call(document.querySelectorAll("[data-quiz]"),function(btn){
 btn.onclick=function(){
 var r=TrainerEngine.answerQuiz(s,parseInt(btn.getAttribute("data-quiz"),10));
-$("quizFact").textContent=(r.correct?"Correct! +6 parts, +5 science. ":"Not quite. ")+r.fact;
+$("quizFact").textContent=(r.correct?"Correct! +6 parts, +5 science. ":"Not quite. ")+r.fact+(s.quizStreak>1?" Streak: "+s.quizStreak+".":"");
 $("quizOpts").innerHTML="";
 setTimeout(function(){qp.hidden=true;render()},4200);
 render()}});
@@ -123,18 +129,65 @@ var lg="";
 s.log.forEach(function(e){lg+='<div><span class="sol">Sol '+e.sol+":</span> "+e.msg+"</div>"});
 $("log").innerHTML=lg;
 var ach="";
+var prog=TrainerEngine.achievementProgress(s);
 TrainerEngine.ACHIEVEMENTS.forEach(function(a){
 var on=s.earned.indexOf(a.id)>=0;
-ach+='<span class="chip'+(on?" on":"")+'">'+a.name+"</span>"});
+var pr=prog.filter(function(x){return x.id===a.id})[0];
+ach+='<span class="chip'+(on?" on":"")+'">'+a.name+(pr&&!on?" ("+pr.have+"/"+pr.need+")":"")+"</span>"});
 $("ach").innerHTML=ach;
 var eb=$("endBanner");
 if(s.over){
 saveHighScore();
 eb.hidden=false;
 eb.className=s.won?"win":"lose";
-eb.textContent=(s.won?"MISSION SUCCESS — science goal reached, crew alive. ":"MISSION FAILED — review the log and try a new strategy. ")+"Final score: "+TrainerEngine.score(s)+".";
+var pm=TrainerEngine.postMortem(s);
+eb.innerHTML=(s.won?"MISSION SUCCESS — review complete. ":"MISSION FAILED — review the log and try a new strategy. ")+"Final score: "+TrainerEngine.score(s)+" (grade "+TrainerEngine.letterGrade(s)+"). "+(s.won?"":pm.join(" "));
 $("solBtn").disabled=true;
 }else{eb.hidden=true;$("solBtn").disabled=false}}
+function renderAnalytics(){
+if(!s){return}
+var al=TrainerEngine.alerts(s);
+var bat=TrainerEngine.batteryStatus(s);
+var mo=TrainerEngine.moraleReport(s);
+var pf=TrainerEngine.powerForecast(s);
+var fc=TrainerEngine.foodCalendar(s);
+var bq=TrainerEngine.buildQueueEta(s);
+var hr=TrainerEngine.healthReport(s);
+var ws=TrainerEngine.weeklySummary(s);
+var hints=TrainerEngine.tutorialHints(s);
+var chk=TrainerEngine.dailyChecklist(s);
+var h="";
+al.forEach(function(a2){h+='<span class="chip" style="border-color:'+(a2.level==="critical"?"#ff8080":(a2.level==="warn"?"#ffd166":"#6fd3ff"))+'">'+a2.text+"</span>"});
+h+="<p>Today's checklist: "+chk.join("; ")+".</p>";
+hints.forEach(function(x){h+='<p class="hint">'+x+"</p>"});
+h+="<p>Battery: "+bat.stored+"/"+bat.capacity+" ("+bat.pct+"%)"+(bat.note?" "+bat.note:"")+" Tomorrow's power: "+pf.tomorrow+" (today "+pf.today+").</p>";
+h+="<p>Morale avg "+mo.avg+(mo.lowest?"; lowest: "+mo.lowest.name+" ("+mo.lowest.morale+")":"")+". Food days at 100/80/60% rations: "+fc.map(function(f){return f.days}).join(" / ")+".</p>";
+if(bq.length){h+="<p>Under construction: "+bq.map(function(b){return b.name+" ("+b.solsLeft+" sol)"}).join(", ")+".</p>"}
+h+="<p>Crew: "+hr.map(function(c){return c.name+" "+c.status}).join(", ")+".</p>";
+if(ws){h+="<p>Last 7 sols: science "+(ws.scienceDelta>=0?"+":"")+ws.scienceDelta+", food "+(ws.foodDelta>=0?"+":"")+ws.foodDelta+", water "+(ws.waterDelta>=0?"+":"")+ws.waterDelta+", parts "+(ws.partsDelta>=0?"+":"")+ws.partsDelta+".</p>"}
+$("analytics").innerHTML=h;
+var ev=TrainerEngine.eventPreview(s);
+var eh="";
+ev.forEach(function(e){eh+='<span class="chip">'+e.text+"</span>"});
+$("evPreview").innerHTML=eh}
+function drawHistory(){
+if(!s){return}
+var cv=$("histCv");var c=cv.getContext("2d");
+c.clearRect(0,0,cv.width,cv.height);
+var hist=TrainerEngine.resourceHistory(s);
+if(hist.length<2){c.fillStyle="#9aa7c7";c.font="13px Verdana";c.fillText("History builds as sols pass.",20,30);return}
+var key=$("histSel").value;
+var vals=hist.map(function(x){return x[key]});
+var mn=Math.min.apply(null,vals),mx=Math.max.apply(null,vals);
+if(mx===mn){mx=mn+1}
+function X(i){return 40+i/(vals.length-1)*(cv.width-70)}
+function Y(v){return 15+(mx-v)/(mx-mn)*(cv.height-50)}
+c.strokeStyle="#6fd3ff";c.lineWidth=2;c.beginPath();
+vals.forEach(function(v,i){if(i===0){c.moveTo(X(i),Y(v))}else{c.lineTo(X(i),Y(v))}});
+c.stroke();
+c.fillStyle="#9aa7c7";c.font="11px Verdana";
+c.fillText(mx,6,Y(mx)+4);c.fillText(mn,6,Y(mn)+4);
+c.fillText("sol "+hist[0].sol,40,cv.height-6);c.fillText("sol "+hist[hist.length-1].sol,cv.width-80,cv.height-6)}
 function showSiteCompare(){
 var cs=TrainerEngine.compareSites();
 var h='<table class="cmp"><tr><th>Site</th><th>Radiation</th><th>Ice</th><th>Solar</th><th>Storms</th></tr>';
@@ -145,6 +198,7 @@ s=TrainerEngine.newGame($("siteSel").value,parseInt($("seedSel").value,10)||1,$(
 var sc=$("scenSel").value;
 if(sc){TrainerEngine.setScenario(s,sc)}
 TrainerEngine.setMissionName(s,$("nameSel").value);
+TrainerEngine.setObjectiveMode(s,$("objSel").value);
 $("setup").hidden=true;$("game").hidden=false;render()};
 $("solBtn").onclick=function(){TrainerEngine.tick(s);render()};
 $("autoBtn").onclick=function(){
@@ -163,6 +217,23 @@ $("contrastBtn").onclick=function(){document.body.classList.toggle("hc")};
 $("rationSel").onchange=function(){if(s){TrainerEngine.setRations(s,parseFloat($("rationSel").value));render()}};
 $("manifestSel").onchange=function(){if(s){TrainerEngine.setManifest(s,$("manifestSel").value);render()}};
 $("newBtn").onclick=function(){if(autoTimer){clearInterval(autoTimer);autoTimer=null}$("setup").hidden=false;$("game").hidden=true;s=null};
+Object.keys(TrainerEngine.BUILDINGS).forEach(function(t){
+$("drySel").innerHTML+='<option value="'+t+'">'+TrainerEngine.BUILDINGS[t].name+"</option>"});
+$("drySel").onchange=function(){
+if(!s){return}
+var d=TrainerEngine.dryRunBuild(s,this.value);
+$("dryOut").innerHTML=d?'<p class="hint">'+d.name+": "+d.cost+" parts, "+d.buildSols+" sol(s) to build. Power: "+(d.powerDelta>=0?"+":"")+d.powerDelta+" generated, "+d.powerUse+" draw. "+d.note+"</p>":""};
+$("cleanBtn").onclick=function(){$("opsMsg").textContent=TrainerEngine.cleanSolar(s)?"Panels cleaned: +20% solar for 3 sols.":"Needs 2 parts and an online array.";render()};
+$("suitBtn").onclick=function(){$("opsMsg").textContent=TrainerEngine.suitMaintenance(s)?"Suits serviced: next EVA is safer.":"Needs 3 parts.";render()};
+$("repAllBtn").onclick=function(){var n=TrainerEngine.repairAll(s);$("opsMsg").textContent=n?("Repaired "+n+" building(s)."):"Nothing affordable to repair.";render()};
+$("shelterBtn").onclick=function(){TrainerEngine.shelterMode(s);$("opsMsg").textContent="Shelter mode set for next sol.";render()};
+$("histSel").onchange=drawHistory;
+$("histCsvBtn").onclick=function(){download("resource-history.csv",TrainerEngine.historyCSV(s),"text/csv")};
+$("crewCsvBtn").onclick=function(){download("crew-roster.csv",TrainerEngine.crewCSV(s),"text/csv")};
+$("shareBtn").onclick=function(){
+var t=TrainerEngine.shareText(s);
+if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t)}
+$("opsMsg").textContent="Share text: "+t};
 document.addEventListener("keydown",function(e){
 if(!s||$("game").hidden){return}
 if(e.key===" "&&!s.over){e.preventDefault();TrainerEngine.tick(s);render()}

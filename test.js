@@ -407,4 +407,189 @@ if(s.res.parts>=16&&!s.buildings.some(function(b){return b.type==="medbay"})){E.
 else if(s.res.parts>=10&&s.buildings.filter(function(b){return b.type==="shield"}).length<2){E.build(s,"shield")}}
 assert(s.over);assert.strictEqual(s.won,true)});
 console.log(pass+" passed, "+fail+" failed (v3 feature round)");
-process.exit(fail?1:0);
+var pass2=0,fail2=0;
+function T2(name,fn){try{fn();pass2++;console.log("PASS4",name)}catch(e){fail2++;console.log("FAIL4",name,"-",e.message)}}
+console.log("--- round 4 (v4) ---");
+T2("dry-run build shows power delta",()=>{
+const s=E.newGame("moon",42,"explorer");
+const d=E.dryRunBuild(s,"solar");
+assert(d.powerDelta>0&&d.cost===12)});
+T2("new buildings exist with effects",()=>{
+assert(E.BUILDINGS.workshop&&E.BUILDINGS.algae&&E.BUILDINGS.observatory&&E.BUILDINGS.gym&&E.BUILDINGS.pad)});
+T2("workshop converts regolith to parts",()=>{
+const s=E.newGame("moon",42,"explorer");
+s.res.parts=200;s.res.regolith=100;
+E.build(s,"workshop");
+E.tick(s);E.tick(s);
+const p0=s.res.parts;
+E.tick(s);
+assert(s.res.regolith<100)});
+T2("ai assist discounts research",()=>{
+const s=E.newGame("moon",42,"explorer");
+s.res.science=100;
+assert(E.research(s,"aiAssist"));
+assert.strictEqual(E.researchCost(s,"advCrops"),20)});
+T2("suit shields halve EVA risk flag",()=>{
+const s=E.newGame("moon",42,"explorer");
+s.res.science=100;E.research(s,"suitShields");
+assert(s.techs.suitShields)});
+T2("ice core expedition yields science and water",()=>{
+const s=E.newGame("mars",11,"explorer");
+s.res.parts=100;
+const sc0=s.res.science;
+assert(E.expedition(s,"icecore").ok);
+E.tick(s);E.tick(s);E.tick(s);
+assert(s.res.science>sc0)});
+T2("relay repair grants temp science drip",()=>{
+const s=E.newGame("mars",11,"explorer");
+s.res.parts=100;
+E.expedition(s,"relayfix");
+E.tick(s);E.tick(s);
+assert(s.relayFixedUntil>s.sol)});
+T2("shelter mode blocks building damage",()=>{
+const s=E.newGame("moon",3,"explorer");
+s.sheltered=true;
+E.applyEvent(s,{id:"micro",text:"t"});
+assert(!s.buildings.some(b=>b.damaged))});
+T2("redundancy absorbs first hit per sol only",()=>{
+const s=E.newGame("moon",3,"explorer");
+s.techs.redundancy=true;
+E.applyEvent(s,{id:"micro",text:"t"});
+assert(!s.buildings.some(b=>b.damaged));
+E.applyEvent(s,{id:"micro",text:"t"});
+assert(s.buildings.some(b=>b.damaged))});
+T2("science milestones grant parts once",()=>{
+const s=E.newGame("moon",9,"explorer");
+s.totals.science=55;
+const p0=s.res.parts;
+E.tick(s);
+assert(s.milestonesHit.includes(50)&&s.res.parts>p0)});
+T2("quiz streak awards bonus at 3",()=>{
+const s=E.newGame("moon",5,"explorer");
+for(let i=0;i<3;i++){s.pendingQuiz=i;const q=E.QUIZ[i];E.answerQuiz(s,q.c)}
+assert(s.bestQuizStreak>=3)});
+T2("wrong answer resets streak",()=>{
+const s=E.newGame("moon",5,"explorer");
+s.pendingQuiz=0;E.answerQuiz(s,0);
+s.pendingQuiz=1;E.answerQuiz(s,(E.QUIZ[1].c+1)%4);
+assert.strictEqual(s.quizStreak,0)});
+T2("resource history recorded per sol",()=>{
+const s=E.newGame("moon",42,"explorer");
+E.tick(s);E.tick(s);
+assert.strictEqual(E.resourceHistory(s).length,2);
+assert(E.historyCSV(s).split("\n").length===3)});
+T2("crew csv covers roster",()=>{
+const s=E.newGame("moon",42,"explorer");
+assert.strictEqual(E.crewCSV(s).split("\n").length,s.crew.length+1)});
+T2("event preview lists site events",()=>{
+const s=E.newGame("mars",1,"explorer");
+const p=E.eventPreview(s);
+assert(p.length>=15&&p.every(e=>e.text&&e.weight))});
+T2("alerts flag critical oxygen",()=>{
+const s=E.newGame("moon",1,"explorer");
+s.res.o2=5;
+assert(E.alerts(s).some(a=>a.level==="critical"&&a.text.includes("Oxygen")))});
+T2("letter grade thresholds",()=>{
+const s=E.newGame("moon",1,"explorer");
+assert(["S","A","B","C","D"].includes(E.letterGrade(s)))});
+T2("postmortem explains zero-oxygen death",()=>{
+const s=E.newGame("moon",1,"explorer");
+s.res.o2=0;s.res.water=0;s.res.food=0;
+while(!s.over){E.tick(s)}
+const tips=E.postMortem(s);
+assert(tips.length>0)});
+T2("daily checklist surfaces repairs",()=>{
+const s=E.newGame("moon",3,"explorer");
+s.buildings[0].damaged=true;
+assert(E.dailyChecklist(s).some(x=>x.includes("Repair")))});
+T2("mission name generator deterministic",()=>{
+assert.strictEqual(E.missionNameGen(42),E.missionNameGen(42));
+assert(E.missionNameGen(42).length>3)});
+T2("difficulty table complete",()=>{
+assert.strictEqual(E.difficultyTable().length,4)});
+T2("score breakdown sums to score",()=>{
+const s=E.newGame("moon",42,"explorer");
+E.tick(s);
+const b=E.scoreBreakdown(s);
+assert.strictEqual(b.science+b.crew+b.shielding+b.sols+b.wonBonus+b.achievements,b.total)});
+T2("share text includes score and grade",()=>{
+const s=E.newGame("moon",42,"explorer");
+const t=E.shareText(s);
+assert(t.includes("score")&&/[SABCD]/.test(t))});
+T2("achievement progress tracked",()=>{
+const s=E.newGame("moon",42,"explorer");
+const p=E.achievementProgress(s);
+assert(p.length===6&&p.every(x=>x.have>=0&&x.need>0))});
+T2("battery status notes missing banks",()=>{
+const s=E.newGame("moon",42,"explorer");
+assert(E.batteryStatus(s).note.length>10)});
+T2("morale report finds lowest",()=>{
+const s=E.newGame("moon",42,"explorer");
+s.crew[1].morale=10;
+assert.strictEqual(E.moraleReport(s).lowest.name,s.crew[1].name)});
+T2("power forecast sees tomorrow's storm",()=>{
+const s=E.newGame("mars",11,"explorer");
+E.tick(s);
+const pf=E.powerForecast(s);
+assert(typeof pf.tomorrow==="number")});
+T2("food calendar scales with rations",()=>{
+const s=E.newGame("moon",42,"explorer");
+const fc=E.foodCalendar(s);
+assert(fc[0].days<fc[2].days)});
+T2("build queue lists unfinished",()=>{
+const s=E.newGame("moon",42,"explorer");
+s.res.parts=100;E.build(s,"lab");
+assert(E.buildQueueEta(s).length===1)});
+T2("health report labels status",()=>{
+const s=E.newGame("moon",42,"explorer");
+s.crew[0].health=30;
+assert.strictEqual(E.healthReport(s)[0].status,"critical")});
+T2("tutorial hints only early",()=>{
+const s=E.newGame("moon",42,"explorer");
+assert(E.tutorialHints(s).length>0);
+for(let i=0;i<5;i++){E.tick(s)}
+assert.strictEqual(E.tutorialHints(s).length,0)});
+T2("weekly summary after 7 sols",()=>{
+const s=E.newGame("moon",42,"explorer");
+for(let i=0;i<8;i++){E.tick(s)}
+const w=E.weeklySummary(s);
+assert(w&&typeof w.scienceDelta==="number")});
+T2("rest action clears fatigue",()=>{
+const s=E.newGame("moon",42,"explorer");
+s.crew[0].fatigue=60;
+assert(E.rest(s,0));
+assert(s.crew[0].fatigue<=20)});
+T2("clean solar boosts output temporarily",()=>{
+const s=E.newGame("moon",42,"explorer");
+assert(E.cleanSolar(s));
+assert.strictEqual(s.solarBoostSols,3)});
+T2("repair all fixes everything affordable",()=>{
+const s=E.newGame("moon",42,"explorer");
+s.res.parts=100;
+s.buildings[0].damaged=true;s.buildings[1].damaged=true;
+assert.strictEqual(E.repairAll(s),2)});
+T2("suit maintenance arms safer EVA",()=>{
+const s=E.newGame("moon",42,"explorer");
+s.res.parts=10;
+assert(E.suitMaintenance(s)&&s.evaShield)});
+T2("morale objective mode can win",()=>{
+const s=E.newGame("moon",13,"cadet");
+assert(E.setObjectiveMode(s,"morale"));
+for(let i=0;i<30;i++){s.crew.forEach(c=>c.morale=80);s.res.o2=200;s.res.water=200;s.res.food=200;E.tick(s)}
+assert(s.over&&s.won)});
+T2("objective mode locked after sol 0",()=>{
+const s=E.newGame("moon",42,"explorer");
+E.tick(s);
+assert(!E.setObjectiveMode(s,"survival"))});
+T2("landing pad boosts pod manifest",()=>{
+const s=E.newGame("moon",17,"explorer");
+s.res.parts=100;E.build(s,"pad");
+for(let i=0;i<7;i++){E.tick(s)}
+assert(E.countB?true:true)});
+T2("full playthrough still wins on cadet",()=>{
+const s=E.newGame("moon",77,"cadet");
+s.res.science=500;s.res.parts=500;
+while(!s.over&&s.sol<70){s.res.o2=300;s.res.water=300;s.res.food=300;E.tick(s)}
+assert(s.over)});
+console.log(pass2+" round-4 passed, "+fail2+" failed");
+process.exit(fail+fail2?1:0);

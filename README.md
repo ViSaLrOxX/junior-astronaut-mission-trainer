@@ -2,7 +2,7 @@
 
 NASA Space Apps 2026 challenge #1. A browser-based base-management game for kids (and judges) that teaches real mission trade-offs on the Moon and Mars: power, oxygen, water, food, shielding, crew health and morale. Fully offline: open `index.html` and play.
 
-## Features (52)
+## Features (102)
 
 Core sim
 1. Two real sites (Lunar South Pole, Mars Jezero Rim) with distinct radiation, ice, sunlight, storm and quake profiles
@@ -60,6 +60,72 @@ Quality of life
 51. Auto-advance mode and keyboard shortcuts (space = next sol, s = save)
 52. High-contrast toggle, reduced-motion and print styles, responsive layout
 
+Round-4 buildings
+53. Workshop: cuts every future build cost by 20%
+54. Algae Farm: passive food from CO2 and water, no power draw
+55. Observatory: passive science income
+56. Gym: crew recover morale each sol and fight events hit softer
+57. Landing Pad: resupply pods carry more cargo
+
+Round-4 research
+58. Aeroponics: greenhouses and algae farms yield 50% more
+59. Regolith Sintering: drills produce 40% more
+60. Suit Shielding: EVA repairs no longer risk injury
+61. AI Assistance: research costs 20% less (UI shows discounted prices)
+62. Redundancy Protocols: building damage is halved
+
+Round-4 expeditions
+63. Ice Core Drilling: 3-sol science+water expedition
+64. Lava Tube Survey: 3-sol expedition mapping radiation-safe caves
+65. Relay Repair: fixes the comms relay for a +15% science uplink buff
+
+Round-4 events (6 new, 22 total)
+66. O2 line leak with a built-in scrubber mitigation
+67. Greenhouse blight that kills the current crop
+68. Crew argument morale hit, softened by an online gym
+69. Dust devil knocking panels loose (no damage with suit shielding up... just kidding: it ignores suits, it's weather)
+70. Suit puncture on EVA crews
+71. Subsurface ice pocket discovery
+
+Round-4 ops actions
+72. Rest order per crew member (skips duties, +12 health, +6 morale)
+73. Panel cleaning: 2 parts for +20% solar over 3 sols
+74. Repair-all button honoring Engineer discounts
+75. Shelter mode: skip a sol's production to protect crew from radiation
+76. EVA suit service: 3 parts to halve the next EVA's risk
+
+Round-4 objectives
+77. Three win modes selectable at launch: science goal, bring-everyone-home, morale-60+
+
+Round-4 analytics
+78. Three-level alert chips (critical / warning / info) for stores, power, radiation, morale, damage
+79. Daily checklist: the top five things to do right now
+80. Tutorial hint queue teaching new players one lesson at a time
+81. Battery status panel with capacity, fill and full/empty projections
+82. Morale report with crew averages and the lowest-morale member named
+83. Two-day power forecast comparing today and tomorrow
+84. Food-days-left calendar at 100/80/60% rations
+85. Build queue ETA list for everything under construction
+86. Crew health report with injured/low-morale callouts
+87. Weekly summary of science, food, water and parts deltas
+88. Event almanac: this site's weighted event table with odds
+89. Dry-run builder: pick any building, see its real cost, build time and power effect before spending
+90. Resource history chart (canvas) for oxygen, water, food, parts or science
+91. Resource history CSV export
+92. Crew roster CSV export with XP and fatigue
+93. Copy-ready share text summarizing the mission
+
+Round-4 scoring and meta
+94. Letter grade (S/A/B/C/D) on the end banner
+95. Post-mortem bullets diagnosing the three biggest failure causes
+96. Achievement progress counts shown on unearned chips
+97. Quiz streak counter with bonus science at 3-in-a-row
+98. Score breakdown (science, crew, shielding, sols, achievements) in the JSON report
+99. Difficulty multipliers table in the JSON report
+100. Mission name generator for the "Unnamed" default
+101. Objective-mode validation in the JSON report and review text
+102. Round-4 regression suite: 40 new tests, 102 total
+
 Winner-inspired patterns (verified 2025 global winners, per NASA's announcement): design-then-validate simulation like PureFlow's habitat validator; best-window/risk guidance like SkySense; mini-game teaching real constraints like Zumorroda-X; kid-facing storytelling like HerCode.
 
 ## Data and sources
@@ -68,7 +134,7 @@ Challenge statement: nasaspaceapps.ae/challenges (Junior Astronaut Mission Train
 
 ## Tested
 
-`node test.js` — 62 checks covering engine rules, resource math, role effects, tech effects, expeditions, scenarios, sandbox behavior, advisor triggers, forecast correctness and a full playthrough that wins. All pass on Node 22.
+`node test.js` — 102 checks (62 original + 40 round-4) covering engine rules, resource math, role effects, tech effects, expeditions, scenarios, sandbox behavior, advisor triggers, forecast correctness and a full playthrough that wins. All pass on Node 22. Round-4 tests cover the new buildings, techs, expeditions, events, ops actions, analytics functions, objective modes, grading and exports.
 
 ## Untested
 

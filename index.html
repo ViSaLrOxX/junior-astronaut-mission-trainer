@@ -20,6 +20,12 @@
 <option value="moon">Lunar South Pole</option>
 <option value="mars">Mars, Jezero Rim</option>
 </select></label>
+<label>Objective
+<select id="objSel">
+<option value="science" selected>Science goal (classic)</option>
+<option value="survival">Bring everyone home</option>
+<option value="morale">Keep morale 60+</option>
+</select></label>
 <label>Class
 <select id="diffSel">
 <option value="cadet">Cadet (easier)</option>
@@ -112,6 +118,29 @@
 <section class="panel">
 <h2>Achievements</h2>
 <div id="ach"></div>
+</section>
+<section class="panel">
+<h2>Ops actions</h2>
+<button id="cleanBtn">Clean panels (2 parts)</button>
+<button id="suitBtn">Service EVA suits (3 parts)</button>
+<button id="repAllBtn">Repair all</button>
+<button id="shelterBtn">Shelter mode next sol</button>
+<p class="hint" id="opsMsg"></p>
+</section>
+<section class="panel" style="grid-column:1/-1">
+<h2>Analytics</h2>
+<div id="analytics"></div>
+<label>Dry-run a building <select id="drySel"></select></label>
+<div id="dryOut"></div>
+<details><summary>Event almanac for this site</summary><div id="evPreview"></div></details>
+</section>
+<section class="panel" style="grid-column:1/-1">
+<h2>Resource history</h2>
+<canvas id="histCv" width="1100" height="220"></canvas>
+<label>Trace <select id="histSel"><option value="o2">Oxygen</option><option value="water">Water</option><option value="food">Food</option><option value="parts">Parts</option><option value="science">Science</option></select></label>
+<button id="histCsvBtn">Download history CSV</button>
+<button id="crewCsvBtn">Download crew CSV</button>
+<button id="shareBtn">Copy share text</button>
 </section>
 </main>
 <script src="engine.js"></script>
