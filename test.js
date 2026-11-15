@@ -808,4 +808,12 @@ var ids=E.EVENTS.map(function(e){return e.id});
 TQ18("storm and aurora are real event ids",ids.indexOf("storm")>=0&&ids.indexOf("aurora")>=0);
 TQ18("first-choice buildings exist with costs",E.BUILDINGS.solar.cost===12&&E.BUILDINGS.watermine.cost===14);
 console.log(pR18+" round-18 passed, "+fR18+" failed");
+T("nearestAchievements returns real sorted percentages",function(){
+var s=E.newGame("moon",7,"explorer");
+for(var i=0;i<8;i++){E.tick(s)}
+var na=E.nearestAchievements(s);
+assert(na.length>0&&na.length<=3);
+na.forEach(function(x){assert(x.pct>=0&&x.pct<=100)});
+for(var j=1;j<na.length;j++){assert(na[j-1].pct>=na[j].pct)}});
+console.log(pass+" total assertions passed, "+fail+" failed");
 process.exit(fail+fail2+fail3+fail4+fail7+(fR8)+(fR9)+(fR10)+(fR11)+(fR12)+(fR13)+(fR14)+(fR15)+(fR16)+(fR17)+(fR18)?1:0);

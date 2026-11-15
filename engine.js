@@ -757,7 +757,7 @@ function foodSheet(s){
 var gh=bldgOf(s,"greenhouse").filter(function(b){return b.done});
 var crop=s.crop&&CROPS[s.crop]?CROPS[s.crop]:null;
 var gen=gh.length*(crop?crop.food:BUILDINGS.greenhouse.food);
-var use=aliveCount(s)*2*(s.rations===0?0.7:(s.rations===2?1.3:1));
+var use=aliveCount(s)*1.6*s.rations;
 return{generated:gen,consumed:Math.round(use*10)/10,net:Math.round((gen-use)*10)/10,stock:Math.round(s.res.food)}}
 
 
@@ -785,9 +785,11 @@ return worst||{resource:null,sols:null,note:"No shortage projected."}}
 
 
 function nearestAchievements(s){
+var tracked=achievementProgress(s);
 var out=ACHIEVEMENTS.map(function(a){
-var prog=achievementProgress(s,a.id);
-return{id:a.id,name:a.name,pct:prog&&prog.pct!==undefined?prog.pct:0,earned:s.earned.indexOf(a.id)>=0}});
+var t=tracked.filter(function(x){return x.id===a.id})[0];
+var pct=t&&t.need?Math.round(100*Math.min(t.have,t.need)/t.need):0;
+return{id:a.id,name:a.name,pct:pct,earned:s.earned.indexOf(a.id)>=0}});
 return out.filter(function(a){return!a.earned}).sort(function(a,b){return b.pct-a.pct}).slice(0,3)}
 
 
