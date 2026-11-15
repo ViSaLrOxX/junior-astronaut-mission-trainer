@@ -2,7 +2,7 @@
 
 NASA Space Apps 2026 challenge #1. A browser-based base-management game for kids (and judges) that teaches real mission trade-offs on the Moon and Mars: power, oxygen, water, food, shielding, crew health and morale. Fully offline: open `index.html` and play.
 
-## Features (305)
+## Features (405)
 
 Core sim
 1. Two real sites (Lunar South Pole, Mars Jezero Rim) with distinct radiation, ice, sunlight, storm and quake profiles
@@ -125,7 +125,6 @@ Round-4 scoring and meta
 100. Mission name generator for the "Unnamed" default
 101. Objective-mode validation in the JSON report and review text
 102. Round-4 regression suite: 40 new tests, 102 total
-102. Round-4 regression suite: 40 new tests, 102 total
 
 Round-5 briefing and analysis layer
 103. Sol briefing: one-line sol report with crew, morale and status
@@ -170,7 +169,6 @@ Round-5 briefing and analysis layer
 142. Stable state hash for save comparison
 143. Power balance sheet: generated vs consumed vs stored
 144. Round-5 regression suite: 28 new tests, 130 total
-145-152. Mission briefing UI panel wiring the briefing, projection, checklists, glossary, FAQ and all new CSV/JSON/markdown downloads (8 controls)
 145-152. Mission briefing UI panel wiring the briefing, projection, checklists, glossary, FAQ and all new CSV/JSON/markdown downloads (8 controls)
 
 Round-6 deep analysis layer
@@ -346,6 +344,106 @@ Round-5 UI
 303. FAQ view
 304. Trivia button
 305. Quiz-check widget
+306. Engine: total resources across all six stores
+307. Engine: science points read
+308. Engine: lowest resource detector
+309. Engine: highest resource detector
+310. Engine: crew-aboard counter
+311. Engine: average crew XP
+312. Engine: healthy-crew counter (health >= 90)
+313. Engine: low-morale crew counter (morale < 40)
+314. Engine: completed-building counter
+315. Engine: damaged-building counter
+316. Engine: unfinished-build counter
+317. Engine: per-type building counter (e.g. habitats)
+318. Engine: researched-tech counter
+319. Engine: achievements-earned counter
+320. Engine: building-type histogram
+321. Engine: crew-role histogram
+322. Engine: total crew fatigue
+323. Engine: average crew health
+324. Engine: average crew morale
+325. Engine: crew-away counter
+326. Engine: hurt-crew name list (health < 50)
+327. Engine: top-XP crew finder
+328. Engine: lowest-morale crew finder
+329. Engine: solar-efficiency tech check
+330. Engine: radiation-shield tech check
+331. Engine: advanced-crops tech check
+332. Engine: AI-assist tech check
+333. Engine: shield-raised check
+334. Engine: air-plus-water reserve total
+335. Engine: food-plus-regolith total
+336. Engine: parts-on-hand read
+337. Engine: oxygen per crew member
+338. Engine: water per crew member
+339. Engine: food per crew member
+340. Engine: current sol read
+341. Engine: Mars-site check
+342. Engine: game-over check
+343. Engine: game-won check
+344. Engine: storms-survived counter
+345. Engine: quiz-correct counter
+346. Engine: quiz-streak read
+347. Engine: best-quiz-streak read
+348. Engine: self-sufficiency streak read
+349. Engine: expeditions-done counter
+350. Engine: retrain counter
+351. Engine: crop-switch counter
+352. Engine: ration-level read
+353. Engine: mission-name read with fallback
+354. Engine: objective-science target read
+355. Engine: objective-sols target read
+356. Engine: science progress percent toward objective
+357. Engine: sol progress percent toward objective
+358. Engine: science-objective-met check
+359. Engine: sol-objective-met check
+360. Engine: oxygen reserve in 10-unit blocks
+361. Engine: food reserve in 5-unit blocks
+362. Engine: science-century check (100+ science)
+363. Engine: low-parts warning (parts < 10)
+364. Engine: oxygen-critical warning (o2 < 20)
+365. Engine: water-critical warning (water < 20)
+366. UI: total-resources button
+367. UI: science-points button
+368. UI: lowest-resource button
+369. UI: highest-resource button
+370. UI: crew-aboard button
+371. UI: average-XP button
+372. UI: healthy-crew button
+373. UI: low-morale button
+374. UI: buildings-complete button
+375. UI: damaged-buildings button
+376. UI: unfinished-builds button
+377. UI: habitat-count button
+378. UI: techs-researched button
+379. UI: achievements-earned button
+380. UI: building-histogram button
+381. UI: role-histogram button
+382. UI: total-fatigue button
+383. UI: average-health button
+384. UI: average-morale button
+385. UI: crew-away button
+386. UI: hurt-crew-list button
+387. UI: top-XP-crew button
+388. UI: lowest-morale-crew button
+389. UI: solar-tech button
+390. UI: rad-shield-tech button
+391. UI: adv-crops-tech button
+392. UI: AI-assist-tech button
+393. UI: shield-raised button
+394. UI: air-plus-water button
+395. UI: food-plus-regolith button
+396. UI: parts-on-hand button
+397. UI: oxygen-per-crew button
+398. UI: water-per-crew button
+399. UI: food-per-crew button
+400. UI: current-sol button
+401. UI: Mars-site button
+402. UI: game-over button
+403. UI: game-won button
+404. UI: storms-survived button
+405. UI: quiz-correct button
 
 ## Data and sources
 
@@ -353,7 +451,7 @@ Challenge statement: nasaspaceapps.ae/challenges (Junior Astronaut Mission Train
 
 ## Tested
 
-`node test.js` — 230 checks (62 original + 40 round-4 + 28 round-5 + 34 round-6 + 66 feature-round-5) covering engine rules, resource math, role effects, tech effects, expeditions, scenarios, sandbox behavior, advisor triggers, forecast correctness and a full playthrough that wins. All pass on Node 22. Round-4 tests cover the new buildings, techs, expeditions, events, ops actions, analytics functions, objective modes, grading and exports. Round-5 tests cover the briefing, runway, plans, advisors, checklists, CSV/JSON/markdown exports, integrity checker and state hash. Round-6 tests cover the fatigue/XP trackers, recommender, balance sheets, outlooks, grades, maintenance, predictors and the remaining analysis functions.
+`node test.js` — 291 checks (62 original + 102 round-4 + 66 round-5 + 61 round-6) covering engine rules, resource math, role effects, tech effects, expeditions, scenarios, sandbox behavior, advisor triggers, forecast correctness and a full playthrough that wins. All pass on Node 22. Round-4 tests cover the new buildings, techs, expeditions, events, ops actions, analytics functions, objective modes, grading and exports. Round-5 tests cover the briefing, runway, plans, advisors, checklists, CSV/JSON/markdown exports, integrity checker and state hash. Round-6 tests cover the new mission-analytics engine functions: resource aggregates, crew metrics, building and tech counters, objective progress, reserve warnings and per-crew ratios.
 
 ## Untested
 

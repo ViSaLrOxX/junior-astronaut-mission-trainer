@@ -46,7 +46,7 @@ var ok=TrainerEngine.canBuild(s,t);
 bl+='<div class="bld"><div><strong>'+d.name+'</strong> ('+d.cost+' parts)<small>'+d.desc+"</small></div>"+'<button data-build="'+t+'"'+(ok?"":" disabled")+">Build</button></div>"});
 $("buildList").innerHTML=bl;
 Array.prototype.forEach.call(document.querySelectorAll("[data-build]"),function(btn){
-btn.onclick=function(){TrainerEngine.build(s,btn.getAttribute("data-build"));render()}});
+btn.onclick=function(){if(!s)return;TrainerEngine.build(s,btn.getAttribute("data-build"));render()}});
 var tl="";
 Object.keys(TrainerEngine.TECHS).forEach(function(k){
 var t=TrainerEngine.TECHS[k];
@@ -56,7 +56,7 @@ var ok=!has&&s.res.science>=cost;
 tl+='<div class="bld"><div><strong>'+t.name+'</strong> ('+cost+' science)<small>'+t.desc+"</small></div>"+(has?'<span class="chip on">researched</span>':'<button data-tech="'+k+'"'+(ok?"":" disabled")+">Research</button>")+"</div>"});
 $("techList").innerHTML=tl;
 Array.prototype.forEach.call(document.querySelectorAll("[data-tech]"),function(btn){
-btn.onclick=function(){TrainerEngine.research(s,btn.getAttribute("data-tech"));render()}});
+btn.onclick=function(){if(!s)return;TrainerEngine.research(s,btn.getAttribute("data-tech"));render()}});
 var cl="";
 s.crew.forEach(function(c,i){
 var lvl=TrainerEngine.cLevel(c);
@@ -66,7 +66,7 @@ $("crewList").innerHTML=cl;
 Array.prototype.forEach.call(document.querySelectorAll("[data-retrain]"),function(sel){
 sel.onchange=function(){if(sel.value){TrainerEngine.retrain(s,parseInt(sel.getAttribute("data-retrain"),10),sel.value);render()}}});
 Array.prototype.forEach.call(document.querySelectorAll("[data-rest]"),function(btn){
-btn.onclick=function(){TrainerEngine.rest(s,parseInt(btn.getAttribute("data-rest"),10));render()}});
+btn.onclick=function(){if(!s)return;TrainerEngine.rest(s,parseInt(btn.getAttribute("data-rest"),10));render()}});
 $("recruitBtn").disabled=!(s.res.parts>=25&&s.crew.length<TrainerEngine.crewCapacity(s));
 $("rationSel").value=String(s.rations);
 $("manifestSel").value=s.manifest;
@@ -77,7 +77,7 @@ var yieldTxt=[x.science?"+"+x.science+" science":null,x.water?"+"+x.water+" wate
 el+='<div class="bld"><div><strong>'+x.name+'</strong> ('+x.cost+" parts, "+x.sols+' sols)<small>'+yieldTxt+", tiring, 10% breakdown risk</small></div>"+'<button data-exped="'+k+'">Send 2 crew</button></div>'});
 $("expedList").innerHTML=el;
 Array.prototype.forEach.call(document.querySelectorAll("[data-exped]"),function(btn){
-btn.onclick=function(){var r=TrainerEngine.expedition(s,btn.getAttribute("data-exped"));if(!r.ok){alert(r.msg)}render()}});
+btn.onclick=function(){if(!s)return;var r=TrainerEngine.expedition(s,btn.getAttribute("data-exped"));if(!r.ok){alert(r.msg)}render()}});
 var base="";
 s.buildings.forEach(function(b,i){
 var d=TrainerEngine.BUILDINGS[b.type];
@@ -89,9 +89,10 @@ extra=' <select data-crop="'+i+'">'+Object.keys(TrainerEngine.CROPS).map(functio
 base+='<div class="bld"><span>'+d.name+" — "+st+extra+"</span>"+(b.damaged?'<span><button data-repair="'+i+'">Repair ('+repCost+' parts)</button> <button data-eva="'+i+'">EVA repair (2 parts, risky)</button></span>':"")+"</div>"});
 $("baseList").innerHTML=base;
 Array.prototype.forEach.call(document.querySelectorAll("[data-repair]"),function(btn){
-btn.onclick=function(){TrainerEngine.repair(s,parseInt(btn.getAttribute("data-repair"),10));render()}});
+btn.onclick=function(){if(!s)return;TrainerEngine.repair(s,parseInt(btn.getAttribute("data-repair"),10));render()}});
 Array.prototype.forEach.call(document.querySelectorAll("[data-eva]"),function(btn){
 btn.onclick=function(){
+if(!s)return;
 var idx=parseInt(btn.getAttribute("data-eva"),10);
 var best=0,bestH=-1;
 s.crew.forEach(function(c,i2){if(c.health>bestH&&(c.away||0)<=0&&(c.fatigue||0)<=70){bestH=c.health;best=i2}});
@@ -119,6 +120,7 @@ q.a.forEach(function(a,i){opts+='<button data-quiz="'+i+'">'+a+"</button>"});
 $("quizOpts").innerHTML=opts;
 Array.prototype.forEach.call(document.querySelectorAll("[data-quiz]"),function(btn){
 btn.onclick=function(){
+if(!s)return;
 var r=TrainerEngine.answerQuiz(s,parseInt(btn.getAttribute("data-quiz"),10));
 $("quizFact").textContent=(r.correct?"Correct! +6 parts, +5 science. ":"Not quite. ")+r.fact+(s.quizStreak>1?" Streak: "+s.quizStreak+".":"");
 $("quizOpts").innerHTML="";
@@ -200,14 +202,15 @@ if(sc){TrainerEngine.setScenario(s,sc)}
 TrainerEngine.setMissionName(s,$("nameSel").value);
 TrainerEngine.setObjectiveMode(s,$("objSel").value);
 $("setup").hidden=true;$("game").hidden=false;render()};
-$("solBtn").onclick=function(){TrainerEngine.tick(s);render()};
+$("solBtn").onclick=function(){if(!s)return;TrainerEngine.tick(s);render()};
 $("autoBtn").onclick=function(){
+if(!s)return;
 if(autoTimer){clearInterval(autoTimer);autoTimer=null;$("autoBtn").textContent="Auto: off";return}
 $("autoBtn").textContent="Auto: on";
 autoTimer=setInterval(function(){if(!s||s.over){clearInterval(autoTimer);autoTimer=null;$("autoBtn").textContent="Auto: off";return}TrainerEngine.tick(s);render()},900)};
-$("reportBtn").onclick=function(){download("mission-report-sol"+s.sol+".txt",TrainerEngine.report(s))};
-$("reportJsonBtn").onclick=function(){download("mission-report-sol"+s.sol+".json",JSON.stringify(TrainerEngine.reportJSON(s),null,2),"application/json")};
-$("saveBtn").onclick=function(){localStorage.setItem("jamtrainer",JSON.stringify(s))};
+$("reportBtn").onclick=function(){if(!s)return;download("mission-report-sol"+s.sol+".txt",TrainerEngine.report(s))};
+$("reportJsonBtn").onclick=function(){if(!s)return;download("mission-report-sol"+s.sol+".json",JSON.stringify(TrainerEngine.reportJSON(s),null,2),"application/json")};
+$("saveBtn").onclick=function(){if(!s)return;localStorage.setItem("jamtrainer",JSON.stringify(s))};
 $("loadBtn").onclick=function(){
 var raw=localStorage.getItem("jamtrainer");
 if(!raw){return}
@@ -223,13 +226,14 @@ $("drySel").onchange=function(){
 if(!s){return}
 var d=TrainerEngine.dryRunBuild(s,this.value);
 $("dryOut").innerHTML=d?'<p class="hint">'+d.name+": "+d.cost+" parts, "+d.buildSols+" sol(s) to build. Power: "+(d.powerDelta>=0?"+":"")+d.powerDelta+" generated, "+d.powerUse+" draw. "+d.note+"</p>":""};
-$("cleanBtn").onclick=function(){$("opsMsg").textContent=TrainerEngine.cleanSolar(s)?"Panels cleaned: +20% solar for 3 sols.":"Needs 2 parts and an online array.";render()};
-$("suitBtn").onclick=function(){$("opsMsg").textContent=TrainerEngine.suitMaintenance(s)?"Suits serviced: next EVA is safer.":"Needs 3 parts.";render()};
-$("repAllBtn").onclick=function(){var n=TrainerEngine.repairAll(s);$("opsMsg").textContent=n?("Repaired "+n+" building(s)."):"Nothing affordable to repair.";render()};
-$("shelterBtn").onclick=function(){TrainerEngine.shelterMode(s);$("opsMsg").textContent="Shelter mode set for next sol.";render()};
+$("cleanBtn").onclick=function(){if(!s)return;$("opsMsg").textContent=TrainerEngine.cleanSolar(s)?"Panels cleaned: +20% solar for 3 sols.":"Needs 2 parts and an online array.";render()};
+$("suitBtn").onclick=function(){if(!s)return;$("opsMsg").textContent=TrainerEngine.suitMaintenance(s)?"Suits serviced: next EVA is safer.":"Needs 3 parts.";render()};
+$("repAllBtn").onclick=function(){if(!s)return;var n=TrainerEngine.repairAll(s);$("opsMsg").textContent=n?("Repaired "+n+" building(s)."):"Nothing affordable to repair.";render()};
+$("shelterBtn").onclick=function(){if(!s)return;TrainerEngine.shelterMode(s);$("opsMsg").textContent="Shelter mode set for next sol.";render()};
 $("histSel").onchange=drawHistory;
-$("histCsvBtn").onclick=function(){download("resource-history.csv",TrainerEngine.historyCSV(s),"text/csv")};
+$("histCsvBtn").onclick=function(){if(!s)return;download("resource-history.csv",TrainerEngine.historyCSV(s),"text/csv")};
 $("briefBtn").onclick=function(){
+if(!s)return;
 var E=TrainerEngine;
 var rw=E.resourceRunway(s);
 var runwayLines=Object.keys(rw).map(function(k){var v=rw[k];return k+": "+(v===null?"steady":(v===Infinity?"untracked":v+" sols"))}).join(", ");
@@ -257,18 +261,21 @@ gh+="<h4>FAQ</h4><p>"+E.faqList().map(function(f){return f.q+" - "+f.a}).join("<
 gh+="<h4>Quiz bank</h4><p>"+E.quizBankStats().questions+" questions across "+E.quizBankStats().categories.join(", ")+"</p>";
 $("guideOut").innerHTML=gh};
 $("summaryBtn").onclick=function(){
+if(!s)return;
 var t=TrainerEngine.summaryEmailText(s);
 if(navigator.clipboard){navigator.clipboard.writeText(t)}else{download("mission-summary.txt",t)}
 $("briefOut").innerHTML="<p>Summary copied: "+t+"</p>"};
-$("mdLogBtn").onclick=function(){download("mission-log.md",TrainerEngine.markdownLog(s),"text/markdown")};
-$("statsBtn").onclick=function(){download("mission-stats.json",TrainerEngine.statsJSON(s),"application/json")};
-$("buildCsvBtn").onclick=function(){download("build-plan.csv",TrainerEngine.buildPlanCSV(s),"text/csv")};
+$("mdLogBtn").onclick=function(){if(!s)return;download("mission-log.md",TrainerEngine.markdownLog(s),"text/markdown")};
+$("statsBtn").onclick=function(){if(!s)return;download("mission-stats.json",TrainerEngine.statsJSON(s),"application/json")};
+$("buildCsvBtn").onclick=function(){if(!s)return;download("build-plan.csv",TrainerEngine.buildPlanCSV(s),"text/csv")};
 $("techCsvBtn").onclick=function(){download("tech-tree.csv",TrainerEngine.techTreeCSV(),"text/csv")};
 $("sitesCsvBtn").onclick=function(){download("site-comparison.csv",TrainerEngine.siteComparisonCSV(),"text/csv")};
 $("stateCheckBtn").onclick=function(){
+if(!s)return;
 var errs=TrainerEngine.validateState(s);
 $("briefOut").innerHTML=errs.length?("<p>Issues: "+errs.join("; ")+"</p>"):"<p>State integrity OK (hash "+TrainerEngine.stateHash(s)+").</p>"};
 $("dashBtn").onclick=function(){
+if(!s)return;
 var E=TrainerEngine;
 var g=E.subsystemGrades(s);
 var p=E.objectiveProgress(s);
@@ -287,16 +294,19 @@ var na=E.nearestAchievements(s);
 if(na.length){h+="<p>Closest badges: "+na.map(function(x){return x.name+" "+Math.round(x.pct)+"%"}).join(", ")+"</p>"}
 h+="<p>Victory gap: "+E.victoryGap(s).join(" ")+"</p>";
 $("dashOut").innerHTML=h};
-$("timelineCsvBtn").onclick=function(){download("mission-timeline.csv",TrainerEngine.missionTimelineCSV(s),"text/csv")};
-$("queueCsvBtn").onclick=function(){download("research-queue.csv",TrainerEngine.researchQueueCSV(s),"text/csv")};
+$("timelineCsvBtn").onclick=function(){if(!s)return;download("mission-timeline.csv",TrainerEngine.missionTimelineCSV(s),"text/csv")};
+$("queueCsvBtn").onclick=function(){if(!s)return;download("research-queue.csv",TrainerEngine.researchQueueCSV(s),"text/csv")};
 $("triviaBtn").onclick=function(){
+if(!s)return;
 var t=TrainerEngine.triviaOfTheSol(s);
 $("dashOut").innerHTML="<p>Sol "+t.sol+" trivia: "+t.trivia+"</p>"};
 $("logSearchBtn").onclick=function(){
+if(!s)return;
 var hits=TrainerEngine.logSearch(s,$("logSearchIn").value);
 $("dashOut").innerHTML=hits.length?("<p>"+hits.slice(0,8).map(function(x){return "Sol "+x.sol+": "+x.msg}).join("<br>")+"</p>"):"<p>No log lines match.</p>"};
-$("crewCsvBtn").onclick=function(){download("crew-roster.csv",TrainerEngine.crewCSV(s),"text/csv")};
+$("crewCsvBtn").onclick=function(){if(!s)return;download("crew-roster.csv",TrainerEngine.crewCSV(s),"text/csv")};
 $("shareBtn").onclick=function(){
+if(!s)return;
 var t=TrainerEngine.shareText(s);
 if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t)}
 $("opsMsg").textContent="Share text: "+t};
@@ -314,23 +324,23 @@ $("r5CrewBtn").onclick=function(){if(r5need())return;
 r5Show(r5tbl([["Name","Role","Lvl","Health","Morale","Fatigue","Away"]].concat(E().crewSummary(s).map(function(c){return[c.name,c.role,c.level,c.health,c.morale,c.fatigue,c.away]}))))};
 $("r5HealthBtn").onclick=function(){if(r5need())return;
 r5Show(r5tbl([["Avg health",E().crewHealthAvg(s)],["Avg fatigue",E().crewFatigueAvg(s)],["Avg morale",Math.round(E().avgMorale(s)*10)/10],["Total XP",E().crewXpTotal(s)]]))};
-$("r5RolesBtn").onclick=function(){if(r5need())return;var r=E().roleRoster(s),l=E().crewLevels(s);
+$("r5RolesBtn").onclick=function(){if(!s)return;if(r5need())return;var r=E().roleRoster(s),l=E().crewLevels(s);
 r5Show(r5tbl([["Role","Crew"]].concat(Object.keys(r).map(function(k){return[k,r[k].join(", ")]})).concat([["Level 1 / 2 / 3",l[1]+" / "+l[2]+" / "+l[3]]])))};
 $("r5ExhBtn").onclick=function(){if(r5need())return;
 r5Show("<p>Exhausted: "+(E().exhaustedCrew(s).join(", ")||"none")+". Away: "+(E().awayCrew(s).map(function(c){return c.name}).join(", ")||"none")+".</p>")};
-$("r5MoraleBtn").onclick=function(){if(r5need())return;var m=E().moraleSpread(s);
+$("r5MoraleBtn").onclick=function(){if(!s)return;if(r5need())return;var m=E().moraleSpread(s);
 r5Show(r5tbl([["Min",m.min],["Avg",m.avg],["Max",m.max]]))};
-$("r5ResBtn").onclick=function(){if(r5need())return;var r=E().resLevels(s),q=E().resRatios(s);
+$("r5ResBtn").onclick=function(){if(!s)return;if(r5need())return;var r=E().resLevels(s),q=E().resRatios(s);
 r5Show(r5tbl([["O2",r.o2],["Water",r.water],["Food",r.food],["Parts",r.parts],["Regolith",r.regolith],["Science",r.science],["O2/crew",q.o2PerCrew],["Water/crew",q.waterPerCrew],["Food/crew",q.foodPerCrew],["Lowest",E().resLowest(s)]]))};
-$("r5PaceBtn").onclick=function(){if(r5need())return;var p=E().sciencePace(s);
+$("r5PaceBtn").onclick=function(){if(!s)return;if(r5need())return;var p=E().sciencePace(s);
 if(!p){r5Show("<p>Sol 0: no pace yet.</p>");return}
 r5Show(r5tbl([["Per sol",p.perSol],["Needed",p.needed],["On track",p.onTrack]]))};
-$("r5ProjBtn").onclick=function(){if(r5need())return;var p=E().projectedWin(s);
+$("r5ProjBtn").onclick=function(){if(!s)return;if(r5need())return;var p=E().projectedWin(s);
 if(!p){r5Show("<p>Too early to project.</p>");return}
 r5Show(r5tbl([["Projected science",p.projected],["Target",p.target],["Will win",p.willWin]]))};
-$("r5RunwayBtn").onclick=function(){if(r5need())return;var r=E().runwayTable(s);
+$("r5RunwayBtn").onclick=function(){if(!s)return;if(r5need())return;var r=E().runwayTable(s);
 r5Show(r5tbl([["Resource","Sols"]].concat(Object.keys(r).map(function(k){return[k,r[k]===null?"?":(r[k]===Infinity?"inf":r[k])]}))))};
-$("r5ShortBtn").onclick=function(){if(r5need())return;var x=E().shortestRunway(s);
+$("r5ShortBtn").onclick=function(){if(!s)return;if(r5need())return;var x=E().shortestRunway(s);
 r5Show("<p>"+(x?x.res+": "+x.sols+" sols of runway.":"No resource trending down.")+"</p>")};
 $("r5DangerBtn").onclick=function(){if(r5need())return;
 r5Show("<p>Danger score: "+E().dangerScore(s)+"/100.</p>")};
@@ -338,24 +348,24 @@ $("r5OddsBtn").onclick=function(){if(r5need())return;
 r5Show("<p>"+r5esc(E().winOddsText(s))+"</p>")};
 $("r5BldBtn").onclick=function(){if(r5need())return;
 r5Show(r5tbl([["Types",E().buildingTypes(s).join(", ")],["Damaged",E().damagedList(s).join(", ")||"none"],["In progress",E().inProgressList(s).map(function(b){return b.type+"("+b.solsLeft+")"}).join(", ")||"none"]]))};
-$("r5CropBtn").onclick=function(){if(r5need())return;var c=E().cropCoverage(s);
+$("r5CropBtn").onclick=function(){if(!s)return;if(r5need())return;var c=E().cropCoverage(s);
 r5Show("<p>"+(Object.keys(c).length?Object.keys(c).map(function(k){return k+": "+c[k]}).join(", "):"No greenhouses yet.")+"</p>")};
-$("r5PowBtn").onclick=function(){if(r5need())return;var m=E().powerMargin(s);var d=E().storeDays(s);
+$("r5PowBtn").onclick=function(){if(!s)return;if(r5need())return;var m=E().powerMargin(s);var d=E().storeDays(s);
 r5Show(r5tbl([["Generation",m.gen],["Consumption",m.use],["Stored",m.store],["Store days at deficit",d===Infinity?"inf":d]]))};
-$("r5ShieldBtn").onclick=function(){if(r5need())return;var i=E().shieldInfo(s);
+$("r5ShieldBtn").onclick=function(){if(!s)return;if(r5need())return;var i=E().shieldInfo(s);
 r5Show(r5tbl([["Level",i.level],["Next cost",i.nextCost===null?"maxed":i.nextCost+" parts"]]))};
-$("r5TechBtn").onclick=function(){if(r5need())return;var n=E().nextTechCost(s);
+$("r5TechBtn").onclick=function(){if(!s)return;if(r5need())return;var n=E().nextTechCost(s);
 r5Show("<p>Researched: "+(E().techsResearched(s).join(", ")||"none")+". "+(n?"Cheapest next: "+n.name+" ("+n.cost+" sci).":"All researched.")+"</p>")};
-$("r5Res2Btn").onclick=function(){if(r5need())return;var r=E().researchableNow(s);
+$("r5Res2Btn").onclick=function(){if(!s)return;if(r5need())return;var r=E().researchableNow(s);
 r5Show("<p>"+(r.length?"Affordable now: "+r.join(", "):"Nothing affordable yet.")+"</p>")};
-$("r5AffordBtn").onclick=function(){if(r5need())return;var a=E().affordableBuildings(s);
+$("r5AffordBtn").onclick=function(){if(!s)return;if(r5need())return;var a=E().affordableBuildings(s);
 r5Show("<p>"+(a.length?"Affordable: "+a.join(", "):"Nothing affordable.")+"</p>")};
 $("r5HistBtn").onclick=function(){if(r5need())return;
 r5Show(r5tbl([["Resource","First half","Second half","Rising"]].concat(["o2","water","food"].map(function(k){var t=E().historyTrend(s,k);return[k,t?t.first:"-",t?t.last:"-",t?t.rising:"-"]}))))};
-$("r5BestBtn").onclick=function(){if(r5need())return;var w=E().worstSol(s,"o2"),b=E().bestSol(s,"o2");
+$("r5BestBtn").onclick=function(){if(!s)return;if(r5need())return;var w=E().worstSol(s,"o2"),b=E().bestSol(s,"o2");
 if(!w){r5Show("<p>No history yet.</p>");return}
 r5Show(r5tbl([["Worst O2","Sol "+w.sol+": "+w.o2],["Best O2","Sol "+b.sol+": "+b.o2]]))};
-$("r5DeltaBtn").onclick=function(){if(r5need())return;var d=E().historyDelta(s,"o2",1,s.sol);
+$("r5DeltaBtn").onclick=function(){if(!s)return;if(r5need())return;var d=E().historyDelta(s,"o2",1,s.sol);
 r5Show("<p>"+(d===null?"No history yet.":"O2 change since sol 1: "+d)+"</p>")};
 $("r5UpBtn").onclick=function(){if(r5need())return;
 r5Show(r5tbl([["Sol","Event"]].concat(E().upcomingEvents(s,5).map(function(u){return[u.sol,u.text]}))))};
@@ -371,15 +381,15 @@ $("r5AchBtn").onclick=function(){if(r5need())return;
 r5Show("<p>Achievements: "+E().achievementPct(s)+"% earned.</p>")};
 function r5dl(name,text){var a=document.createElement("a");
 a.href=URL.createObjectURL(new Blob([text],{type:"text/plain"}));a.download=name;a.click()}
-$("r5CrewCsvBtn").onclick=function(){if(r5need())return;r5dl("crew.csv",E().crewTableCSV(s))};
-$("r5BldCsvBtn").onclick=function(){if(r5need())return;r5dl("buildings.csv",E().buildingsCSV(s))};
-$("r5TechCsvBtn").onclick=function(){if(r5need())return;r5dl("techs.csv",E().techCSV(s))};
-$("r5SchedCsvBtn").onclick=function(){if(r5need())return;r5dl("schedule.csv",E().scheduleCSV(s))};
+$("r5CrewCsvBtn").onclick=function(){if(!s)return;if(r5need())return;r5dl("crew.csv",E().crewTableCSV(s))};
+$("r5BldCsvBtn").onclick=function(){if(!s)return;if(r5need())return;r5dl("buildings.csv",E().buildingsCSV(s))};
+$("r5TechCsvBtn").onclick=function(){if(!s)return;if(r5need())return;r5dl("techs.csv",E().techCSV(s))};
+$("r5SchedCsvBtn").onclick=function(){if(!s)return;if(r5need())return;r5dl("schedule.csv",E().scheduleCSV(s))};
 $("r5SnapBtn").onclick=function(){if(r5need())return;
 r5Show("<pre>"+r5esc(E().snapshotJSON(s))+"</pre>")};
 $("r5MdBtn").onclick=function(){if(r5need())return;
 r5Show("<pre>"+r5esc(E().missionMd(s))+"</pre>")};
-$("r5AuditBtn").onclick=function(){if(r5need())return;var e=E().stateAudit(s);
+$("r5AuditBtn").onclick=function(){if(!s)return;if(r5need())return;var e=E().stateAudit(s);
 r5Show("<p>"+(e.length?e.join("; "):"State passes audit.")+"</p>")};
 $("r5GlossBtn").onclick=function(){
 r5Show("<dl>"+E().glossaryR5().map(function(g){return"<dt>"+g.term+"</dt><dd>"+g.def+"</dd>"}).join("")+"</dl>")};
@@ -393,4 +403,46 @@ Array.prototype.forEach.call(document.querySelectorAll(".q01r5"),function(btn){
 btn.onclick=function(){var r=E().quizCheck01(i,+btn.dataset.j);
 document.getElementById("q01r5msg").textContent=(r.correct?" Correct! ":" Not quite. ")+r.fact}})};
 
+function r16Show(x){$("r16Out").textContent=typeof x==="object"?JSON.stringify(x):String(x)}
+function r16need(){if(!s){r16Show("Start a mission first.");return true}return false}
+$("r16a").onclick=function(){if(!s)return;if(r16need())return;r16Show(E().a7a(s))};
+$("r16b").onclick=function(){if(!s)return;if(r16need())return;r16Show(E().a7b(s))};
+$("r16c").onclick=function(){if(!s)return;if(r16need())return;r16Show(E().a7c(s))};
+$("r16d").onclick=function(){if(!s)return;if(r16need())return;r16Show(E().a7d(s))};
+$("r16e").onclick=function(){if(!s)return;if(r16need())return;r16Show(E().a7e(s))};
+$("r16f").onclick=function(){if(!s)return;if(r16need())return;r16Show(E().a7f(s))};
+$("r16g").onclick=function(){if(!s)return;if(r16need())return;r16Show(E().a7g(s))};
+$("r16h").onclick=function(){if(!s)return;if(r16need())return;r16Show(E().a7h(s))};
+$("r16i").onclick=function(){if(!s)return;if(r16need())return;r16Show(E().a7i(s))};
+$("r16j").onclick=function(){if(!s)return;if(r16need())return;r16Show(E().a7j(s))};
+$("r16k").onclick=function(){if(!s)return;if(r16need())return;r16Show(E().a7k(s))};
+$("r16l").onclick=function(){if(!s)return;if(r16need())return;r16Show(E().a7l(s,"habitat"))};
+$("r16m").onclick=function(){if(!s)return;if(r16need())return;r16Show(E().a7m(s))};
+$("r16n").onclick=function(){if(!s)return;if(r16need())return;r16Show(E().a7n(s))};
+$("r16o").onclick=function(){if(!s)return;if(r16need())return;r16Show(E().a7o(s))};
+$("r16p").onclick=function(){if(!s)return;if(r16need())return;r16Show(E().a7p(s))};
+$("r16q").onclick=function(){if(!s)return;if(r16need())return;r16Show(E().a7q(s))};
+$("r16r").onclick=function(){if(!s)return;if(r16need())return;r16Show(E().a7r(s))};
+$("r16s").onclick=function(){if(!s)return;if(r16need())return;r16Show(E().a7s(s))};
+$("r16t").onclick=function(){if(!s)return;if(r16need())return;r16Show(E().a7t(s))};
+$("r16u").onclick=function(){if(!s)return;if(r16need())return;r16Show(E().a7u(s))};
+$("r16v").onclick=function(){if(!s)return;if(r16need())return;r16Show(E().a7v(s))};
+$("r16w").onclick=function(){if(!s)return;if(r16need())return;r16Show(E().a7w(s))};
+$("r16x").onclick=function(){if(!s)return;if(r16need())return;r16Show(E().a7x(s))};
+$("r16y").onclick=function(){if(!s)return;if(r16need())return;r16Show(E().a7y(s))};
+$("r16z").onclick=function(){if(!s)return;if(r16need())return;r16Show(E().a7z(s))};
+$("r16aa").onclick=function(){if(!s)return;if(r16need())return;r16Show(E().a7ba(s))};
+$("r16ab").onclick=function(){if(!s)return;if(r16need())return;r16Show(E().a7bb(s))};
+$("r16ac").onclick=function(){if(!s)return;if(r16need())return;r16Show(E().a7bc(s))};
+$("r16ad").onclick=function(){if(!s)return;if(r16need())return;r16Show(E().a7bd(s))};
+$("r16ae").onclick=function(){if(!s)return;if(r16need())return;r16Show(E().a7be(s))};
+$("r16af").onclick=function(){if(!s)return;if(r16need())return;r16Show(E().a7bf(s))};
+$("r16ag").onclick=function(){if(!s)return;if(r16need())return;r16Show(E().a7bg(s))};
+$("r16ah").onclick=function(){if(!s)return;if(r16need())return;r16Show(E().a7bh(s))};
+$("r16ai").onclick=function(){if(!s)return;if(r16need())return;r16Show(E().a7bi(s))};
+$("r16aj").onclick=function(){if(!s)return;if(r16need())return;r16Show(E().a7bj(s))};
+$("r16ak").onclick=function(){if(!s)return;if(r16need())return;r16Show(E().a7bk(s))};
+$("r16al").onclick=function(){if(!s)return;if(r16need())return;r16Show(E().a7bl(s))};
+$("r16am").onclick=function(){if(!s)return;if(r16need())return;r16Show(E().a7bm(s))};
+$("r16an").onclick=function(){if(!s)return;if(r16need())return;r16Show(E().a7bn(s))};
 })();

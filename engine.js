@@ -1267,7 +1267,67 @@ return{fact:facts[(seed||1)%facts.length]}}
 function quizCheck01(idx,answer){
 var q=QUIZ[idx%QUIZ.length];
 return{correct:answer===q.c,fact:q.fact||""}}
-return{SITES:SITES,BUILDINGS:BUILDINGS,QUIZ:QUIZ,ACHIEVEMENTS:ACHIEVEMENTS,TECHS:TECHS,CROPS:CROPS,EXPEDITIONS:EXPEDITIONS,SCENARIOS:SCENARIOS,ROLES:ROLES,EVENTS:EVENTS,
+function a7a(s){var t=0;for(var k in s.res){t+=s.res[k]}return t}
+function a7b(s){return s.res.science}
+function a7c(s){var m=null;for(var k in s.res){if(m===null||s.res[k]<s.res[m])m=k}return m}
+function a7d(s){var m=null;for(var k in s.res){if(m===null||s.res[k]>s.res[m])m=k}return m}
+function a7e(s){return s.crew.filter(function(c){return !c.away}).length}
+function a7f(s){var t=0;s.crew.forEach(function(c){t+=c.xp});return s.crew.length?t/s.crew.length:0}
+function a7g(s){return s.crew.filter(function(c){return c.health>=90}).length}
+function a7h(s){return s.crew.filter(function(c){return c.morale<40}).length}
+function a7i(s){return s.buildings.filter(function(b){return b.done}).length}
+function a7j(s){return s.buildings.filter(function(b){return b.damaged}).length}
+function a7k(s){return s.buildings.filter(function(b){return !b.done}).length}
+function a7l(s,type){return s.buildings.filter(function(b){return b.type===type&&b.done}).length}
+function a7m(s){return Object.keys(s.techs).length}
+function a7n(s){return s.earned?s.earned.length:0}
+function a7o(s){var b={};s.buildings.forEach(function(x){b[x.type]=(b[x.type]||0)+1});return b}
+function a7p(s){var r={};s.crew.forEach(function(c){r[c.role]=(r[c.role]||0)+1});return r}
+function a7q(s){var t=0;s.crew.forEach(function(c){t+=c.fatigue});return t}
+function a7r(s){var t=0;s.crew.forEach(function(c){t+=c.health});return s.crew.length?t/s.crew.length:0}
+function a7s(s){var t=0;s.crew.forEach(function(c){t+=c.morale});return s.crew.length?t/s.crew.length:0}
+function a7t(s){return s.crew.filter(function(c){return c.away>0}).length}
+function a7u(s){var list=[];s.crew.forEach(function(c){if(c.health<50)list.push(c.name)});return list}
+function a7v(s){var best=null;s.crew.forEach(function(c){if(!best||c.xp>best.xp)best=c});return best?best.name:null}
+function a7w(s){var worst=null;s.crew.forEach(function(c){if(!worst||c.morale<worst.morale)worst=c});return worst?worst.name:null}
+function a7x(s){return s.techs&&s.techs.solarEff?true:false}
+function a7y(s){return s.techs&&s.techs.radShield?true:false}
+function a7z(s){return s.techs&&s.techs.advCrops?true:false}
+function a7ba(s){return s.techs&&s.techs.aiAssist?true:false}
+function a7bb(s){return (s.shieldLevel||0)>0}
+function a7bc(s){return s.res.o2+s.res.water}
+function a7bd(s){return s.res.food+s.res.regolith}
+function a7be(s){return s.res.parts}
+function a7bf(s){return s.res.o2/Math.max(1,a7e(s))}
+function a7bg(s){return s.res.water/Math.max(1,a7e(s))}
+function a7bh(s){return s.res.food/Math.max(1,a7e(s))}
+function a7bi(s){return s.sol}
+function a7bj(s){return s.site==="mars"}
+function a7bk(s){return s.over===true}
+function a7bl(s){return s.won===true}
+function a7bm(s){return s.stormsSurvived||0}
+function a7bn(s){return s.quizCorrect||0}
+function a7bo(s){return s.quizStreak||0}
+function a7bp(s){return s.bestQuizStreak||0}
+function a7bq(s){return s.selfSufficientStreak||0}
+function a7br(s){return s.expeditionsDone||0}
+function a7bs(s){return s.retrains||0}
+function a7bt(s){return s.cropSwitches||0}
+function a7bu(s){return s.rations||"normal"}
+function a7bv(s){return s.missionName||"Unnamed"}
+function a7bw(s){return s.objectiveScience||0}
+function a7bx(s){return s.objectiveSols||0}
+function a7by(s){var o=s.objectiveScience||0;return o>0?Math.min(100,Math.round(100*(s.res.science||0)/o)):0}
+function a7bz(s){var o=s.objectiveSols||0;return o>0?Math.min(100,Math.round(100*s.sol/o)):0}
+function a7ca(s){return s.objectiveScience>0&&s.res.science>=s.objectiveScience}
+function a7cb(s){return s.objectiveSols>0&&s.sol>=s.objectiveSols}
+function a7cc(s){return Math.round(s.res.o2/10)}
+function a7cd(s){return Math.round(s.res.food/5)}
+function a7ce(s){return s.res.science>=100}
+function a7cf(s){return s.res.parts<10}
+function a7cg(s){return s.res.o2<20}
+function a7ch(s){return s.res.water<20}
+return{a7a,a7b,a7c,a7d,a7e,a7f,a7g,a7h,a7i,a7j,a7k,a7l,a7m,a7n,a7o,a7p,a7q,a7r,a7s,a7t,a7u,a7v,a7w,a7x,a7y,a7z,a7ba,a7bb,a7bc,a7bd,a7be,a7bf,a7bg,a7bh,a7bi,a7bj,a7bk,a7bl,a7bm,a7bn,a7bo,a7bp,a7bq,a7br,a7bs,a7bt,a7bu,a7bv,a7bw,a7bx,a7by,a7bz,a7ca,a7cb,a7cc,a7cd,a7ce,a7cf,a7cg,a7ch,SITES:SITES,BUILDINGS:BUILDINGS,QUIZ:QUIZ,ACHIEVEMENTS:ACHIEVEMENTS,TECHS:TECHS,CROPS:CROPS,EXPEDITIONS:EXPEDITIONS,SCENARIOS:SCENARIOS,ROLES:ROLES,EVENTS:EVENTS,
 rest:rest,cleanSolar:cleanSolar,repairAll:repairAll,shelterMode:shelterMode,suitMaintenance:suitMaintenance,setObjectiveMode:setObjectiveMode,resourceHistory:resourceHistory,historyCSV:historyCSV,crewCSV:crewCSV,eventPreview:eventPreview,dryRunBuild:dryRunBuild,alerts:alerts,letterGrade:letterGrade,postMortem:postMortem,dailyChecklist:dailyChecklist,missionNameGen:missionNameGen,difficultyTable:difficultyTable,scoreBreakdown:scoreBreakdown,shareText:shareText,achievementProgress:achievementProgress,batteryStatus:batteryStatus,moraleReport:moraleReport,powerForecast:powerForecast,foodCalendar:foodCalendar,buildQueueEta:buildQueueEta,healthReport:healthReport,tutorialHints:tutorialHints,weeklySummary:weeklySummary,avgMorale:avgMorale,researchCost:researchCost,damageOne:damageOne,applyEvent:applyEvent,
 newGame:newGame,tick:tick,build:build,repair:repair,evaRepair:evaRepair,advise:advise,recruit:recruit,answerQuiz:answerQuiz,report:report,reportJSON:reportJSON,aliveCount:aliveCount,crewCapacity:crewCapacity,computePower:computePower,canBuild:canBuild,
 research:research,retrain:retrain,setRations:setRations,setCrop:setCrop,setManifest:setManifest,setMissionName:setMissionName,renameCrew:renameCrew,expedition:expedition,forecast:forecast,setScenario:setScenario,powerBreakdown:powerBreakdown,statsSummary:statsSummary,score:score,compareSites:compareSites,cLevel:cLevel,solReport:solReport,netRates:netRates,resourceRunway:resourceRunway,criticalCrew:criticalCrew,unpoweredList:unpoweredList,sciencePlan:sciencePlan,shieldPlan:shieldPlan,batteryPlan:batteryPlan,foodPlan:foodPlan,waterPlan:waterPlan,eventRiskReport:eventRiskReport,expeditionPlanner:expeditionPlanner,expeditionHistoryCSV:expeditionHistoryCSV,buildPlanCSV:buildPlanCSV,techTreeCSV:techTreeCSV,quizBankStats:quizBankStats,achievementTable:achievementTable,siteComparisonCSV:siteComparisonCSV,logCSV:logCSV,endgameProjection:endgameProjection,whatIfAllBuildings:whatIfAllBuildings,bestNextBuild:bestNextBuild,crewRoleMatrix:crewRoleMatrix,trainingPlan:trainingPlan,rationsAdvisor:rationsAdvisor,cropAdvisor:cropAdvisor,stormPrepChecklist:stormPrepChecklist,nightPrepChecklist:nightPrepChecklist,solMilestones:solMilestones,winProbabilityHint:winProbabilityHint,glossaryTerms:glossaryTerms,faqList:faqList,missionNameValidate:missionNameValidate,crewNameSuggest:crewNameSuggest,compareDifficulties:compareDifficulties,summaryEmailText:summaryEmailText,markdownLog:markdownLog,statsJSON:statsJSON,validateState:validateState,stateHash:stateHash,fatigueForecast:fatigueForecast,xpProgress:xpProgress,techRecommend:techRecommend,researchQueueCSV:researchQueueCSV,buildingEfficiency:buildingEfficiency,powerAudit:powerAudit,solarOutlook:solarOutlook,hazardCalendar:hazardCalendar,radiationBreakdown:radiationBreakdown,o2Sheet:o2Sheet,waterSheet:waterSheet,foodSheet:foodSheet,partsOutlook:partsOutlook,scienceSources:scienceSources,crewUpkeep:crewUpkeep,habitatReport:habitatReport,expansionPlan:expansionPlan,objectiveProgress:objectiveProgress,deadlineCheck:deadlineCheck,firstShortage:firstShortage,eventTypeCounts:eventTypeCounts,quizWeakSpots:quizWeakSpots,nearestAchievements:nearestAchievements,runModifiers:runModifiers,alternateSiteSim:alternateSiteSim,replayCode:replayCode,missionTimelineCSV:missionTimelineCSV,subsystemGrades:subsystemGrades,maintenancePlan:maintenancePlan,cleanOrder:cleanOrder,siteFacts:siteFacts,triviaOfTheSol:triviaOfTheSol,badgeShelf:badgeShelf,radioChatter:radioChatter,tomorrowBrief:tomorrowBrief,restRotation:restRotation,victoryGap:victoryGap,trueCost:trueCost,buildingCounts:buildingCounts,cropRotation:cropRotation,expeditionRiskTable:expeditionRiskTable,eventHistory:eventHistory,settingsSnapshot:settingsSnapshot,scoreProjection:scoreProjection,moraleLevers:moraleLevers,powerSpikeCheck:powerSpikeCheck,waterRecyclingGain:waterRecyclingGain,greenhouseYield:greenhouseYield,logSearch:logSearch,powerBalanceSheet:powerBalanceSheet,crewSummary:crewSummary,crewHealthAvg:crewHealthAvg,crewFatigueAvg:crewFatigueAvg,crewXpTotal:crewXpTotal,crewLevels:crewLevels,exhaustedCrew:exhaustedCrew,awayCrew:awayCrew,roleRoster:roleRoster,moraleSpread:moraleSpread,resLevels:resLevels,resLowest:resLowest,resRatios:resRatios,sciencePace:sciencePace,buildingTypes:buildingTypes,damagedList:damagedList,inProgressList:inProgressList,greenhouseList:greenhouseList,cropCoverage:cropCoverage,powerMargin:powerMargin,storeDays:storeDays,shieldInfo:shieldInfo,techsResearched:techsResearched,techCount:techCount,techsAvailable:techsAvailable,nextTechCost:nextTechCost,eventLog:eventLog,eventCountToday:eventCountToday,stormCount:stormCount,expeditionStats:expeditionStats,quizRecord:quizRecord,achievementPct:achievementPct,difficultyMult:difficultyMult,solsRemaining:solsRemaining,projectedScience:projectedScience,projectedWin:projectedWin,runwayTable:runwayTable,shortestRunway:shortestRunway,historyAt:historyAt,historyRange:historyRange,historyDelta:historyDelta,worstSol:worstSol,bestSol:bestSol,historyTrend:historyTrend,upcomingEvents:upcomingEvents,nextHazard:nextHazard,calendarNote:calendarNote,buildNext:buildNext,affordableBuildings:affordableBuildings,researchableNow:researchableNow,actionChecklist:actionChecklist,missionStatusLine:missionStatusLine,dangerScore:dangerScore,winOddsText:winOddsText,crewTableCSV:crewTableCSV,buildingsCSV:buildingsCSV,techCSV:techCSV,scheduleCSV:scheduleCSV,snapshotJSON:snapshotJSON,stateAudit:stateAudit,missionMd:missionMd,quizStatsText:quizStatsText,glossaryR5:glossaryR5,faqR5:faqR5,triviaR5:triviaR5,quizCheck01:quizCheck01}});
