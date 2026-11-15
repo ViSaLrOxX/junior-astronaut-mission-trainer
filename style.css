@@ -12,9 +12,9 @@ label{display:flex;justify-content:space-between;align-items:center;gap:10px;fon
 select,input{background:#fff;color:#1c2430;border:1px solid #c9d2e0;border-radius:8px;padding:7px 9px;font:inherit}
 select{max-width:170px}
 select:focus,input:focus{outline:2px solid #2058c9;outline-offset:1px;border-color:#2058c9}
-button{background:#2058c9;color:#fff;border:1px solid #2058c9;border-radius:8px;padding:8px 14px;font:inherit;cursor:pointer;transition:background .15s ease}
+button{background:#2058c9;color:#fff;border:1px solid #2058c9;border-radius:8px;padding:8px 14px;font:inherit;cursor:pointer;transition:background .15s ease,transform .06s ease}
 button:hover{background:#1a4ab0;border-color:#1a4ab0}
-button:active{background:#173e94}
+button:active{background:#173e94;transform:scale(.97)}
 button:focus-visible{outline:2px solid #2058c9;outline-offset:2px}
 button:disabled{opacity:.5;cursor:not-allowed}
 .bar{margin:6px 0}
@@ -31,7 +31,14 @@ button:disabled{opacity:.5;cursor:not-allowed}
 #log{max-height:220px;overflow-y:auto;font-size:.85rem;line-height:1.45}
 #log div{padding:3px 0;border-bottom:1px solid #edf0f5}
 #log .sol{color:#2058c9;font-variant-numeric:tabular-nums}
-#controls{grid-column:1/-1;display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+#controls{grid-column:1/-1;display:flex;gap:12px;flex-wrap:wrap;justify-content:center;align-items:stretch}
+.dockGrp{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;align-items:center;background:#fff;border:1px solid #dfe4ec;border-radius:12px;padding:8px 10px}
+.dockPri{background:#eef2fa;border-color:#c9d2e0}
+#controls button{display:inline-flex;align-items:center;gap:7px}
+#controls button svg{width:15px;height:15px;flex:none}
+#controls button.pri{padding:11px 20px;font-weight:700;font-size:1.02rem}
+.partsLine{background:#eef2fa;border:1px solid #c9d2e0;border-radius:8px;padding:7px 12px;margin:6px 0 10px;font-size:.92rem}
+.need{display:inline-block;color:#8a4b00;background:#fdf3e3;border:1px solid #ecd9b8;border-radius:12px;padding:1px 9px;margin-left:8px;font-size:.75rem}
 #endBanner{grid-column:1/-1;text-align:center;font-size:1.2rem;font-weight:600;padding:16px;border-radius:10px}
 #endBanner.win{background:#e3f4e8;border:1px solid #3f9e63;color:#17572e}
 #endBanner.lose{background:#fbe7e7;border:1px solid #d05757;color:#7a1d1d}
@@ -150,3 +157,5 @@ body.hc .wbCard b,body.hc .wbCard span{color:#fff}
 .streakPop{animation:streakPop .35s ease;display:inline-block}
 
 #histCv{max-width:100%;height:auto}
+
+.partsLine.flash{animation:solPulse .6s ease}

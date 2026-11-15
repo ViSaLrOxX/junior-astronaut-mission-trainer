@@ -751,4 +751,19 @@ var drot=0;for(var dk=1;dk<9;dk++){if(dpos[dk]===(dpos[dk-1]+1)%3){drot++}}
 TQ15("drill positions not a rotation",drot<8);
 TQ15("quiz bank positions vary",new Set(E.QUIZ.map(function(q){return q.c})).size>1);
 console.log(pR15+" round-15 passed, "+fR15+" failed");
-process.exit(fail+fail2+fail3+fail4+fail7+(fR8)+(fR9)+(fR10)+(fR11)+(fR12)+(fR13)+(fR14)+(fR15)?1:0);
+var pR16=0,fR16=0;
+function TQ16(n,c){if(c){pR16++}else{fR16++;console.log("FAIL16 "+n)}}
+var ps=E.newGame("moon",5,"explorer");
+TQ16("partsSpent starts at zero",ps.partsSpent===0);
+var p0=ps.res.parts;E.build(ps,"solar");
+TQ16("build tracks parts spent",ps.partsSpent===12&&ps.res.parts===p0-12);
+ps.buildings.push({type:"habitat",done:true,solsLeft:0,damaged:false});ps.buildings.push({type:"solar",done:true,solsLeft:0,damaged:false});
+var crewN=ps.crew.length;E.recruit(ps);
+TQ16("recruit spends 25 parts",ps.partsSpent===37&&ps.crew.length===crewN+1);
+E.cleanSolar(ps);
+TQ16("cleaning tracks parts spent",ps.partsSpent===39);
+var poor=E.newGame("moon",5,"explorer");poor.res.parts=5;
+TQ16("canBuild false without parts",!E.canBuild(poor,"rtg")&&E.canBuild(poor,"battery")===false&&E.canBuild(poor,"solar")===false);
+TQ16("recruit refused without parts",E.recruit(poor)===false&&poor.crew.length===4);
+console.log(pR16+" round-16 passed, "+fR16+" failed");
+process.exit(fail+fail2+fail3+fail4+fail7+(fR8)+(fR9)+(fR10)+(fR11)+(fR12)+(fR13)+(fR14)+(fR15)+(fR16)?1:0);

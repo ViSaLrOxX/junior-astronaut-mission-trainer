@@ -20,7 +20,7 @@ g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
 o.connect(g);g.connect(actx.destination);o.start(t);o.stop(t+dur+0.03)}catch(e){}}
 function sndRight(streak){tone(660,.12,"sine",.07);tone(880,.16,"sine",.07,.09);if(streak>=3){tone(1108,.14,"sine",.06,.2);tone(1318,.18,"sine",.06,.3)}}
 function sndWrong(){tone(196,.22,"sawtooth",.05);tone(147,.26,"sawtooth",.045,.08)}
-function applySnd(){$("sndBtn").textContent="Sound: "+(sndOn?"on":"off")}
+function applySnd(){$("sndBtn").querySelector(".lb").textContent="Sound: "+(sndOn?"on":"off")}
 
 function download(name,text,type){
 var blob=new Blob([text],{type:type||"text/plain"});
@@ -59,11 +59,16 @@ var pbTxt=pb.consumers.map(function(c){return c.name+" x"+c.count+" ("+c.watts+"
 $("powerLine").textContent="Power: "+s.lastPowerGen+" generated / "+s.lastPowerUse+" used / "+s.powerStore+" stored. Shielding "+s.shieldLevel+". "+pbTxt+(s.stormActive?" DUST STORM ACTIVE.":"");
 var fc=TrainerEngine.forecast(s);
 $("forecastLine").textContent=fc?("Tomorrow's forecast: "+fc.text):"Tomorrow's forecast: unclear skies.";
+var pl=$("partsLine");
+pl.innerHTML="Parts in store: <b>"+s.res.parts+"</b> &middot; spent this mission: "+(s.partsSpent||0);
+if(window.__prevParts!==undefined&&window.__prevParts!==s.res.parts){pl.classList.remove("flash");void pl.offsetWidth;pl.classList.add("flash")}
+window.__prevParts=s.res.parts;
 var bl="";
 Object.keys(TrainerEngine.BUILDINGS).forEach(function(t){
 var d=TrainerEngine.BUILDINGS[t];
 var ok=TrainerEngine.canBuild(s,t);
-bl+='<div class="bld"><div><strong>'+d.name+'</strong> ('+d.cost+' parts)<small>'+d.desc+"</small></div>"+'<button data-build="'+t+'"'+(ok?"":" disabled")+">Build</button></div>"});
+var need=!ok&&s.res.parts<d.cost?'<span class="need">need '+(d.cost-s.res.parts)+" more parts</span>":"";
+bl+='<div class="bld"><div><strong>'+d.name+'</strong> ('+d.cost+' parts)'+need+'<small>'+d.desc+"</small></div>"+'<button data-build="'+t+'"'+(ok?"":" disabled")+(ok?"":' title="Not enough parts"')+">Build</button></div>"});
 $("buildList").innerHTML=bl;
 Array.prototype.forEach.call(document.querySelectorAll("[data-build]"),function(btn){
 btn.onclick=function(){if(!s)return;TrainerEngine.build(s,btn.getAttribute("data-build"));render()}});
@@ -88,6 +93,11 @@ sel.onchange=function(){if(sel.value){TrainerEngine.retrain(s,parseInt(sel.getAt
 Array.prototype.forEach.call(document.querySelectorAll("[data-rest]"),function(btn){
 btn.onclick=function(){if(!s)return;TrainerEngine.rest(s,parseInt(btn.getAttribute("data-rest"),10));render()}});
 $("recruitBtn").disabled=!(s.res.parts>=25&&s.crew.length<TrainerEngine.crewCapacity(s));
+$("recruitBtn").title=s.res.parts<25?("Need "+(25-s.res.parts)+" more parts"):(s.crew.length>=TrainerEngine.crewCapacity(s)?"Crew quarters full - build a Habitat Module":"");
+$("opsParts").textContent="Parts in store: "+s.res.parts+" (clean 2 - suits 3 - repairs "+(s.crew.some(function(c){return c.role==="Engineer"&&c.health>0})?3:5)+" each)";
+$("cleanBtn").disabled=s.res.parts<2;
+$("suitBtn").disabled=s.res.parts<3;
+$("repAllBtn").disabled=s.res.parts<3;
 $("rationSel").value=String(s.rations);
 $("manifestSel").value=s.manifest;
 var el="";
@@ -230,9 +240,9 @@ $("setup").hidden=true;$("game").hidden=false;render();if(window.__tourEvent){wi
 $("solBtn").onclick=function(){if(!s)return;TrainerEngine.tick(s);render();if(window.__openFeat&&!window.__quizWas){window.__openFeat("status")}var sp=$("statusPanel");sp.classList.remove("pulse");void sp.offsetWidth;sp.classList.add("pulse")};
 $("autoBtn").onclick=function(){
 if(!s)return;
-if(autoTimer){clearInterval(autoTimer);autoTimer=null;$("autoBtn").textContent="Auto: off";return}
-$("autoBtn").textContent="Auto: on";
-autoTimer=setInterval(function(){if(!s||s.over){clearInterval(autoTimer);autoTimer=null;$("autoBtn").textContent="Auto: off";return}TrainerEngine.tick(s);render()},900)};
+if(autoTimer){clearInterval(autoTimer);autoTimer=null;$("autoBtn").querySelector(".lb").textContent="Auto: off";return}
+$("autoBtn").querySelector(".lb").textContent="Auto: on";
+autoTimer=setInterval(function(){if(!s||s.over){clearInterval(autoTimer);autoTimer=null;$("autoBtn").querySelector(".lb").textContent="Auto: off";return}TrainerEngine.tick(s);render()},900)};
 $("reportBtn").onclick=function(){if(!s)return;download("mission-report-sol"+s.sol+".txt",TrainerEngine.report(s))};
 $("reportJsonBtn").onclick=function(){if(!s)return;download("mission-report-sol"+s.sol+".json",JSON.stringify(TrainerEngine.reportJSON(s),null,2),"application/json")};
 $("saveBtn").onclick=function(){if(!s)return;localStorage.setItem("jamtrainer",JSON.stringify(s))};
@@ -467,6 +477,7 @@ var f=document.createElement("div");f.className="passFact";
 f.textContent=right?q.fact:("Not quite - the right answer is: "+q.a[q.c]+". "+q.fact);
 card.appendChild(f);
 if(right){
+try{done=JSON.parse(localStorage.getItem("r580pass")||"[]")}catch(e){}
 if(done.indexOf(idx)<0){done.push(idx);localStorage.setItem("r580pass",JSON.stringify(done))}
 $("r580PassBar").textContent=TrainerEngine.fa2PassportPct(done)+"% mastered ("+done.length+"/"+TrainerEngine.fa2PassportTotal()+")";
 setTimeout(r580Pass,2600)}
@@ -563,7 +574,7 @@ navBtns.forEach(function(x){x.classList.toggle("on",x===b)});
 m.classList.remove("anim");void m.offsetWidth;m.classList.add("anim")}});
 var cmd=false;
 try{cmd=localStorage.getItem("cmdMode")==="1"}catch(e){}
-function applyCmd(){document.body.classList.toggle("kid",!cmd);G("cmdBtn").textContent="Commander mode: "+(cmd?"on":"off");closeFeat()}
+function applyCmd(){document.body.classList.toggle("kid",!cmd);G("cmdBtn").querySelector(".lb").textContent="Commander mode: "+(cmd?"on":"off");closeFeat()}
 G("cmdBtn").onclick=function(){cmd=!cmd;try{localStorage.setItem("cmdMode",cmd?"1":"0")}catch(e){};applyCmd()};
 applyCmd();
 var tips={"r5CrewBtn":"Table of your astronauts: role, level, health and morale","r5HealthBtn":"Average health, fatigue and morale","r5RolesBtn":"Who does what job, and their levels","r5ExhBtn":"Who is exhausted or away from base","r5MoraleBtn":"Highest, lowest and average morale","r5ResBtn":"Resource levels and how much each astronaut has","r5PaceBtn":"Science earned per sol versus the goal","r5ProjBtn":"Predicted final science and whether you win","r5RunwayBtn":"How many sols each resource will last","r5ShortBtn":"The resource that runs out first","r5DangerBtn":"Overall danger score from 0 to 100","r5OddsBtn":"Your chances of winning, in words","r5BldBtn":"Building types, damage and construction progress","r5CropBtn":"What your greenhouses are growing","r5PowBtn":"Power made, used and stored","r5ShieldBtn":"Radiation shield level and next upgrade cost","r5TechBtn":"Researched tech and the cheapest next one","r5Res2Btn":"Upgrades you can afford right now","r5AffordBtn":"Buildings you can afford right now","r5HistBtn":"How oxygen, water and food changed over time","r5BestBtn":"Your best and worst sol for oxygen","r5DeltaBtn":"Oxygen change since sol 1","r5UpBtn":"Events coming up soon","r5HazBtn":"The next danger on the calendar","r5CheckBtn":"Suggested next actions","r5StatusBtn":"One-line mission summary","r5QuizBtn":"Your quiz record","r5AchBtn":"How many badges you have earned","r5CrewCsvBtn":"Download the crew table as CSV","r5BldCsvBtn":"Download the buildings table as CSV","r5TechCsvBtn":"Download the tech table as CSV","r5SchedCsvBtn":"Download the event schedule as CSV","r5SnapBtn":"Download the full mission state as JSON","r5MdBtn":"Download the mission as a markdown document","r5AuditBtn":"Check the mission state for mistakes","r5GlossBtn":"Words a commander should know","r5FaqBtn":"Common questions and answers","r5TriviaBtn":"A fun space fact","r5Quiz2Btn":"Try one quiz question right now"};
