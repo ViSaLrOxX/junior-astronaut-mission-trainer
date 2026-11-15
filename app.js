@@ -222,12 +222,39 @@ var fc=TrainerEngine.forecast(s);
 $("forecastLine").textContent=fc?("Tomorrow's forecast: "+fc.text):"Tomorrow's forecast: unclear skies.";
 var scd=$("storyCard");
 var sf=s.flags;
-var showStory=sf.storyArmed&&!sf.storyChoice&&s.sol>=sf.storySol-2&&s.sol<sf.storySol&&!s.over;
-scd.hidden=!showStory;
-if(showStory){
-var evWord=s.site==="mars"?"dust storm":"solar particle storm";
-var left=sf.storySol-s.sol;
-$("storyTx").textContent="Long-range scans show a "+evWord+" reaching you in "+left+" sol"+(left>1?"s":"")+". Mission Control recommends sheltering the crew, but that pauses science work. "+(s.site==="mars"?"Radio to Earth takes up to 22 minutes each way":"Radio to Earth is fast, but Mission Control is hours from a decision")+" - the call is yours, Commander.";
+scd.hidden=true;
+if(!s.over&&sf.storyArmed){
+$("storyBtns").innerHTML="";
+$("storyNote").hidden=true;
+if(!sf.ch1Done){
+scd.hidden=false;
+$("storyHd").textContent="Chapter 1: A place to stay";
+$("storyTx").textContent="Ana, your engineer: \"Build a place people can live in. Then build a place they can discover things.\" The small green light on the habitat means it is keeping your crew alive. Mei's seedling sits by the habitat window. Your first call: another solar array, or the ice drill that keeps water flowing?";
+storyBtn("storyCh1a","Solar Array (12 parts)",function(){storyBuild("solar")});
+storyBtn("storyCh1b","Ice Extractor (14 parts)",function(){storyBuild("watermine")});
+}else if(!sf.ch2Done&&s.sol>=sf.storySol-2&&s.sol<sf.storySol){
+scd.hidden=false;
+if(!sf.raviPaid){sf.raviPaid=true;s.res.science+=8}
+var evWord2=s.site==="mars"?"dust storm":"solar particle storm";
+var left2=sf.storySol-s.sol;
+$("storyHd").textContent="Chapter 2: Something from the Sun";
+$("storyTx").textContent="Ravi brings back a sample worth real science (+8). Then Ana spots the warning: \"Space-weather alert. A "+evWord2+" reaches us in "+left2+" sol"+(left2>1?"s":"")+". We need to prepare the shelter.\" Materials can protect the crew or keep building research gear. You cannot finish both before it hits.";
+$("storyNote").textContent="Advice from Earth arrives at scheduled message windows in this training game; sometimes you must act before the next reply. A game rule, not a claim that Moon messages take a day to arrive.";
+$("storyNote").hidden=false;
+storyBtn("storyShelter","Prepare the shelter (protect the crew)",function(){sf.storyChoice="shelter";sf.ch2Done=true;sndBuild();showToast("Shelter prepared for the storm sol. "+(s.site==="mars"?"Earth won't hear your call for up to 22 minutes":"The next Earth window opens after the storm")+" - you command alone.");render()});
+storyBtn("storyWork","Keep building research (risk the crew)",function(){sf.storyChoice="work";sf.ch2Done=true;showToast("Research continues. "+(s.site==="mars"?"Earth won't hear your call for up to 22 minutes":"The next Earth window opens after the storm")+" - you command alone.");render()});
+}else if(!sf.ch3Done&&s.sol===sf.storySol&&!sf.storyChoice){
+scd.hidden=false;
+$("storyHd").textContent="Chapter 3: The quiet camp";
+$("storyTx").textContent="The storm is here. Outside work stops and the camp goes dark but for one green light. Kofi, your medic: \"The samples can wait. Let's make sure we're here to study them.\" No shelter was prepared. Emergency reserves can still keep everyone safe - for a price.";
+storyBtn("storyEmerg","Burn emergency reserves (-15 parts, -10 science)",function(){sf.storyChoice="emerg";sf.ch3Done=true;s.res.parts=Math.max(0,s.res.parts-15);s.res.science=Math.max(0,s.res.science-10);showToast("Reserves burned. The crew rides it out safely.");render()});
+storyBtn("storyRide","Ride it out (-12 health each)",function(){sf.storyChoice="ride";sf.ch3Done=true;applyStoryHit(12,0);showToast("The crew rides out the storm, shaken.");sndWrong();render()});
+}else if(!sf.ch4Done&&sf.storyResolved&&s.sol>=sf.storySol+2){
+sf.ch4Done=true;
+sf.seedling=2;
+s.crew.forEach(function(c){if(c.health>0){c.morale=Math.min(100,c.morale+5)}});
+showToast("All clear. Mei calls everyone to the greenhouse: the seedling has opened a new leaf. \"Looks like we're not the only ones getting used to this place.\" (+5 morale)");
+}
 }
 var cc=$("ctxCard");
 if(sf.ctxPending!==undefined&&!s.over){
@@ -352,7 +379,7 @@ if(!r.correct){var cb=document.querySelector('[data-quiz="'+q.c+'"]');if(cb){cb.
 if(r.correct){sndRight(s.quizStreak);burstFrom(btn)}else{sndWrong()}
 Array.prototype.forEach.call(document.querySelectorAll("[data-quiz]"),function(x){x.disabled=true});
 $("quizFact").textContent=(r.correct?"Correct! +6 parts, +5 science. ":"Not quite. ")+r.fact+(s.quizStreak>1?" Streak: "+s.quizStreak+".":"");
-setTimeout(function(){qp.hidden=true;if(window.__closeFeat){window.__closeFeat()}render()},4200)}});
+setTimeout(function(){qp.hidden=true;if(window.__closeFeat){window.__closeFeat()}if(s.flags&&s.flags.ctxPending!==undefined&&window.__openFeat){window.__openFeat("status")}render()},4200)}});
 }else{qp.hidden=true}
 var quizNow=s.pendingQuiz!==null&&!s.over;
 if(quizNow&&!window.__quizWas&&window.__openFeat){window.__openFeat("quiz")}
@@ -374,23 +401,27 @@ var bn=newBadges.map(function(id){var d=TrainerEngine.ACHIEVEMENTS.filter(functi
 sndBadge();showToast("Badge earned: "+bn.join(", "));burstFrom(document.getElementById("solLine"))}
 if(s.over&&!window.__overSeen){window.__overSeen=true;
 if(s.won){sndWin();showToast("MISSION SUCCESS! Final score "+TrainerEngine.score(s));var r0=document.getElementById("cockpit");if(r0){burstFrom(r0);setTimeout(function(){burstFrom(r0)},300)}}
-else{sndLose();showToast("Mission failed - review the log and try again.")}}
+else if(s.crew.some(function(c){return c.health>0})){showToast("Mission complete - a safe return. See the debrief below.")}
+else{sndLose();showToast("Mission ended early - the crew evacuated safely. See the debrief below.")}}
 if(!s.over){window.__overSeen=false}
 var eb=$("endBanner");
 if(s.over){
 saveHighScore();
 eb.hidden=false;
-eb.className=s.won?"win":"lose";
 var pm=TrainerEngine.postMortem(s);
 var aliveN=s.crew.filter(function(c){return c.health>0}).length;
 var onlineN=s.buildings.filter(function(b){return b.done&&!b.damaged}).length;
+var kind=s.won?"win":(aliveN>0?"safe":"lose");
+eb.className=kind;
+var headline=kind==="win"?"A THRIVING CAMP — you met the science goal and brought everyone home. The next crew inherits a working outpost. ":(kind==="safe"?"A SAFE RETURN — you missed the science target but protected your crew. Your notes help the next mission do better. This is a valid ending, not a failure. ":"A DIFFICULT RETURN — a life-support emergency ended the mission early. The crew evacuated safely. ");
 var debrief="<div class='learnBox'><b>Mission debrief - what you learned</b><ul>"+
 "<li>Storms survived: "+(s.stormsSurvived||0)+" - shielding and shelter mode are what cut storm damage.</li>"+
 "<li>Buildings online at the end: "+onlineN+" of "+s.buildings.length+" - damaged buildings stop working until repaired.</li>"+
 "<li>Crew home safe: "+aliveN+" of "+s.crew.length+" - rest, rations and a Med Bay keep astronauts alive.</li>"+
 "<li>Research completed: "+Object.keys(s.techs).length+" - upgrades multiply everything else.</li></ul>"+
-(s.won?"<div class='learnTip'>Journey complete: you built, survived and recovered. Next step - a harder class or the other site.</div>":"<div class='learnTip'>Mission Control's notes: "+pm.join(" ")+"</div>")+"</div>";
-eb.innerHTML=(s.won?"MISSION SUCCESS — review complete. ":"MISSION FAILED — review the log and try a new strategy. ")+"Final score: "+TrainerEngine.score(s)+" (grade "+TrainerEngine.letterGrade(s)+"). "+debrief;
+(kind==="win"?"<div class='learnTip'>Journey complete: you built, survived and recovered. Next step - a harder class or the other site.</div>":"<div class='learnTip'>"+(kind==="safe"?"Mission Control's notes: "+pm.join(" "):"The warning you missed: "+(pm[0]||"life support ran short")+" Start a new mission to retry that decision.")+"</div>")+
+"<div class='learnTip'>Mission Control: \"Your mission wasn't to do everything. It was to decide what mattered, and take care of the people depending on you.\"</div></div>";
+eb.innerHTML=headline+"Final score: "+TrainerEngine.score(s)+" (grade "+TrainerEngine.letterGrade(s)+"). "+debrief;
 $("solBtn").disabled=true;
 }else{eb.hidden=true;$("solBtn").disabled=false}}
 var outpostT=0;
@@ -413,7 +444,7 @@ bs.forEach(function(b,i){
 var cx=22+i*slot+slot/2;
 var d=TrainerEngine.BUILDINGS[b.type];
 var online=b.done&&!b.damaged;
-var lit=online&&powerOk;
+var lit=online&&powerOk&&!s.stormActive;
 if(b.type==="solar"){
 ctx.strokeStyle=lit?"#2a6be0":"#3a4a66";ctx.lineWidth=3;
 var tilt=Math.sin(t*0.05+i)*0.12;
@@ -456,6 +487,21 @@ ctx.fillRect(px-2.5,py+bob-2,5,7);
 ctx.fillStyle="#7fb7ff";
 ctx.fillRect(px-1.5,py+bob-5.5,3,1.5);
 });
+var habX=0;
+for(var hi=0;hi<bs.length;hi++){if(bs[hi].type==="habitat"){habX=22+hi*slot+slot/2;break}}
+if(habX){
+var gl=0.6+0.4*Math.sin(t*0.25);
+ctx.fillStyle="rgba(62,230,168,"+gl.toFixed(2)+")";
+ctx.beginPath();ctx.arc(habX,gy-30,4,0,Math.PI*2);ctx.fill();
+ctx.fillStyle="rgba(62,230,168,0.16)";
+ctx.beginPath();ctx.arc(habX,gy-30,10,0,Math.PI*2);ctx.fill();
+var pot=habX+24;
+ctx.fillStyle="#7a5230";ctx.fillRect(pot-4,gy-6,8,6);
+var seedH=4+Math.min(12,s.sol*1.2);
+ctx.strokeStyle="#3f9e57";ctx.lineWidth=2;
+ctx.beginPath();ctx.moveTo(pot,gy-6);ctx.lineTo(pot,gy-6-seedH);ctx.stroke();
+if(s.flags&&s.flags.seedling>=2){ctx.fillStyle="#5ec46f";ctx.beginPath();ctx.ellipse(pot+4,gy-6-seedH,5,2.6,-0.5,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.ellipse(pot-3.4,gy-8-seedH,4,2.2,0.6,0,Math.PI*2);ctx.fill()}
+}
 if(s.stormActive){ctx.fillStyle="rgba(120,70,30,0.25)";ctx.fillRect(0,0,W,H)}
 }
 setInterval(function(){outpostT++;var cv=document.getElementById("outpostCv");if(cv&&cv.offsetParent){drawOutpost()}},110);
@@ -465,13 +511,21 @@ s.flags=s.flags||{};
 if(s.flags.storyArmed){return}
 var want=s.site==="mars"?"storm":"aurora";
 var slot=-1;
-for(var i=4;i<=7;i++){if(!s.schedule[i]){slot=i;break}}
-if(slot<0){return}
+for(var i=4;i<=9;i++){if(!s.schedule[i]){slot=i;break}}
+if(slot<0){slot=5}
 s.schedule[slot]=want;
 s.flags.storyArmed=true;
 s.flags.storySol=slot+1;
 s.flags.storyEv=want;
+s.flags.seedling=1;
 }
+function storyBtn(id,label,fn){var b=document.createElement("button");b.id=id;b.textContent=label;b.onclick=fn;$("storyBtns").appendChild(b)}
+function storyBuild(type){
+var d=TrainerEngine.BUILDINGS[type];
+if(s.res.parts<d.cost){showToast("Need "+(d.cost-s.res.parts)+" more parts for the "+d.name+".");return}
+if(TrainerEngine.build(s,type)){s.flags.ch1Done=true;sndBuild();showToast(d.name+" started. Ana approves - living space first, discoveries next.");render()}
+}
+function applyStoryHit(hp,mo){s.crew.forEach(function(c){if(c.health>0){c.health=Math.max(5,c.health-hp);c.morale=Math.max(5,c.morale-mo)}})}
 function storyResolve(){
 var f=s.flags;
 if(!f||!f.storyArmed||f.storyResolved||s.sol!==f.storySol){return}
@@ -485,9 +539,6 @@ showToast("Sheltered through the "+evWord+". Everyone safe and grateful, but sci
 s.crew.forEach(function(c){if(c.health>0){c.health=Math.max(5,c.health-18);c.morale=Math.max(5,c.morale-10)}});
 s.res.science+=8;
 showToast("The crew worked through the "+evWord+": +8 science, but health and morale took a hit.");sndWrong();
-}else{
-s.crew.forEach(function(c){if(c.health>0){c.health=Math.max(5,c.health-10)}});
-showToast("No call was made before the "+evWord+" hit. The crew rode it out, shaken (-10 health).");sndWrong();
 }
 if((f.ctxShown||0)<CQUIZ.length&&f.ctxPending===undefined){f.ctxPending=f.ctxShown||0}
 }
@@ -497,7 +548,12 @@ storyArm();
 if(s.over){return}
 var um=UNLOCK_MSG[s.sol];
 if(um&&s.flags["unlock"+s.sol]!==true){s.flags["unlock"+s.sol]=true;showToast(um);sndBadge()}
+if(s.flags.storyArmed&&s.flags.storyChoice==="shelter"&&s.sol===s.flags.storySol-1){TrainerEngine.shelterMode(s)}
 storyResolve();
+if(s.flags.storyArmed&&s.flags.storyResolved&&!s.flags.ch3Done&&s.sol>s.flags.storySol){
+s.flags.ch3Done=true;
+if(!s.flags.storyChoice){applyStoryHit(12,0);showToast("The storm passed. With no shelter call made, the crew rode it out (-12 health).");sndWrong()}
+}
 if(s.stormActive&&(s.flags.ctxShown||0)<CQUIZ.length&&s.flags.ctxPending===undefined){s.flags.ctxPending=s.flags.ctxShown||0}
 if(s.flags.ctxPending!==undefined&&s.pendingQuiz===null&&window.__openFeat){window.__openFeat("status")}
 }
@@ -557,6 +613,8 @@ var sc=$("scenSel").value;
 if(sc){TrainerEngine.setScenario(s,sc)}
 TrainerEngine.setMissionName(s,$("nameSel").value);
 TrainerEngine.setObjectiveMode(s,$("objSel").value);
+var lv=$("launchVeil");
+if(lv&&!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches)){lv.hidden=false;void lv.offsetWidth;lv.classList.add("go");setTimeout(function(){lv.classList.remove("go");setTimeout(function(){lv.hidden=true},320)},380)}
 storyArm();
 window.__gameState=function(){return s};
 $("setup").hidden=true;$("game").hidden=false;render();if(window.__tourEvent){window.__tourEvent("launch")}};
@@ -591,8 +649,7 @@ $("cleanBtn").onclick=function(){if(!s)return;$("opsMsg").textContent=TrainerEng
 $("suitBtn").onclick=function(){if(!s)return;$("opsMsg").textContent=TrainerEngine.suitMaintenance(s)?"Suits serviced: next EVA is safer.":"Needs 3 parts.";render()};
 $("repAllBtn").onclick=function(){if(!s)return;var n=TrainerEngine.repairAll(s);$("opsMsg").textContent=n?("Repaired "+n+" building(s)."):"Nothing affordable to repair.";render()};
 $("shelterBtn").onclick=function(){if(!s)return;TrainerEngine.shelterMode(s);$("opsMsg").textContent="Shelter mode set for next sol.";render()};
-$("storyShelter").onclick=function(){if(!s)return;s.flags.storyChoice="shelter";TrainerEngine.shelterMode(s);sndBuild();showToast("Shelter mode set for next sol. "+(s.site==="mars"?"Earth won't hear your call for up to 22 minutes":"Mission Control won't weigh in before it hits")+" - you command alone.");render()};
-$("storyWork").onclick=function(){if(!s)return;s.flags.storyChoice="work";showToast("The crew will keep working through it. "+(s.site==="mars"?"Earth won't hear your call for up to 22 minutes":"Mission Control won't weigh in before it hits")+" - you command alone.");render()};
+document.addEventListener("visibilitychange",function(){document.body.classList.toggle("bgpause",document.hidden)});
 $("histSel").onchange=drawHistory;
 $("histCsvBtn").onclick=function(){if(!s)return;download("resource-history.csv",TrainerEngine.historyCSV(s),"text/csv")};
 $("briefBtn").onclick=function(){

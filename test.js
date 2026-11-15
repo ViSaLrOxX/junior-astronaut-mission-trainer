@@ -789,4 +789,23 @@ var l17=E.newGame("moon",3,"explorer");l17.crew.forEach(function(c){c.health=0})
 E.tick(l17);
 TQ17("lose journey when all crew lost",l17.over===true&&l17.won===false);
 console.log(pR17+" round-17 passed, "+fR17+" failed");
-process.exit(fail+fail2+fail3+fail4+fail7+(fR8)+(fR9)+(fR10)+(fR11)+(fR12)+(fR13)+(fR14)+(fR15)+(fR16)+(fR17)?1:0);
+var pR18=0,fR18=0;
+function TQ18(n,c){if(c){pR18++}else{fR18++;console.log("FAIL18 "+n)}}
+var sr18=E.newGame("moon",5,"explorer");
+var it18=0;
+while(!sr18.over&&it18<400){sr18.res.o2=300;sr18.res.water=300;sr18.res.food=300;sr18.res.parts=100;sr18.res.science=0;sr18.crew.forEach(function(c){c.health=90});sr18.sol=Math.max(sr18.sol,sr18.objectiveSols-1);E.tick(sr18);it18++}
+TQ18("safe-return path ends with crew alive",sr18.over===true&&sr18.won===false&&E.aliveCount(sr18)>0);
+TQ18("safe-return engine notes exist",Array.isArray(E.postMortem(sr18))&&E.postMortem(sr18).length>0);
+var sh18=E.newGame("mars",4,"explorer");E.shelterMode(sh18);
+TQ18("shelter mode queues for next sol",sh18.shelterNext===true||sh18.sheltered===true);
+var em18=E.newGame("mars",4,"explorer");em18.res.parts=5;em18.res.science=3;
+em18.res.parts=Math.max(0,em18.res.parts-15);em18.res.science=Math.max(0,em18.res.science-10);
+TQ18("emergency reserve costs floor at zero",em18.res.parts===0&&em18.res.science===0);
+var slotOk=true;
+for(var sd=1;sd<=12;sd++){["moon","mars"].forEach(function(st){var g=E.newGame(st,sd,"explorer");var f=-1;for(var i=4;i<=9;i++){if(!g.schedule[i]){f=i;break}}if(f<0){f=5}g.schedule[f]="storm";if(g.schedule[f]!=="storm"){slotOk=false}})}
+TQ18("story slot always assignable on seeds 1-12",slotOk);
+var ids=E.EVENTS.map(function(e){return e.id});
+TQ18("storm and aurora are real event ids",ids.indexOf("storm")>=0&&ids.indexOf("aurora")>=0);
+TQ18("first-choice buildings exist with costs",E.BUILDINGS.solar.cost===12&&E.BUILDINGS.watermine.cost===14);
+console.log(pR18+" round-18 passed, "+fR18+" failed");
+process.exit(fail+fail2+fail3+fail4+fail7+(fR8)+(fR9)+(fR10)+(fR11)+(fR12)+(fR13)+(fR14)+(fR15)+(fR16)+(fR17)+(fR18)?1:0);

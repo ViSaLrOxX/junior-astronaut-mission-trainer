@@ -1,6 +1,6 @@
 # Junior Astronaut Mission Trainer
 
-A small browser game about running a Moon or Mars base. You pick a site and a difficulty, then keep a crew alive sol by sol: power, oxygen, water, food, shielding and morale all pull against each other.
+A small browser game about running a Moon or Mars base, played from a first-person cockpit: you look out through the windscreen at drifting stars while the ship's consoles hold the controls. You pick a site and a difficulty, then keep a crew alive sol by sol: power, oxygen, water, food, shielding and morale all pull against each other. Panels are translucent dark glass with thin teal edges, buttons are tactile ship controls with clear hover, focus, pressed and disabled states, and a brief launch transition plays when a mission starts. High-contrast mode makes every panel opaque, reduced-motion keeps the scene static, and instrument animation pauses when the tab is hidden.
 
 ## Running it
 
@@ -13,6 +13,8 @@ The game is split into three rooms, switched from the top: Mission, Learn & play
 ## What's inside
 
 Two real sites (lunar south pole, Jezero rim) with different radiation, ice and storm profiles. Nineteen building types, six named crew with roles and XP, random mission events drawn from a fixed-seed deck so runs are reproducible, and twenty achievements.
+
+A story runs through each mission: engineer Ana, gardener Mei, Ravi and medic Kofi. Chapter one asks for your first build (solar array or ice drill, costs shown up front); chapter two brings a space-weather alert and a choice between shelter and research; chapter three is the quiet storm camp, dark but for one green habitat light, with an emergency reserve route if you were not ready; chapter four is the all-clear and the seedling's first new leaf. There are three endings: a thriving camp, a safe return (a valid ending, not a failure) and a difficult return that shows the warning you missed. Mission Control's last word: your mission wasn't to do everything, it was to decide what mattered.
 
 The first sols are deliberately gentle: you start with three gauges and a few blueprints, and consoles unlock as the mission settles in (ops at sol 2, research at sol 3, crew at sol 4, expeditions at sol 6). The outpost card shows your base as a little animated scene: domes, solar panels and walking astronauts, with smoke and flicker when something is damaged. Each run also carries one scripted story beat: Earth warns of an incoming storm, the radio delay means the choice is yours, and a short debrief question afterwards asks about what just happened. When the mission ends, win or lose, a debrief lists what you learned. A Sources card in Learn & play says plainly which facts are real NASA history (MOXIE, Apollo 13, the storm that killed Opportunity in 2018, the 1989 Quebec blackout) and which numbers are simulated for learning; saved data never leaves the browser's local storage.
 
