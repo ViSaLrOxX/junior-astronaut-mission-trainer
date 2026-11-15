@@ -37,3 +37,12 @@ button:disabled{opacity:.45;cursor:not-allowed}
 #objective{font-size:.85rem;color:#ffd98f;margin-bottom:8px}
 #powerLine{font-size:.85rem;color:#9aa7c7;margin-top:8px}
 footer{text-align:center;color:#5d6a94;font-size:.8rem;padding:16px}
+body.hc{background:#000;color:#fff}
+body.hc .panel{border:2px solid #fff}
+.cmp{border-collapse:collapse;margin:8px 0;width:100%}
+.cmp td,.cmp th{padding:3px 8px;border-bottom:1px solid rgba(255,255,255,.15);text-align:left;font-size:13px}
+.score{font-size:13px;opacity:.9;margin:2px 0}
+select{max-width:160px}
+.crew select{font-size:11px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media print{header,#controls,#setup{display:none}body{background:#fff;color:#000}}

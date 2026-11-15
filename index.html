@@ -14,6 +14,7 @@
 </header>
 <section id="setup" class="panel">
 <h2>Start a mission</h2>
+<label>Mission name <input id="nameSel" type="text" maxlength="40" placeholder="e.g. Artemis Sim 1"></label>
 <label>Site
 <select id="siteSel">
 <option value="moon">Lunar South Pole</option>
@@ -24,8 +25,17 @@
 <option value="cadet">Cadet (easier)</option>
 <option value="explorer" selected>Explorer</option>
 <option value="commander">Commander (harder)</option>
+<option value="sandbox">Sandbox (no fail)</option>
+</select></label>
+<label>Challenge scenario
+<select id="scenSel">
+<option value="">None</option>
+<option value="dustbowl">Dust Bowl (Mars storms x2)</option>
+<option value="leancrew">Lean Crew (2 crew only)</option>
+<option value="longnight">The Long Night (Moon, long nights)</option>
 </select></label>
 <label>Mission seed <input id="seedSel" type="number" value="7" min="1"></label>
+<div id="siteCompare"></div>
 <button id="startBtn">Launch</button>
 </section>
 <main id="game" hidden>
@@ -34,6 +44,7 @@
 <div id="objective"></div>
 <div id="bars"></div>
 <div id="powerLine"></div>
+<div id="forecastLine"></div>
 </section>
 <section class="panel">
 <h2>Build</h2>
@@ -41,8 +52,28 @@
 <button id="recruitBtn">Recruit crew (25 parts)</button>
 </section>
 <section class="panel">
+<h2>Research</h2>
+<div id="techList"></div>
+</section>
+<section class="panel">
 <h2>Crew</h2>
 <div id="crewList"></div>
+<label>Rations
+<select id="rationSel">
+<option value="1" selected>Full (100%)</option>
+<option value="0.8">Reduced (80%)</option>
+<option value="0.6">Emergency (60%)</option>
+</select></label>
+<label>Resupply manifest
+<select id="manifestSel">
+<option value="mixed" selected>Mixed</option>
+<option value="food">Food-heavy</option>
+<option value="parts">Parts-heavy</option>
+</select></label>
+</section>
+<section class="panel">
+<h2>Expeditions</h2>
+<div id="expedList"></div>
 </section>
 <section class="panel">
 <h2>Outpost</h2>
@@ -55,14 +86,26 @@
 <div id="quizFact"></div>
 </section>
 <section class="panel">
+<h2>Mission advisor</h2>
+<div id="advice"></div>
+</section>
+<section class="panel">
+<h2>Stats</h2>
+<div id="statsPanel"></div>
+<div id="highScores"></div>
+</section>
+<section class="panel">
 <h2>Log</h2>
 <div id="log"></div>
 </section>
 <div id="controls">
 <button id="solBtn">Advance one sol</button>
-<button id="reportBtn">Download mission report</button>
+<button id="autoBtn">Auto: off</button>
+<button id="reportBtn">Download report</button>
+<button id="reportJsonBtn">Report JSON</button>
 <button id="saveBtn">Save</button>
 <button id="loadBtn">Load</button>
+<button id="contrastBtn">High contrast</button>
 <button id="newBtn">New mission</button>
 </div>
 <div id="endBanner" hidden></div>
