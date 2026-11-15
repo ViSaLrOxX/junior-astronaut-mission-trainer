@@ -132,6 +132,7 @@ main.wb-open[data-feat="quiz"] section.panel[data-feat="quiz"]:not([hidden]),
 main.wb-open[data-feat="advisor"] section.panel[data-feat="advisor"]:not([hidden]),
 main.wb-open[data-feat="stats"] section.panel[data-feat="stats"]:not([hidden]),
 main.wb-open[data-feat="log"] section.panel[data-feat="log"]:not([hidden]),
+main.wb-open[data-feat="sources"] section.panel[data-feat="sources"]:not([hidden]),
 main.wb-open[data-feat="ach"] section.panel[data-feat="ach"]:not([hidden]),
 main.wb-open[data-feat="ops"] section.panel[data-feat="ops"]:not([hidden]),
 main.wb-open[data-feat="analytics"] section.panel[data-feat="analytics"]:not([hidden]),
@@ -181,3 +182,23 @@ body.hc header .tag,body.hc header p{color:#fff}
 #quizOpts button,#r650Opts button,.passQ button,.row button,.btnRow button{background:rgba(255,255,255,.92)}
 #volR{width:80px;accent-color:#2058c9;cursor:pointer}
 .volWrap{display:inline-flex;align-items:center;gap:6px;color:#33405a;font-size:.8rem}
+#outpostCv{width:100%;height:auto;border-radius:10px;border:1px solid #dfe4ec;background:#160a18;margin-bottom:10px}
+.storyCard{margin-top:10px;border:2px solid #b98a1f;background:#fff8e6;border-radius:10px;padding:10px 12px}
+.storyHd{font-weight:700;color:#7a5a10;margin-bottom:4px}
+.storyDelay{font-weight:400;font-size:.8rem;color:#9a8348;margin-left:6px}
+.storyTx{font-size:.9rem;color:#4a3d1e;margin-bottom:8px;line-height:1.4}
+.ctxCard{margin-top:10px;border:2px solid #2058c9;background:#eef4ff;border-radius:10px;padding:10px 12px}
+.ctxCard .ctxHd{font-weight:700;color:#1c49a8;margin-bottom:4px}
+.ctxCard .ctxQ{font-size:.9rem;margin-bottom:8px;color:#24314f}
+.ctxCard button{display:block;width:100%;margin:4px 0;text-align:left}
+.ctxCard .ctxWhy{font-size:.85rem;color:#33405a;margin-top:6px}
+.wbCard.locked{opacity:.55}
+.wbCard .lockTag{display:inline-block;margin-left:6px;font-size:.7rem;background:#5b6675;color:#fff;border-radius:8px;padding:1px 7px;vertical-align:middle}
+.srcBlock{margin-bottom:12px}
+.srcBlock h3{margin:0 0 4px;font-size:.85rem;color:#33405a}
+.srcBlock ul{margin:4px 0;padding-left:20px;font-size:.88rem;line-height:1.5;color:#24314f}
+.srcBlock p{margin:4px 0;font-size:.88rem;line-height:1.5;color:#24314f}
+.learnBox{margin-top:10px;border-top:1px solid rgba(255,255,255,.35);padding-top:8px;text-align:left}
+.learnBox ul{margin:6px 0;padding-left:20px;line-height:1.5}
+.learnBox .learnTip{font-weight:600;margin-top:4px}
+#endBanner.win .learnBox{border-top-color:rgba(0,0,0,.2)}

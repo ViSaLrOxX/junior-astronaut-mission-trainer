@@ -183,23 +183,67 @@ if(!list.length){$("highScores").innerHTML="";return}
 var h="<h3>Best missions</h3>";
 list.forEach(function(x,i){h+='<div class="score">'+(i+1)+". "+esc(x.name)+" — "+x.score+" pts ("+x.site+", "+x.diff+(x.won?", won":"")+")</div>"});
 $("highScores").innerHTML=h}
+var UNLOCK_SOL={ops:2,research:3,crew:4,exped:6};
+var UNLOCK_BLD={rtg:3,scrubber:3,watermine:3,recycler:3,greenhouse:3,habitat:3,shield:3,medbay:3,lab:3,comms:3,drill:3,workshop:3,algae:3,observatory:3,gym:3,pad:3};
+var UNLOCK_MSG={2:"New consoles unlocked: Ops fixes, plus your parts and science gauges.",3:"New blueprints at the Build bench, and the Research lab is open.",4:"Crew roster unlocked: rest, retrain and recruit your astronauts.",6:"Expeditions unlocked: send astronauts outside for supplies."};
+function featLocked(f){var need=UNLOCK_SOL[f]||0;return s&&s.sol<need?need:0}
+window.__fx.featLocked=featLocked;
+window.__fx.toast=showToast;
+var CQUIZ=[
+{q:"The storm cut the base's power. Which upgrade protects buildings from the next one?",a:["Storm Shielding","A bigger habitat","Faster rovers"],c:0,why:"Shielding Works bury habitats under regolith, cutting storm and radiation damage."},
+{q:"Solar arrays made less power during the storm. What covered the shortfall?",a:["Battery banks","The greenhouse","The comms dish"],c:0,why:"Batteries store surplus power for dark or dusty sols."},
+{q:"Sheltering the crew keeps them safe. What does it cost?",a:["Oxygen and work time","Nothing at all","Rocket fuel"],c:0,why:"Shelter mode uses extra oxygen and pauses outside work."},
+{q:"Why can't Mission Control simply tell you what to do in an emergency?",a:["Radio signals take minutes to cross space","They are asleep","The radio only works at night"],c:0,why:"Radio waves move at light speed, and that still takes minutes between planets - crews must decide alone."}
+];
 function render(){
 if(!s){return}
+if(!s.flags){s.flags={}}
 $("solLine").textContent=(s.missionName?s.missionName+" — ":"")+TrainerEngine.SITES[s.site].name+" — Sol "+s.sol;
 $("objective").textContent=s.difficulty==="sandbox"?"Sandbox: build freely, no fail states.":("Goal: "+s.objectiveScience+" science by sol "+s.objectiveSols+". Quiz every 5 sols. Score now: "+TrainerEngine.score(s));
 var bars="";
 RES.forEach(function(r){
+if(s.sol<2&&(r[0]==="parts"||r[0]==="regolith"||r[0]==="science")){return}
 var v=Math.floor(s.res[r[0]]);
 var pct=Math.max(0,Math.min(100,(v/r[3])*100));
 var cls=r[0]==="o2"||r[0]==="water"||r[0]==="food"?(v<20?" low":""):"";
 bars+='<div class="bar"><div class="lab"><span>'+r[1]+'</span><span class="'+cls.trim()+'">'+v+"</span></div>"+'<div class="track"><div class="fill" style="width:'+pct+"%;background:"+r[2]+'"></div></div></div>'});
 $("bars").innerHTML=bars;
 renderRank();
+document.querySelectorAll(".wbCard").forEach(function(cd){
+var need=featLocked(cd.getAttribute("data-feat"));
+cd.classList.toggle("locked",!!need);
+var tag=cd.querySelector(".lockTag");
+if(need){if(!tag){tag=document.createElement("span");tag.className="lockTag";cd.appendChild(tag)}tag.textContent="sol "+need}
+else if(tag){tag.remove()}});
 var pb=TrainerEngine.powerBreakdown(s);
 var pbTxt=pb.consumers.map(function(c){return c.name+" x"+c.count+" ("+c.watts+")"}).join(", ");
 $("powerLine").textContent="Power: "+s.lastPowerGen+" generated / "+s.lastPowerUse+" used / "+s.powerStore+" stored. Shielding "+s.shieldLevel+". "+pbTxt+(s.stormActive?" DUST STORM ACTIVE.":"");
 var fc=TrainerEngine.forecast(s);
 $("forecastLine").textContent=fc?("Tomorrow's forecast: "+fc.text):"Tomorrow's forecast: unclear skies.";
+var scd=$("storyCard");
+var sf=s.flags;
+var showStory=sf.storyArmed&&!sf.storyChoice&&s.sol>=sf.storySol-2&&s.sol<sf.storySol&&!s.over;
+scd.hidden=!showStory;
+if(showStory){
+var evWord=s.site==="mars"?"dust storm":"solar particle storm";
+var left=sf.storySol-s.sol;
+$("storyTx").textContent="Long-range scans show a "+evWord+" reaching you in "+left+" sol"+(left>1?"s":"")+". Mission Control recommends sheltering the crew, but that pauses science work. "+(s.site==="mars"?"Radio to Earth takes up to 22 minutes each way":"Radio to Earth is fast, but Mission Control is hours from a decision")+" - the call is yours, Commander.";
+}
+var cc=$("ctxCard");
+if(sf.ctxPending!==undefined&&!s.over){
+var cq=CQUIZ[sf.ctxPending];
+var ch='<div class="ctxHd">Debrief question - about what just happened</div><div class="ctxQ">'+cq.q+"</div>";
+cq.a.forEach(function(a,i){ch+='<button data-cq="'+i+'">'+a+"</button>"});
+if(sf.ctxWhy){ch+='<div class="ctxWhy">'+sf.ctxWhy+"</div>"}
+cc.innerHTML=ch;
+cc.hidden=false;
+Array.prototype.forEach.call(cc.querySelectorAll("[data-cq]"),function(btn){
+btn.onclick=function(){
+var pick=parseInt(btn.getAttribute("data-cq"),10);
+if(pick===cq.c){s.res.science+=5;s.flags.ctxShown=(s.flags.ctxShown||0)+1;s.flags.ctxPending=undefined;s.flags.ctxWhy=undefined;sndRight(1);burstFrom(btn);showToast("Debrief correct: +5 science. "+cq.why);render()}
+else{s.flags.ctxWhy="Not quite. "+cq.why+" Try again.";sndWrong();render()}
+}});
+}else{cc.hidden=true;if(sf){sf.ctxWhy=undefined}}
 var pl=$("partsLine");
 pl.innerHTML="Parts in store: <b>"+s.res.parts+"</b> &middot; spent this mission: "+(s.partsSpent||0);
 if(window.__prevParts!==undefined&&window.__prevParts!==s.res.parts){pl.classList.remove("flash");void pl.offsetWidth;pl.classList.add("flash")}
@@ -208,12 +252,15 @@ var bl="";
 Object.keys(TrainerEngine.BUILDINGS).forEach(function(t){
 var d=TrainerEngine.BUILDINGS[t];
 var ok=TrainerEngine.canBuild(s,t);
-var need=!ok&&s.res.parts<d.cost?'<span class="need">need '+(d.cost-s.res.parts)+" more parts</span>":"";
-bl+='<div class="bld"><div><strong>'+d.name+'</strong> ('+d.cost+' parts)'+need+'<small>'+d.desc+"</small></div>"+'<button data-build="'+t+'"'+(ok?"":" disabled")+(ok?"":' title="Not enough parts"')+">Build</button></div>"});
+var bsol=UNLOCK_BLD[t]||0;
+var blocked=s.sol<bsol;
+var need=blocked?'<span class="need">unlocks at sol '+bsol+"</span>":(!ok&&s.res.parts<d.cost?'<span class="need">need '+(d.cost-s.res.parts)+" more parts</span>":"");
+bl+='<div class="bld"><div><strong>'+d.name+'</strong> ('+d.cost+' parts)'+need+'<small>'+d.desc+"</small></div>"+'<button data-build="'+t+'"'+(ok&&!blocked?"":" disabled")+(ok&&!blocked?"":' title="'+(blocked?"Unlocks at sol "+bsol:"Not enough parts")+'"')+">Build</button></div>"});
 $("buildList").innerHTML=bl;
 Array.prototype.forEach.call(document.querySelectorAll("[data-build]"),function(btn){
 btn.onclick=function(){if(!s)return;if(TrainerEngine.build(s,btn.getAttribute("data-build"))){sndBuild()}render()}});
 var tl="";
+if(s.sol<3){$("techList").innerHTML='<div class="bld"><div><strong>Research unlocks at sol 3.</strong><small>Mission Control opens the lab once the outpost is stable.</small></div></div>'}else{
 Object.keys(TrainerEngine.TECHS).forEach(function(k){
 var t=TrainerEngine.TECHS[k];
 var has=!!s.techs[k];
@@ -222,8 +269,9 @@ var ok=!has&&s.res.science>=cost;
 tl+='<div class="bld"><div><strong>'+t.name+'</strong> ('+cost+' science)<small>'+t.desc+"</small></div>"+(has?'<span class="chip on">researched</span>':'<button data-tech="'+k+'"'+(ok?"":" disabled")+">Research</button>")+"</div>"});
 $("techList").innerHTML=tl;
 Array.prototype.forEach.call(document.querySelectorAll("[data-tech]"),function(btn){
-btn.onclick=function(){if(!s)return;if(TrainerEngine.research(s,btn.getAttribute("data-tech"))){sndBuild()}render()}});
+btn.onclick=function(){if(!s)return;if(TrainerEngine.research(s,btn.getAttribute("data-tech"))){sndBuild()}render()}})}
 var cl="";
+if(s.sol<4){cl='<div class="bld"><div><strong>Crew roster unlocks at sol 4.</strong><small>Your astronauts are settling in; Mission Control handles roster tasks until then.</small></div></div>'}else{
 s.crew.forEach(function(c,i){
 var lvl=TrainerEngine.cLevel(c);
 var st=c.health<=0?"DECEASED":(c.away>0?"ON EXPEDITION ("+c.away+" sol)":("H "+Math.round(c.health)+" / M "+Math.round(c.morale)+" / F "+Math.round(c.fatigue||0)+" / Lv"+lvl));
@@ -232,23 +280,28 @@ $("crewList").innerHTML=cl;
 Array.prototype.forEach.call(document.querySelectorAll("[data-retrain]"),function(sel){
 sel.onchange=function(){if(sel.value){TrainerEngine.retrain(s,parseInt(sel.getAttribute("data-retrain"),10),sel.value);render()}}});
 Array.prototype.forEach.call(document.querySelectorAll("[data-rest]"),function(btn){
-btn.onclick=function(){if(!s)return;TrainerEngine.rest(s,parseInt(btn.getAttribute("data-rest"),10));render()}});
-$("recruitBtn").disabled=!(s.res.parts>=25&&s.crew.length<TrainerEngine.crewCapacity(s));
+btn.onclick=function(){if(!s)return;TrainerEngine.rest(s,parseInt(btn.getAttribute("data-rest"),10));render()}})}
+$("recruitBtn").disabled=s.sol<4||!(s.res.parts>=25&&s.crew.length<TrainerEngine.crewCapacity(s));
 $("recruitBtn").title=s.res.parts<25?("Need "+(25-s.res.parts)+" more parts"):(s.crew.length>=TrainerEngine.crewCapacity(s)?"Crew quarters full - build a Habitat Module":"");
-$("opsParts").textContent="Parts in store: "+s.res.parts+" (clean 2 - suits 3 - repairs "+(s.crew.some(function(c){return c.role==="Engineer"&&c.health>0})?3:5)+" each)";
-$("cleanBtn").disabled=s.res.parts<2;
-$("suitBtn").disabled=s.res.parts<3;
-$("repAllBtn").disabled=s.res.parts<3;
+var opsLocked=s.sol<2;
+$("opsParts").textContent=opsLocked?"Ops console unlocks at sol 2 - Mission Control handles fixes while you settle in.":"Parts in store: "+s.res.parts+" (clean 2 - suits 3 - repairs "+(s.crew.some(function(c){return c.role==="Engineer"&&c.health>0})?3:5)+" each)";
+$("cleanBtn").disabled=opsLocked||s.res.parts<2;
+$("suitBtn").disabled=opsLocked||s.res.parts<3;
+$("repAllBtn").disabled=opsLocked||s.res.parts<3;
+$("shelterBtn").disabled=opsLocked;
 $("rationSel").value=String(s.rations);
 $("manifestSel").value=s.manifest;
+$("rationSel").disabled=s.sol<4;
+$("manifestSel").disabled=s.sol<4;
 var el="";
+if(s.sol<6){el='<div class="bld"><div><strong>Expeditions unlock at sol 6.</strong><small>Suit checks and rover trials finish first.</small></div></div>'}else{
 Object.keys(TrainerEngine.EXPEDITIONS).forEach(function(k){
 var x=TrainerEngine.EXPEDITIONS[k];
 var yieldTxt=[x.science?"+"+x.science+" science":null,x.water?"+"+x.water+" water":null,x.parts?"+"+x.parts+" parts":null,x.relay?"relay buff":null].filter(Boolean).join(", ");
 el+='<div class="bld"><div><strong>'+x.name+'</strong> ('+x.cost+" parts, "+x.sols+' sols)<small>'+yieldTxt+", tiring, 10% breakdown risk</small></div>"+'<button data-exped="'+k+'">Send 2 crew</button></div>'});
 $("expedList").innerHTML=el;
 Array.prototype.forEach.call(document.querySelectorAll("[data-exped]"),function(btn){
-btn.onclick=function(){if(!s)return;var r=TrainerEngine.expedition(s,btn.getAttribute("data-exped"));if(!r.ok){alert(r.msg)}else{sndExped()}render()}});
+btn.onclick=function(){if(!s)return;var r=TrainerEngine.expedition(s,btn.getAttribute("data-exped"));if(!r.ok){alert(r.msg)}else{sndExped()}render()}})}
 var base="";
 s.buildings.forEach(function(b,i){
 var d=TrainerEngine.BUILDINGS[b.type];
@@ -271,6 +324,7 @@ var eng=s.crew.findIndex(function(c){return c.role==="Engineer"&&c.health>0&&(c.
 TrainerEngine.evaRepair(s,idx,eng>=0?eng:best);render()}});
 Array.prototype.forEach.call(document.querySelectorAll("[data-crop]"),function(sel){
 sel.onchange=function(){TrainerEngine.setCrop(s,parseInt(sel.getAttribute("data-crop"),10),sel.value);render()}});
+drawOutpost();
 var tips=TrainerEngine.advise(s);
 var th="";
 tips.forEach(function(t){th+='<div class="alert info">'+t+"</div>"});
@@ -328,9 +382,126 @@ saveHighScore();
 eb.hidden=false;
 eb.className=s.won?"win":"lose";
 var pm=TrainerEngine.postMortem(s);
-eb.innerHTML=(s.won?"MISSION SUCCESS — review complete. ":"MISSION FAILED — review the log and try a new strategy. ")+"Final score: "+TrainerEngine.score(s)+" (grade "+TrainerEngine.letterGrade(s)+"). "+(s.won?"":pm.join(" "));
+var aliveN=s.crew.filter(function(c){return c.health>0}).length;
+var onlineN=s.buildings.filter(function(b){return b.done&&!b.damaged}).length;
+var debrief="<div class='learnBox'><b>Mission debrief - what you learned</b><ul>"+
+"<li>Storms survived: "+(s.stormsSurvived||0)+" - shielding and shelter mode are what cut storm damage.</li>"+
+"<li>Buildings online at the end: "+onlineN+" of "+s.buildings.length+" - damaged buildings stop working until repaired.</li>"+
+"<li>Crew home safe: "+aliveN+" of "+s.crew.length+" - rest, rations and a Med Bay keep astronauts alive.</li>"+
+"<li>Research completed: "+Object.keys(s.techs).length+" - upgrades multiply everything else.</li></ul>"+
+(s.won?"<div class='learnTip'>Journey complete: you built, survived and recovered. Next step - a harder class or the other site.</div>":"<div class='learnTip'>Mission Control's notes: "+pm.join(" ")+"</div>")+"</div>";
+eb.innerHTML=(s.won?"MISSION SUCCESS — review complete. ":"MISSION FAILED — review the log and try a new strategy. ")+"Final score: "+TrainerEngine.score(s)+" (grade "+TrainerEngine.letterGrade(s)+"). "+debrief;
 $("solBtn").disabled=true;
 }else{eb.hidden=true;$("solBtn").disabled=false}}
+var outpostT=0;
+function drawOutpost(){
+var cv=$("outpostCv");if(!cv||!s){return}
+var ctx=cv.getContext("2d");var W=cv.width,H=cv.height;var t=outpostT;
+ctx.fillStyle=s.stormActive?"#4a2c14":"#160a18";
+ctx.fillRect(0,0,W,H);
+if(!s.stormActive){for(var i=0;i<40;i++){var sx=(i*97)%W,sy=(i*53)%(H*0.55);var tw=0.4+0.6*Math.abs(Math.sin(t*0.15+i));ctx.fillStyle="rgba(255,255,255,"+tw.toFixed(2)+")";ctx.fillRect(sx,sy,2,2)}}
+else{for(var j=0;j<60;j++){var dx=(j*61+t*7)%W,dy=(j*37+t*3)%(H*0.7);ctx.fillStyle="rgba(214,164,92,0.5)";ctx.fillRect(dx,dy,3,2)}}
+var gy=H-34;
+ctx.fillStyle=s.site==="mars"?"#8a4a2a":"#6a6f78";
+ctx.fillRect(0,gy,W,H-gy);
+var alive=s.crew.filter(function(c){return c.health>0});
+var powerOk=s.lastPowerGen>=s.lastPowerUse;
+var bs=s.buildings;
+var n=Math.max(bs.length,1);
+var slot=Math.min(74,(W-30)/n);
+bs.forEach(function(b,i){
+var cx=22+i*slot+slot/2;
+var d=TrainerEngine.BUILDINGS[b.type];
+var online=b.done&&!b.damaged;
+var lit=online&&powerOk;
+if(b.type==="solar"){
+ctx.strokeStyle=lit?"#2a6be0":"#3a4a66";ctx.lineWidth=3;
+var tilt=Math.sin(t*0.05+i)*0.12;
+ctx.save();ctx.translate(cx,gy-16);ctx.rotate(tilt);
+ctx.fillStyle=lit?"#2a5fd0":"#33415c";ctx.fillRect(-16,-8,32,14);ctx.strokeRect(-16,-8,32,14);
+ctx.restore();
+ctx.strokeStyle="#8a93a5";ctx.beginPath();ctx.moveTo(cx,gy-8);ctx.lineTo(cx,gy);ctx.stroke();
+}else if(b.type==="battery"){
+ctx.fillStyle=lit?"#3f9e57":"#2c5639";ctx.fillRect(cx-11,gy-22,22,22);
+ctx.fillStyle="#dff3e2";ctx.font="bold 11px sans-serif";ctx.textAlign="center";ctx.fillText("BAT",cx,gy-8);
+}else{
+ctx.beginPath();ctx.arc(cx,gy,18,Math.PI,0);
+ctx.fillStyle=!b.done?"#5a6272":(lit?"#d8dee9":(online?"#7a8292":"#6b4a3a"));
+ctx.fill();ctx.strokeStyle="#39414f";ctx.lineWidth=1.5;ctx.stroke();
+if(lit){ctx.fillStyle="#ffe9a3";ctx.fillRect(cx-4,gy-14,8,7)}
+if(!b.done){ctx.fillStyle="#f4c542";ctx.font="10px sans-serif";ctx.textAlign="center";ctx.fillText("BUILD",cx,gy-24)}
+}
+if(b.damaged){
+var fl=0.5+0.5*Math.sin(t*0.6+i*2);
+ctx.fillStyle="rgba(200,60,40,"+(0.35+0.35*fl).toFixed(2)+")";
+ctx.beginPath();ctx.arc(cx,gy-10,14,0,Math.PI*2);ctx.fill();
+ctx.fillStyle="rgba(120,120,120,0.7)";
+var puff=(t*2+i*13)%26;
+ctx.beginPath();ctx.arc(cx-4+Math.sin(t*0.2+i)*3,gy-24-puff,4+puff*0.12,0,Math.PI*2);ctx.fill();
+}
+if(s.shieldLevel>0&&(b.type==="habitat"||b.type==="medbay")){
+ctx.strokeStyle="rgba(120,190,255,0.75)";ctx.lineWidth=2;
+ctx.beginPath();ctx.arc(cx,gy,23,Math.PI,0);ctx.stroke();
+}
+ctx.fillStyle="#dfe4ec";ctx.font="9px sans-serif";ctx.textAlign="center";
+ctx.fillText(d.name.split(" ")[0].toUpperCase().slice(0,6),cx,gy+12);
+});
+alive.forEach(function(c,i){
+var px=30+((t*1.5+i*47)%(W-60));
+var py=gy+20+(i%2)*6;
+var bob=Math.sin(t*0.35+i*1.7)*1.5;
+ctx.fillStyle="#f0f3f8";
+ctx.beginPath();ctx.arc(px,py+bob-5,3,0,Math.PI*2);ctx.fill();
+ctx.fillRect(px-2.5,py+bob-2,5,7);
+ctx.fillStyle="#7fb7ff";
+ctx.fillRect(px-1.5,py+bob-5.5,3,1.5);
+});
+if(s.stormActive){ctx.fillStyle="rgba(120,70,30,0.25)";ctx.fillRect(0,0,W,H)}
+}
+setInterval(function(){outpostT++;var cv=document.getElementById("outpostCv");if(cv&&cv.offsetParent){drawOutpost()}},110);
+function storyArm(){
+if(!s||s.difficulty==="sandbox"){return}
+s.flags=s.flags||{};
+if(s.flags.storyArmed){return}
+var want=s.site==="mars"?"storm":"aurora";
+var slot=-1;
+for(var i=4;i<=7;i++){if(!s.schedule[i]){slot=i;break}}
+if(slot<0){return}
+s.schedule[slot]=want;
+s.flags.storyArmed=true;
+s.flags.storySol=slot+1;
+s.flags.storyEv=want;
+}
+function storyResolve(){
+var f=s.flags;
+if(!f||!f.storyArmed||f.storyResolved||s.sol!==f.storySol){return}
+f.storyResolved=true;
+var evWord=s.site==="mars"?"dust storm":"solar particle storm";
+if(f.storyChoice==="shelter"){
+s.res.science=Math.max(0,s.res.science-10);
+s.crew.forEach(function(c){if(c.health>0){c.morale=Math.min(100,c.morale+4)}});
+showToast("Sheltered through the "+evWord+". Everyone safe and grateful, but science work slipped (-10).");
+}else if(f.storyChoice==="work"){
+s.crew.forEach(function(c){if(c.health>0){c.health=Math.max(5,c.health-18);c.morale=Math.max(5,c.morale-10)}});
+s.res.science+=8;
+showToast("The crew worked through the "+evWord+": +8 science, but health and morale took a hit.");sndWrong();
+}else{
+s.crew.forEach(function(c){if(c.health>0){c.health=Math.max(5,c.health-10)}});
+showToast("No call was made before the "+evWord+" hit. The crew rode it out, shaken (-10 health).");sndWrong();
+}
+if((f.ctxShown||0)<CQUIZ.length&&f.ctxPending===undefined){f.ctxPending=f.ctxShown||0}
+}
+function postTick(){
+if(!s){return}
+storyArm();
+if(s.over){return}
+var um=UNLOCK_MSG[s.sol];
+if(um&&s.flags["unlock"+s.sol]!==true){s.flags["unlock"+s.sol]=true;showToast(um);sndBadge()}
+storyResolve();
+if(s.stormActive&&(s.flags.ctxShown||0)<CQUIZ.length&&s.flags.ctxPending===undefined){s.flags.ctxPending=s.flags.ctxShown||0}
+if(s.flags.ctxPending!==undefined&&s.pendingQuiz===null&&window.__openFeat){window.__openFeat("status")}
+}
+window.__gameState=function(){return s};
 function renderAnalytics(){
 if(!s){return}
 var al=TrainerEngine.alerts(s);
@@ -386,13 +557,15 @@ var sc=$("scenSel").value;
 if(sc){TrainerEngine.setScenario(s,sc)}
 TrainerEngine.setMissionName(s,$("nameSel").value);
 TrainerEngine.setObjectiveMode(s,$("objSel").value);
+storyArm();
+window.__gameState=function(){return s};
 $("setup").hidden=true;$("game").hidden=false;render();if(window.__tourEvent){window.__tourEvent("launch")}};
-$("solBtn").onclick=function(){if(!s)return;TrainerEngine.tick(s);sndSol();render();if(window.__openFeat&&!window.__quizWas){window.__openFeat("status")}var sp=$("statusPanel");sp.classList.remove("pulse");void sp.offsetWidth;sp.classList.add("pulse")};
+$("solBtn").onclick=function(){if(!s)return;TrainerEngine.tick(s);sndSol();postTick();render();if(window.__openFeat&&!window.__quizWas){window.__openFeat("status")}var sp=$("statusPanel");sp.classList.remove("pulse");void sp.offsetWidth;sp.classList.add("pulse")};
 $("autoBtn").onclick=function(){
 if(!s)return;
 if(autoTimer){clearInterval(autoTimer);autoTimer=null;$("autoBtn").querySelector(".lb").textContent="Auto: off";return}
 $("autoBtn").querySelector(".lb").textContent="Auto: on";
-autoTimer=setInterval(function(){if(!s||s.over){clearInterval(autoTimer);autoTimer=null;$("autoBtn").querySelector(".lb").textContent="Auto: off";return}TrainerEngine.tick(s);render()},900)};
+autoTimer=setInterval(function(){if(!s||s.over){clearInterval(autoTimer);autoTimer=null;$("autoBtn").querySelector(".lb").textContent="Auto: off";return}TrainerEngine.tick(s);postTick();render()},900)};
 $("reportBtn").onclick=function(){if(!s)return;download("mission-report-sol"+s.sol+".txt",TrainerEngine.report(s))};
 $("reportJsonBtn").onclick=function(){if(!s)return;download("mission-report-sol"+s.sol+".json",JSON.stringify(TrainerEngine.reportJSON(s),null,2),"application/json")};
 $("saveBtn").onclick=function(){if(!s)return;localStorage.setItem("jamtrainer",JSON.stringify(s))};
@@ -418,6 +591,8 @@ $("cleanBtn").onclick=function(){if(!s)return;$("opsMsg").textContent=TrainerEng
 $("suitBtn").onclick=function(){if(!s)return;$("opsMsg").textContent=TrainerEngine.suitMaintenance(s)?"Suits serviced: next EVA is safer.":"Needs 3 parts.";render()};
 $("repAllBtn").onclick=function(){if(!s)return;var n=TrainerEngine.repairAll(s);$("opsMsg").textContent=n?("Repaired "+n+" building(s)."):"Nothing affordable to repair.";render()};
 $("shelterBtn").onclick=function(){if(!s)return;TrainerEngine.shelterMode(s);$("opsMsg").textContent="Shelter mode set for next sol.";render()};
+$("storyShelter").onclick=function(){if(!s)return;s.flags.storyChoice="shelter";TrainerEngine.shelterMode(s);sndBuild();showToast("Shelter mode set for next sol. "+(s.site==="mars"?"Earth won't hear your call for up to 22 minutes":"Mission Control won't weigh in before it hits")+" - you command alone.");render()};
+$("storyWork").onclick=function(){if(!s)return;s.flags.storyChoice="work";showToast("The crew will keep working through it. "+(s.site==="mars"?"Earth won't hear your call for up to 22 minutes":"Mission Control won't weigh in before it hits")+" - you command alone.");render()};
 $("histSel").onchange=drawHistory;
 $("histCsvBtn").onclick=function(){if(!s)return;download("resource-history.csv",TrainerEngine.historyCSV(s),"text/csv")};
 $("briefBtn").onclick=function(){
@@ -636,7 +811,7 @@ card.appendChild(b)});
 ll.appendChild(card)})}
 $("r580PassExport").onclick=function(){var done=[];try{done=JSON.parse(localStorage.getItem("r580pass")||"[]")}catch(e){}$("r580PassBar").textContent=TrainerEngine.fa2PassportText(done).slice(0,200)};
 window.__featRefresh={passport:r580Pass,hunt:function(){var u=[];try{u=JSON.parse(localStorage.getItem("ach-unlocked")||"[]")}catch(e){}$("r650HuntOut").textContent=TrainerEngine.fa3HuntText(u)}};
-var FEATICONS={status:"&#128752;",build:"&#128736;",research:"&#128300;",crew:"&#128104;&#8205;&#128640;",exped:"&#128761;",outpost:"&#127959;",advisor:"&#128161;",ops:"&#9889;",log:"&#128221;",stats:"&#127942;",daily:"&#128197;",drill:"&#9888;",passport:"&#128366;",marathon:"&#127937;",timeline:"&#128197;",ach:"&#127894;",hunt:"&#127919;",analytics:"&#128202;",history:"&#128200;",briefing:"&#128488;",deep:"&#128301;",workbench:"&#128295;"};
+var FEATICONS={status:"&#128752;",build:"&#128736;",research:"&#128300;",crew:"&#128104;&#8205;&#128640;",exped:"&#128761;",outpost:"&#127959;",advisor:"&#128161;",ops:"&#9889;",log:"&#128221;",stats:"&#127942;",daily:"&#128197;",drill:"&#9888;",passport:"&#128366;",marathon:"&#127937;",timeline:"&#128197;",ach:"&#127894;",hunt:"&#127919;",sources:"&#128214;",analytics:"&#128202;",history:"&#128200;",briefing:"&#128488;",deep:"&#128301;",workbench:"&#128295;"};
 document.querySelectorAll(".wbCard").forEach(function(cd){var f=cd.getAttribute("data-feat");if(FEATICONS[f]){var ic=document.createElement("span");ic.className="wi";ic.innerHTML=FEATICONS[f];cd.insertBefore(ic,cd.firstChild)}});
 r580Drill();r580Pass();
 if(reduceMotion){var bg0=document.getElementById("spaceBg");if(bg0){bgCv=bg0;bgX=bg0.getContext("2d");bg0.width=innerWidth;bg0.height=innerHeight;stars=[];for(var si=0;si<160;si++){stars.push({x:Math.random(),y:Math.random(),z:Math.random(),tw:0})}bgStatic()}}
@@ -721,7 +896,7 @@ window.__fx.armAutoStart();
 G("volR").value=String(Math.round(window.__fx.musVolGet()/.12*100));
 G("volR").oninput=function(){window.__fx.musSetVol(parseInt(G("volR").value,10)/100*.12)};
 G("helpSetup").onclick=tourStart;
-document.querySelectorAll(".wbCard").forEach(function(b){b.onclick=function(){openFeat(b.dataset.feat)}});
+document.querySelectorAll(".wbCard").forEach(function(b){b.onclick=function(){var need=window.__fx.featLocked(b.dataset.feat);if(need){window.__fx.toast("That console unlocks at sol "+need+". Finish settling in first!");return}openFeat(b.dataset.feat)}});
 G("wbBack").onclick=closeFeat;
 try{if(!localStorage.getItem("tourDone")){tourStart()}}catch(e){tourStart()}
 var navBtns=document.querySelectorAll(".navBtn");

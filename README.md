@@ -12,7 +12,9 @@ The game is split into three rooms, switched from the top: Mission, Learn & play
 
 ## What's inside
 
-Two real sites (lunar south pole, Jezero rim) with different radiation, ice and storm profiles. Fourteen building types, six named crew with roles and XP, random mission events drawn from a fixed-seed deck so runs are reproducible, and twenty achievements.
+Two real sites (lunar south pole, Jezero rim) with different radiation, ice and storm profiles. Nineteen building types, six named crew with roles and XP, random mission events drawn from a fixed-seed deck so runs are reproducible, and twenty achievements.
+
+The first sols are deliberately gentle: you start with three gauges and a few blueprints, and consoles unlock as the mission settles in (ops at sol 2, research at sol 3, crew at sol 4, expeditions at sol 6). The outpost card shows your base as a little animated scene: domes, solar panels and walking astronauts, with smoke and flicker when something is damaged. Each run also carries one scripted story beat: Earth warns of an incoming storm, the radio delay means the choice is yours, and a short debrief question afterwards asks about what just happened. When the mission ends, win or lose, a debrief lists what you learned. A Sources card in Learn & play says plainly which facts are real NASA history (MOXIE, Apollo 13, the storm that killed Opportunity in 2018, the 1989 Quebec blackout) and which numbers are simulated for learning; saved data never leaves the browser's local storage.
 
 A workbench panel turns the live mission into readable tables: crew shape, resource runways, science pace, power margin, danger score and win odds, plus CSV and markdown exports of the whole run.
 

@@ -67,6 +67,7 @@
 <button class="wbCard" data-feat="timeline"><b>Event timeline</b><span>What can happen at each site</span></button>
 <button class="wbCard" data-feat="ach"><b>Achievements</b><span>Badges for smart commanding</span></button>
 <button class="wbCard" data-feat="hunt"><b>Achievement hunt</b><span>How close you are to each badge</span></button>
+<button class="wbCard" data-feat="sources"><b>Sources</b><span>Which facts are real, which numbers are simulated</span></button>
 </div>
 <div class="wbMenu v-reports" id="menuReports">
 <button class="wbCard" data-feat="analytics"><b>Analytics</b><span>A closer look at your mission numbers</span></button>
@@ -83,6 +84,15 @@
 <div id="bars"></div>
 <div id="powerLine"></div>
 <div id="forecastLine"></div>
+<div id="storyCard" class="storyCard" hidden>
+<div class="storyHd">Message from Earth <span class="storyDelay">arrived with a comms delay</span></div>
+<div class="storyTx" id="storyTx"></div>
+<div class="btnRow">
+<button id="storyShelter">Shelter the crew</button>
+<button id="storyWork">Keep working</button>
+</div>
+</div>
+<div id="ctxCard" class="ctxCard" hidden></div>
 </section>
 <section data-feat="build" class="panel v-mission">
 <h2>Build</h2>
@@ -121,6 +131,7 @@
 <section data-feat="outpost" class="panel v-mission">
 <h2>Outpost</h2>
 <p class="hint">Everything you have built, and what shape it is in.</p>
+<canvas id="outpostCv" width="640" height="200"></canvas>
 <div id="baseList"></div>
 </section>
 <section data-feat="quiz" class="panel v-mission" id="quizPanel" hidden>
@@ -163,6 +174,35 @@
 <button id="cmdBtn" title="Show commander-level detail"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2l1.7 3.6 4 .5-3 2.7.8 3.9L8 10.8l-3.5 1.9.8-3.9-3-2.7 4-.5z" fill="currentColor"/></svg><span class="lb">Commander mode: off</span></button>
 </div>
 </div>
+<section data-feat="sources" class="panel v-learn">
+<h2>Sources: real vs simulated</h2>
+<div class="srcBlock">
+<h3>Real NASA facts used in this game</h3>
+<ul>
+<li>MOXIE, on NASA's Perseverance rover, really made oxygen from Mars's carbon dioxide air. The O2 Generator is named after that experiment.</li>
+<li>The International Space Station is protected by Earth's magnetic field. A Moon or Mars base is not, which is why shielding matters in this game.</li>
+<li>Apollo 13's crew really came home safe in 1970 after an explosion, by using their lander as a lifeboat.</li>
+<li>NASA's Artemis program targets the lunar south pole because shadowed craters there hold water ice.</li>
+</ul>
+</div>
+<div class="srcBlock">
+<h3>Real recorded space-weather events</h3>
+<ul>
+<li>June 2018: a planet-wide dust storm on Mars cut sunlight so much that NASA's solar-powered Opportunity rover never woke up again. The storm in the Mars story is modelled on that event.</li>
+<li>August 1972: a huge solar particle storm erupted between the Apollo 16 and 17 missions. The solar particle event in the Moon story is modelled on that kind of storm.</li>
+<li>13 March 1989: a geomagnetic storm knocked out Hydro-Qu&eacute;bec's power grid in about 90 seconds; six million people lost power for roughly nine hours. Sources: NASA Goddard Space Flight Center and Hydro-Qu&eacute;bec.</li>
+<li>September 1859: the Carrington Event, the strongest geomagnetic storm on record, set telegraph systems sparking.</li>
+</ul>
+</div>
+<div class="srcBlock">
+<h3>Simulated for learning</h3>
+<p>Every number in the mission - oxygen, water, food, power, parts, health, morale, budgets and dates - is a simplified teaching model, not real telemetry. Mission lengths and costs are not NASA figures.</p>
+</div>
+<div class="srcBlock">
+<h3>Your saved data, honestly</h3>
+<p>High scores, passport stamps, quiz results and sound settings are stored only in this browser's local storage on this device. Nothing is uploaded, shared or tracked.</p>
+</div>
+</section>
 <div id="endBanner" class="v-mission" hidden></div>
 <div id="toast" hidden></div>
 <section data-feat="ach" class="panel v-learn">

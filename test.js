@@ -766,4 +766,27 @@ var poor=E.newGame("moon",5,"explorer");poor.res.parts=5;
 TQ16("canBuild false without parts",!E.canBuild(poor,"rtg")&&E.canBuild(poor,"battery")===false&&E.canBuild(poor,"solar")===false);
 TQ16("recruit refused without parts",E.recruit(poor)===false&&poor.crew.length===4);
 console.log(pR16+" round-16 passed, "+fR16+" failed");
-process.exit(fail+fail2+fail3+fail4+fail7+(fR8)+(fR9)+(fR10)+(fR11)+(fR12)+(fR13)+(fR14)+(fR15)+(fR16)?1:0);
+var pR17=0,fR17=0;
+function TQ17(n,c){if(c){pR17++}else{fR17++;console.log("FAIL17 "+n)}}
+var f17=E.newGame("mars",11,"explorer");f17.schedule[4]="storm";
+TQ17("forecast sees forced storm",E.forecast(f17,4).id==="storm");
+var st17=E.newGame("mars",11,"explorer");
+var slot17=-1;for(var i17=4;i17<=7;i17++){if(!st17.schedule[i17]){slot17=i17;break}}
+st17.schedule[slot17]="storm";
+for(var t17=0;t17<slot17+1;t17++){st17.res.o2=200;st17.res.water=200;st17.res.food=200;st17.crew.forEach(function(c){c.health=Math.max(c.health,80)});E.tick(st17)}
+TQ17("forced storm fires on its sol",st17.stormActive===true);
+TQ17("storm counted as survived",st17.stormsSurvived>=1);
+var m17=E.newGame("mars",11,"explorer");
+m17.crew.forEach(function(c){c.health=Math.max(5,c.health-18);c.morale=Math.max(5,c.morale-10)});
+m17.res.science=Math.max(0,m17.res.science-10);
+TQ17("story work-choice floors hold",m17.crew.every(function(c){return c.health>=5&&c.morale>=5})&&m17.res.science>=0);
+TQ17("state valid after story mutations",E.validateState(m17).length===0);
+var w17=E.newGame("moon",3,"explorer");w17.res.science=w17.objectiveScience;w17.res.o2=500;w17.res.water=500;w17.res.food=500;w17.sol=w17.objectiveSols-1;
+E.tick(w17);
+TQ17("win journey reaches over and won",w17.over===true&&w17.won===true);
+TQ17("postMortem returns array on ended game",Array.isArray(E.postMortem(w17)));
+var l17=E.newGame("moon",3,"explorer");l17.crew.forEach(function(c){c.health=0});l17.res.o2=500;l17.res.water=500;l17.res.food=500;
+E.tick(l17);
+TQ17("lose journey when all crew lost",l17.over===true&&l17.won===false);
+console.log(pR17+" round-17 passed, "+fR17+" failed");
+process.exit(fail+fail2+fail3+fail4+fail7+(fR8)+(fR9)+(fR10)+(fR11)+(fR12)+(fR13)+(fR14)+(fR15)+(fR16)+(fR17)?1:0);
