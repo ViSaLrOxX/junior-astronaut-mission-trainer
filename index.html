@@ -7,7 +7,6 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div id="stars"></div>
 <header>
 <h1>Junior Astronaut Mission Trainer</h1>
 <p class="tag">Run a real outpost. Balance power, oxygen, water, food and shielding the way mission planners do.</p>
@@ -43,26 +42,31 @@
 <label>Mission seed <input id="seedSel" type="number" value="7" min="1"></label>
 <div id="siteCompare"></div>
 <button id="startBtn">Launch</button>
+<button id="helpSetup">New here? How to play</button>
 </section>
-<main id="game" hidden>
-<section class="panel" id="statusPanel">
+<main id="game" hidden data-view="mission">
+<nav id="viewNav"><button class="navBtn on" data-view="mission">Mission</button><button class="navBtn" data-view="learn">Learn &amp; play</button><button class="navBtn" data-view="reports">Reports</button></nav>
+<section class="panel v-mission" id="statusPanel">
 <h2 id="solLine">Sol 0</h2>
 <div id="objective"></div>
 <div id="bars"></div>
 <div id="powerLine"></div>
 <div id="forecastLine"></div>
 </section>
-<section class="panel">
+<section class="panel v-mission">
 <h2>Build</h2>
+<p class="hint">Spend parts to construct buildings. Power and air come first.</p>
 <div id="buildList"></div>
 <button id="recruitBtn">Recruit crew (25 parts)</button>
 </section>
-<section class="panel">
+<section class="panel v-mission">
 <h2>Research</h2>
+<p class="hint">Spend science points on upgrades that last the whole mission.</p>
 <div id="techList"></div>
 </section>
-<section class="panel">
+<section class="panel v-mission">
 <h2>Crew</h2>
+<p class="hint">Your astronauts. Keep them healthy, rested and cheerful.</p>
 <div id="crewList"></div>
 <label>Rations
 <select id="rationSel">
@@ -77,64 +81,71 @@
 <option value="parts">Parts-heavy</option>
 </select></label>
 </section>
-<section class="panel">
+<section class="panel v-mission">
 <h2>Expeditions</h2>
+<p class="hint">Send crew outside to bring back resources and science.</p>
 <div id="expedList"></div>
 </section>
-<section class="panel">
+<section class="panel v-mission">
 <h2>Outpost</h2>
+<p class="hint">Everything you have built, and what shape it is in.</p>
 <div id="baseList"></div>
 </section>
-<section class="panel" id="quizPanel" hidden>
+<section class="panel v-mission" id="quizPanel" hidden>
 <h2>Mission Control Quiz</h2>
 <div id="quizQ"></div>
 <div id="quizOpts"></div>
 <div id="quizFact"></div>
 </section>
-<section class="panel">
+<section class="panel v-mission">
 <h2>Mission advisor</h2>
 <div id="advice"></div>
 </section>
-<section class="panel">
+<section class="panel v-learn">
 <h2>Stats</h2>
+<p class="hint">How this mission is going, and your best runs.</p>
 <div id="statsPanel"></div>
 <div id="highScores"></div>
 </section>
-<section class="panel">
+<section class="panel v-mission">
 <h2>Log</h2>
+<p class="hint">Everything that happens, sol by sol.</p>
 <div id="log"></div>
 </section>
-<div id="controls">
+<div id="controls" class="v-mission">
 <button id="solBtn">Advance one sol</button>
 <button id="autoBtn">Auto: off</button>
-<button id="reportBtn">Download report</button>
-<button id="reportJsonBtn">Report JSON</button>
 <button id="saveBtn">Save</button>
 <button id="loadBtn">Load</button>
 <button id="contrastBtn">High contrast</button>
+<button id="helpBtn">How to play</button>
+<button id="cmdBtn">Commander mode: off</button>
 <button id="newBtn">New mission</button>
 </div>
-<div id="endBanner" hidden></div>
-<section class="panel">
+<div id="endBanner" class="v-mission" hidden></div>
+<section class="panel v-learn">
 <h2>Achievements</h2>
+<p class="hint">Badges for smart commanding.</p>
 <div id="ach"></div>
 </section>
-<section class="panel">
+<section class="panel v-mission">
 <h2>Ops actions</h2>
+<p class="hint">Quick fixes for the base.</p>
 <button id="cleanBtn">Clean panels (2 parts)</button>
 <button id="suitBtn">Service EVA suits (3 parts)</button>
 <button id="repAllBtn">Repair all</button>
 <button id="shelterBtn">Shelter mode next sol</button>
 <p class="hint" id="opsMsg"></p>
 </section>
-<section class="panel" style="grid-column:1/-1">
+<section class="panel v-reports" style="grid-column:1/-1">
 <h2>Analytics</h2>
+<p class="hint">A closer look at your mission numbers.</p>
 <div id="analytics"></div>
 <label>Dry-run a building <select id="drySel"></select></label>
 <div id="dryOut"></div>
 <details><summary>Event almanac for this site</summary><div id="evPreview"></div></details>
 </section>
-<section class="panel" style="grid-column:1/-1">
+<section class="panel v-reports" style="grid-column:1/-1">
 <h2>Resource history</h2>
 <canvas id="histCv" width="1100" height="220"></canvas>
 <label>Trace <select id="histSel"><option value="o2">Oxygen</option><option value="water">Water</option><option value="food">Food</option><option value="parts">Parts</option><option value="science">Science</option></select></label>
@@ -142,8 +153,10 @@
 <button id="crewCsvBtn">Download crew CSV</button>
 <button id="shareBtn">Copy share text</button>
 </section>
-<section class="panel" style="grid-column:1/-1">
+<section class="panel v-reports" style="grid-column:1/-1">
 <h2>Mission briefing</h2>
+<button id="reportBtn">Download report</button>
+<button id="reportJsonBtn">Report JSON</button>
 <button id="briefBtn">Refresh briefing</button>
 <button id="summaryBtn">Copy summary email</button>
 <button id="mdLogBtn">Download mission log (markdown)</button>
@@ -156,7 +169,7 @@
 <details><summary>Endgame projection</summary><div id="projOut"></div></details>
 <details><summary>Checklists, glossary and FAQ</summary><div id="guideOut"></div></details>
 </section>
-<section class="panel" style="grid-column:1/-1">
+<section class="panel advOnly v-reports" style="grid-column:1/-1">
 <h2>Deep analysis</h2>
 <button id="dashBtn">Refresh dashboard</button>
 <button id="timelineCsvBtn">Download timeline CSV</button>
@@ -166,7 +179,7 @@
 <input id="logSearchIn" placeholder="log search term" style="max-width:140px">
 <div id="dashOut"></div>
 </section>
-<section class="panel" style="grid-column:1/-1"><h2>Mission workbench</h2>
+<section class="panel advOnly v-reports" style="grid-column:1/-1"><h2>Mission workbench</h2>
 <p class="hint">Live reports over the running mission. Pick one; the table appears below.</p>
 <div class="row">
 <button id="r5CrewBtn">Crew summary</button>
@@ -219,28 +232,27 @@
 </div>
 <div id="r5Out"></div>
 </section>
-</main>
-<main id="arcade">
-<section class="panel">
+
+<section class="panel v-learn">
 <h2>Daily briefing</h2>
 <div class="r580card" id="r580Brief">-</div>
 <button id="r580BriefBtn">Show today's briefing</button>
 <button id="r580Trained">Mark today trained</button>
 <div id="r580Streak">Streak: 0</div>
 </section>
-<section class="panel">
+<section class="panel v-learn">
 <h2>Event drill</h2>
 <div id="r580DrillQ">-</div>
 <div id="r580DrillBtns"></div>
 <div id="r580DrillOut">-</div>
 </section>
-<section class="panel">
+<section class="panel v-learn">
 <h2>Knowledge passport</h2>
 <div id="r580PassBar">0% mastered</div>
 <div id="r580PassList"></div>
 <button id="r580PassExport">Copy passport</button>
 </section>
-<section class="panel">
+<section class="panel v-learn">
 <h2>Quiz marathon</h2>
 <p class="hint">Twenty questions, three lives. Wrong answers cost a life; streaks pay bonus points.</p>
 <div id="r650Q">-</div>
@@ -248,17 +260,23 @@
 <div id="r650MarOut">-</div>
 <button id="r650Start">Start marathon</button>
 </section>
-<section class="panel">
+<section class="panel v-learn">
 <h2>Event timeline</h2>
 <label>Site <select id="r650Site"><option value="">all sites</option><option value="moon">Moon</option><option value="mars">Mars</option></select></label>
 <button id="r650Tl">Show timeline</button>
 <div id="r650TlOut">-</div>
 </section>
-<section class="panel">
+<section class="panel v-learn">
 <h2>Achievement hunt</h2>
 <div id="r650HuntOut">-</div>
 </section>
 </main>
+<div id="tour" hidden>
+<div id="tourCard">
+<div id="tourText"></div>
+<div id="tourBtns"><button id="tourSkip">Skip tour</button><button id="tourNext">Next</button></div>
+</div>
+</div>
 <script src="engine.js"></script>
 <script src="app.js"></script>
 </body>

@@ -4,7 +4,11 @@ A small browser game about running a Moon or Mars base. You pick a site and a di
 
 ## Running it
 
-Open index.html in any browser. No build step, no server, no network. The page animates panels, bars and alerts gently; it stays still for anyone with reduced-motion turned on. To run the logic tests: node test.js.
+Open index.html in any browser. No build step, no server, no network.
+
+First-timers get a short guided tour that walks through setup, launch, the gauges, building, research and living sol by sol. It can be skipped and reopened any time with the How to play button.
+
+The game is split into three views, switched from the top: Mission (gauges, building, research, crew, expeditions, the log), Learn & play (quizzes, drills, the daily briefing, passport and achievements) and Reports (analytics, history charts, briefings and downloads). Switching views is a quick fade; motion stays off for anyone with reduced-motion turned on. The dense analysis panels stay hidden until Commander mode is switched on. To run the logic tests: node test.js.
 
 ## What's inside
 
