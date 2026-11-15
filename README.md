@@ -2,7 +2,7 @@
 
 NASA Space Apps 2026 challenge #1. A browser-based base-management game for kids (and judges) that teaches real mission trade-offs on the Moon and Mars: power, oxygen, water, food, shielding, crew health and morale. Fully offline: open `index.html` and play.
 
-## Features (1911)
+## Features (1914)
 
 Core sim
 1. Two real sites (Lunar South Pole, Mars Jezero Rim) with distinct radiation, ice, sunlight, storm and quake profiles
@@ -1950,6 +1950,9 @@ Round-5 UI
 1909. Feature deck button r510ct
 1910. Feature deck button r510cu
 1911. Feature deck button r510cv
+1912. Daily briefing card: deterministic per day of year (one fact, one event to watch, one achievement to aim at) with a training streak counter kept in localStorage (mark-today-trained button)
+1913. Event drill trainer: practice mode over the mission event deck - shows an event, offers three candidate locations, grades the pick, shows the event weight, auto-advances; scoring helpers fa2DrillGrade/Drill/DrillCount
+1914. Knowledge passport: track which mission facts you have mastered (tap-to-master list, percent bar, exportable passport text), state in localStorage, helpers fa2PassportPct/Total/Remaining/Text
 
 ## Data and sources
 
@@ -1957,7 +1960,7 @@ Challenge statement: nasaspaceapps.ae/challenges (Junior Astronaut Mission Train
 
 ## Tested
 
-`node test.js` — 1435 checks (62 original + 102 round-4 + 66 round-5 + 61 round-6 + 124 round-7 + 380 round-8 + 80 round-9 + 160 round-10 + 400 round-11) covering engine rules, resource math, role effects, tech effects, expeditions, scenarios, sandbox behavior, advisor triggers, forecast correctness and a full playthrough that wins. All pass on Node 22. Round-4 tests cover the new buildings, techs, expeditions, events, ops actions, analytics functions, objective modes, grading and exports. Round-5 tests cover the briefing, runway, plans, advisors, checklists, CSV/JSON/markdown exports, integrity checker and state hash. Round-6 tests cover the new mission-analytics engine functions: resource aggregates, crew metrics, building and tech counters, objective progress, reserve warnings and per-crew ratios.
+`node test.js` — 1452 checks (62 original + 102 round-4 + 66 round-5 + 61 round-6 + 124 round-7 + 380 round-8 + 80 round-9 + 160 round-10 + 400 round-11 + 17 round-12) covering engine rules, resource math, role effects, tech effects, expeditions, scenarios, sandbox behavior, advisor triggers, forecast correctness and a full playthrough that wins. All pass on Node 22. Round-4 tests cover the new buildings, techs, expeditions, events, ops actions, analytics functions, objective modes, grading and exports. Round-5 tests cover the briefing, runway, plans, advisors, checklists, CSV/JSON/markdown exports, integrity checker and state hash. Round-6 tests cover the new mission-analytics engine functions: resource aggregates, crew metrics, building and tech counters, objective progress, reserve warnings and per-crew ratios.
 
 ## Untested
 

@@ -2157,5 +2157,27 @@ TR11("ea1_which_program_aims_to_return_has_resupply_from_earth_is_slow_",functio
 TR11("ea1_which_program_aims_to_return_has_plants_glow_nicely",function(){assert.strictEqual(E.ea1_which_program_aims_to_return_has_plants_glow_nicely(),false)})
 console.log(pR11+" round-11 passed, "+fR11+" failed");
 
+
+var pR12=0,fR12=0;
+function TR12(n,c){if(c){pR12++}else{fR12++;console.log("FAIL12 "+n)}}
+TR12("drill deterministic",function(){assert.deepStrictEqual(E.fa2Drill(5),E.fa2Drill(5))});
+TR12("drill correct in choices",function(){var d=E.fa2Drill(5);assert.ok(d.correct>=0&&d.correct<d.choices.length)});
+TR12("drill 3 unique choices",function(){var d=E.fa2Drill(7);assert.strictEqual(new Set(d.choices).size,3)});
+TR12("drill count",function(){assert.strictEqual(E.fa2DrillCount(),E.EVENTS.length)});
+TR12("drill grade",function(){var g=E.fa2DrillGrade([{seed:0,pick:E.fa2Drill(0).correct},{seed:1,pick:99}]);assert.strictEqual(g.right,1);assert.strictEqual(g.asked,2)});
+TR12("passport pct 0",function(){assert.strictEqual(E.fa2PassportPct([]),0)});
+TR12("passport pct all",function(){var all=[];for(var i=0;i<E.QUIZ.length;i++){all.push(i)}assert.strictEqual(E.fa2PassportPct(all),100)});
+TR12("passport remaining",function(){assert.strictEqual(E.fa2PassportRemaining([0]).length,E.QUIZ.length-1)});
+TR12("passport text",function(){var t=E.fa2PassportText([0]);assert.ok(t.indexOf("passport")>=0&&t.indexOf(E.QUIZ[0].fact.slice(0,20))>=0)});
+TR12("briefing deterministic",function(){assert.deepStrictEqual(E.fa2Briefing(100),E.fa2Briefing(100))});
+TR12("briefing fields",function(){var b=E.fa2Briefing(3);assert.ok(b.fact.length>5&&b.event.length>5&&b.target.length>1)});
+TR12("streak same day",function(){assert.strictEqual(E.fa2Streak(50,50),0)});
+TR12("streak next day",function(){assert.strictEqual(E.fa2Streak(50,51),1)});
+TR12("streak broken",function(){assert.strictEqual(E.fa2Streak(50,55),2)});
+TR12("streaknext hold",function(){assert.strictEqual(E.fa2StreakNext(4,50,50),4)});
+TR12("streaknext inc",function(){assert.strictEqual(E.fa2StreakNext(4,50,51),5)});
+TR12("streaknext reset",function(){assert.strictEqual(E.fa2StreakNext(4,50,60),1)});
+console.log(pR12+" round-12 passed, "+fR12+" failed");
+
 console.log(pass7+" round-7 passed, "+fail7+" failed");
-process.exit(fail+fail2+fail3+fail4+fail7+(fR8)+(fR9)+(fR10)+(fR11)?1:0);
+process.exit(fail+fail2+fail3+fail4+fail7+(fR8)+(fR9)+(fR10)+(fR11)+(fR12)?1:0);
