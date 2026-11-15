@@ -829,4 +829,34 @@ var s=E.newGame("moon",7,"explorer");
 s.res.parts=4;
 var tips=E.advise(s);
 assert(tips.some(function(t){return t.indexOf("Parts are scarce")>=0&&t.indexOf("Workshop")>=0}))});
+T("eva pack scoring",function(){
+var items=E.fa4EvaItems();
+var req=items.filter(function(i){return i.need}).map(function(i){return i.id});
+var bad=E.fa4EvaScore(0,[]);
+assert(!bad.ok&&bad.missing.length===req.length);
+var good=E.fa4EvaScore(0,req);
+assert(good.ok&&good.optional===0&&good.kg<=good.budget);
+var over=E.fa4EvaScore(0,items.map(function(i){return i.id}));
+assert(!over.ok&&over.over&&over.missing.length===0);
+var r=E.fa4EvaRound(0);assert(r.round===1&&r.total===3&&E.fa4EvaRound(3).round===1)});
+T("light time values sane",function(){
+var m=E.fa4Light("moon"),r=E.fa4Light("mars");
+assert(m.oneWayTypS>1&&m.oneWayTypS<2&&m.label==="the Moon");
+assert(r.oneWayMinS>=180&&r.oneWayMaxS<=1400&&r.roundTypS===r.oneWayTypS*2);
+assert(E.fa4Light("pluto").label==="the Moon")});
+T("gravity conversions",function(){
+var g=E.fa4Grav(60);
+assert(g.earthKg===60);
+var moon=g.rows.filter(function(r){return r.name==="Moon"})[0];
+assert(Math.abs(moon.kg-60*0.165)<0.2&&moon.jumpCm>200);
+assert(g.rows.some(function(r){return r.floats}));
+assert(E.fa4Grav(-5).earthKg===0)});
+T("postcards unlock by sol",function(){
+var s=E.newGame("moon",3,"explorer");
+assert(E.fa4Postcards(s).length===0);
+s.sol=7;assert(E.fa4Postcards(s).length===3);
+s.sol=26;assert(E.fa4Postcards(s).length===8);
+s.over=true;s.won=true;
+var last=E.fa4Postcards(s).slice(-1)[0];
+assert(last.who==="Mission Control")});
 process.exit(fail+fail2+fail3+fail4+fail7+(fR8)+(fR9)+(fR10)+(fR11)+(fR12)+(fR13)+(fR14)+(fR15)+(fR16)+(fR17)+(fR18)?1:0);

@@ -991,7 +991,11 @@ analytics:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-wid
 history:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2.5 13.5h11M2.5 13.5V2.5"/><path d="M4 11l3-4 2.5 2L13 4.5"/></svg>',
 briefing:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2.5 3.5h11v7h-6l-3 3v-3h-2z"/></svg>',
 deep:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2.5 6.5l8-3 1 2.5-8 3z"/><path d="M6.5 10L5 14M9.5 9l1.5 5M3.5 14h9"/></svg>',
-workbench:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 13L10 6"/><path d="M9.5 2.5l4 4-2 2-4-4z"/></svg>'};
+workbench:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 13L10 6"/><path d="M9.5 2.5l4 4-2 2-4-4z"/></svg>',
+comms:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 13a6 6 0 016-6"/><path d="M3 13l2-2"/><circle cx="4" cy="12" r="1"/><path d="M7 3a6 6 0 016 6"/></svg>',
+eva:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="5"/><path d="M4 9h8"/><path d="M6 13l-1 2M10 13l1 2"/></svg>',
+grav:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="6" r="4"/><path d="M8 11v3M6 12l2 2 2-2"/></svg>',
+cards:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="4" width="12" height="9" rx="1"/><path d="M2 5l6 5 6-5"/></svg>'};
 document.querySelectorAll(".wbCard").forEach(function(cd){var f=cd.getAttribute("data-feat");if(FEATICONS[f]){var ic=document.createElement("span");ic.className="wi";ic.innerHTML=FEATICONS[f];cd.insertBefore(ic,cd.firstChild)}});
 r580Drill();r580Pass();
 if(reduceMotion){var bg0=document.getElementById("spaceBg");if(bg0){bgCv=bg0;bgX=bg0.getContext("2d");bg0.width=innerWidth;bg0.height=innerHeight;stars=[];for(var si=0;si<160;si++){stars.push({x:Math.random(),y:Math.random(),z:Math.random(),tw:0})}bgStatic()}}
@@ -1114,4 +1118,66 @@ G("cmdBtn").onclick=function(){cmd=!cmd;try{localStorage.setItem("cmdMode",cmd?"
 applyCmd();
 var tips={"r5CrewBtn":"Table of your astronauts: role, level, health and morale","r5HealthBtn":"Average health, fatigue and morale","r5RolesBtn":"Who does what job, and their levels","r5ExhBtn":"Who is exhausted or away from base","r5MoraleBtn":"Highest, lowest and average morale","r5ResBtn":"Resource levels and how much each astronaut has","r5PaceBtn":"Data earned per sol versus the goal","r5ProjBtn":"Predicted final data and whether you win","r5RunwayBtn":"How many sols each resource will last","r5ShortBtn":"The resource that runs out first","r5DangerBtn":"Overall danger score from 0 to 100","r5OddsBtn":"Your chances of winning, in words","r5BldBtn":"Building types, damage and construction progress","r5CropBtn":"What your greenhouses are growing","r5PowBtn":"Power made, used and stored","r5ShieldBtn":"Radiation shield level and next upgrade cost","r5TechBtn":"Researched tech and the cheapest next one","r5Res2Btn":"Upgrades you can afford right now","r5AffordBtn":"Buildings you can afford right now","r5HistBtn":"How oxygen, water and food changed over time","r5BestBtn":"Your best and worst sol for oxygen","r5DeltaBtn":"Oxygen change since sol 1","r5UpBtn":"Events coming up soon","r5HazBtn":"The next danger on the calendar","r5CheckBtn":"Suggested next actions","r5StatusBtn":"One-line mission summary","r5QuizBtn":"Your quiz record","r5AchBtn":"How many badges you have earned","r5CrewCsvBtn":"Download the crew table as CSV","r5BldCsvBtn":"Download the buildings table as CSV","r5TechCsvBtn":"Download the tech table as CSV","r5SchedCsvBtn":"Download the event schedule as CSV","r5SnapBtn":"Download the full mission state as JSON","r5MdBtn":"Download the mission as a markdown document","r5AuditBtn":"Check the mission state for mistakes","r5GlossBtn":"Words a commander should know","r5FaqBtn":"Common questions and answers","r5TriviaBtn":"A fun space fact","r5Quiz2Btn":"Try one quiz question right now"};
 Object.keys(tips).forEach(function(id){var el=G(id);if(el){el.title=tips[id]}})
+})();
+(function(){
+function G(id){return document.getElementById(id)}
+var rm=false;try{rm=window.matchMedia("(prefers-reduced-motion: reduce)").matches}catch(e){}
+var cmSite="moon";
+function cmRender(){
+var d=TrainerEngine.fa4Light(cmSite);
+var t=d.oneWayMinS===d.oneWayMaxS?(d.oneWayTypS+" seconds"):(Math.round(d.oneWayMinS/60*10)/10+" to "+Math.round(d.oneWayMaxS/60*10)/10+" minutes");
+G("cmInfo").innerHTML="<p>One-way radio time to "+d.label+": <b>"+t+"</b>.</p><p>"+d.text+"</p>";
+G("cmMoon").classList.toggle("on",cmSite==="moon");
+G("cmMars").classList.toggle("on",cmSite==="mars")}
+G("cmMoon").onclick=function(){cmSite="moon";cmRender()};
+G("cmMars").onclick=function(){cmSite="mars";cmRender()};
+G("cmPing").onclick=function(){
+var ms=rm?10:(cmSite==="moon"?2600:6000);
+var bw=G("cmBar");
+G("cmPing").disabled=true;
+G("cmOut").textContent="Signal travelling...";
+bw.style.transition="none";bw.style.width="0%";
+void bw.offsetWidth;
+bw.style.transition="width "+ms+"ms linear";bw.style.width="100%";
+setTimeout(function(){
+G("cmOut").textContent="Ping arrived. The reply needs the same trip back - a real round trip is "+(cmSite==="moon"?"about 2.6 seconds":"6 to 45 minutes")+".";
+G("cmPing").disabled=false;
+setTimeout(function(){bw.style.transition="none";bw.style.width="0%"},1500)},ms)};
+cmRender();
+var evaRound=0,evaPicked={};
+function evaRender(){
+var r=TrainerEngine.fa4EvaRound(evaRound);
+G("evaBrief").textContent="Task "+r.round+" of "+r.total+": "+r.name+" - pack limit "+r.budget+" kg. "+r.note;
+var list=G("evaList");list.innerHTML="";
+TrainerEngine.fa4EvaItems().forEach(function(it){
+var b=document.createElement("button");
+b.className="evaItem"+(evaPicked[it.id]?" on":"");
+b.innerHTML="<b>"+it.name+(it.need?" *":"")+"</b><span>"+it.kg+" kg"+(it.need?" - required":"")+"</span>";
+b.title=it.why;
+b.onclick=function(){evaPicked[it.id]=!evaPicked[it.id];evaRender()};
+list.appendChild(b)});
+var sc=TrainerEngine.fa4EvaScore(evaRound,Object.keys(evaPicked).filter(function(k){return evaPicked[k]}));
+G("evaMass").textContent="Packed: "+sc.kg+" kg of "+sc.budget+" kg allowed";
+G("evaOut").textContent=""}
+G("evaGo").onclick=function(){
+var ids=Object.keys(evaPicked).filter(function(k){return evaPicked[k]});
+var sc=TrainerEngine.fa4EvaScore(evaRound,ids);
+G("evaOut").textContent=(sc.ok?"EVA go! ":"Hold. ")+sc.note;
+if(sc.ok){window.__fx.toast("EVA task complete!");window.__fx.burstFrom(G("evaGo"));evaRound++;evaPicked={};setTimeout(evaRender,1400)}};
+evaRender();
+function gravRender(){
+var r=TrainerEngine.fa4Grav(parseFloat(G("gravKg").value)||0);
+var h="";
+r.rows.forEach(function(w){h+='<div class="gravRow"><b>'+w.name+"</b><span>"+(w.floats?"you would float, not stand":"weigh about "+w.kg+" kg, jump about "+w.jumpCm+" cm")+"</span></div>"});
+G("gravOut").innerHTML=h}
+G("gravKg").oninput=gravRender;
+gravRender();
+function cardsRender(){
+var s2=window.__gameState?window.__gameState():null;
+var list=s2?TrainerEngine.fa4Postcards(s2):[];
+var h="";
+if(!list.length){h='<p class="hint">No postcards yet - live a few sols first.</p>'}
+list.slice().reverse().forEach(function(c){h+='<div class="pcard"><b>Sol '+c.sol+" - "+c.who+"</b><p>"+c.text+"</p></div>"});
+G("cardList").innerHTML=h}
+if(window.__featRefresh){window.__featRefresh.cards=cardsRender}
 })();

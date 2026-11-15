@@ -26,7 +26,7 @@
 <div id="topCtl">
 <button id="sndBtn" title="Toggle sound effects"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 6h3l4-3v10L5 10H2z" fill="currentColor"/><path d="M11 5.5a3.5 3.5 0 010 5" fill="none" stroke="currentColor" stroke-width="1.4"/></svg><span class="lb">Sound: on</span></button>
 <button id="musBtn" title="Toggle ambient space music"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 2v8.1a2.6 2.6 0 11-1.4 2.3A2.6 2.6 0 015.5 10V5.4l7-1.7v6a2.6 2.6 0 11-1.4 2.3 2.6 2.6 0 011.4-2.3V2z" fill="currentColor"/></svg><span class="lb">Music: on</span></button>
-<select id="musModeSel" title="Background ambience" aria-label="Background ambience"><option value="hum" selected>Ship hum</option><option value="space">Deep space</option><option value="matter">Dark matter</option></select>
+<select id="musModeSel" title="Background ambience" aria-label="Background ambience"><option value="space" selected>Deep space</option><option value="hum">Ship hum</option><option value="matter">Dark matter</option></select>
 <span class="volWrap" title="Music volume"><input type="range" id="volR" min="0" max="100" value="50" aria-label="Music volume"></span>
 <label class="themeLab" for="themeSel">Theme <select id="themeSel"><option value="teal" selected>Telemetry teal</option><option value="amber">Amber ops</option><option value="violet">Deep violet</option><option value="crimson">Crimson watch</option></select></label>
 <label class="themeLab" for="idleSel">Menu timeout <select id="idleSel"><option value="5">5 min</option><option value="10" selected>10 min</option><option value="0">Keep open</option></select></label>
@@ -89,12 +89,16 @@
 <button class="wbCard" data-feat="timeline"><b>Event timeline</b><span>What can happen at each site</span></button>
 <button class="wbCard" data-feat="ach"><b>Achievements</b><span>Badges for smart commanding</span></button>
 <button class="wbCard" data-feat="hunt"><b>Achievement hunt</b><span>How close you are to each badge</span></button>
+<button class="wbCard" data-feat="comms"><b>Radio delay</b><span>How long a message really takes</span></button>
+<button class="wbCard" data-feat="eva"><b>Pack the EVA bag</b><span>A mass-budget spacewalk challenge</span></button>
+<button class="wbCard" data-feat="grav"><b>Space weights</b><span>What you would weigh off Earth</span></button>
 <button class="wbCard" data-feat="sources"><b>Sources</b><span>Which facts are real, which numbers are simulated</span></button>
 </div>
 <div class="wbMenu v-reports" id="menuReports">
 <button class="wbCard" data-feat="analytics"><b>Analytics</b><span>A closer look at your mission numbers</span></button>
 <button class="wbCard" data-feat="history"><b>Resource history</b><span>Charts and data downloads</span></button>
 <button class="wbCard" data-feat="briefing"><b>Mission briefing</b><span>Reports, checklists and downloads</span></button>
+<button class="wbCard" data-feat="cards"><b>Postcards</b><span>Notes from your crew as the mission grows</span></button>
 <button class="wbCard advOnly" data-feat="deep"><b>Deep analysis</b><span>Commander-level dashboards</span></button>
 <button class="wbCard advOnly" data-feat="workbench"><b>Mission workbench</b><span>Live reports over the mission</span></button>
 </div>
@@ -220,6 +224,34 @@
 <h3>Your saved data, honestly</h3>
 <p>High scores, passport stamps, quiz results and sound settings are stored only in this browser's local storage on this device. Nothing is uploaded, shared or tracked.</p>
 </div>
+</section>
+<section data-feat="comms" class="panel v-learn">
+<h2>Radio delay</h2>
+<p class="hint">Radio waves move at light speed - fast, but space is big.</p>
+<div class="btnRow"><button id="cmMoon">Moon</button><button id="cmMars">Mars</button></div>
+<div id="cmInfo"></div>
+<div id="cmBarWrap"><div id="cmBar"></div></div>
+<button id="cmPing">Send a ping</button>
+<p class="hint" id="cmOut"></p>
+</section>
+<section data-feat="eva" class="panel v-learn">
+<h2>Pack the EVA bag</h2>
+<p class="hint" id="evaBrief"></p>
+<div id="evaList"></div>
+<p class="hint" id="evaMass"></p>
+<button id="evaGo">Step outside</button>
+<p class="hint" id="evaOut"></p>
+</section>
+<section data-feat="grav" class="panel v-learn">
+<h2>Space weights</h2>
+<p class="hint">Your mass never changes, but gravity does. Type your Earth weight:</p>
+<p><input id="gravKg" type="number" min="0" max="300" value="40"> kg on Earth</p>
+<div id="gravOut"></div>
+</section>
+<section data-feat="cards" class="panel v-reports">
+<h2>Postcards</h2>
+<p class="hint">Notes from the crew, unlocked as the mission grows.</p>
+<div id="cardList"></div>
 </section>
 <div id="endBanner" class="v-mission" hidden></div>
 <div id="toast" hidden></div>
