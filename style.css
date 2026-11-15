@@ -120,6 +120,8 @@ main.anim .panel:nth-of-type(n+4){animation-delay:.08s}
 @media print{header,#controls,#setup,#viewNav,.wbMenu,#wbBack{display:none}body{background:#fff;color:#000}}
 
 .wbMenu{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.wbSub{grid-column:1/-1;margin:10px 0 -4px;font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:#8fa6cc;border-bottom:1px dashed rgba(94,234,212,.25);padding-bottom:4px}
+body.hc .wbSub{color:#fff;border-bottom-color:#fff}
 .wbCard{display:flex;flex-direction:column;align-items:flex-start;gap:2px;background:rgba(255,255,255,.84);backdrop-filter:blur(8px);color:#1c2430;border:1px solid #dfe4ec;border-radius:10px;padding:12px 14px;text-align:left;transition:border-color .15s ease,transform .15s ease,box-shadow .15s ease;clip-path:none}
 .wbCard b{font-size:.95rem;color:#33405a;font-weight:650}
 .wbCard span{font-size:.8rem;color:#5b6675}
@@ -169,7 +171,9 @@ main.wb-open[data-feat="power"] section.panel[data-feat="power"]:not([hidden]),
 main.wb-open[data-feat="oxygen"] section.panel[data-feat="oxygen"]:not([hidden]),
 main.wb-open[data-feat="shield"] section.panel[data-feat="shield"]:not([hidden]),
 main.wb-open[data-feat="spin"] section.panel[data-feat="spin"]:not([hidden]),
-main.wb-open[data-feat="orbit"] section.panel[data-feat="orbit"]:not([hidden]){display:block!important;grid-column:1/-1}
+main.wb-open[data-feat="orbit"] section.panel[data-feat="orbit"]:not([hidden]),
+main.wb-open[data-feat="know"] section.panel[data-feat="know"]:not([hidden]),
+main.wb-open[data-feat="stow"] section.panel[data-feat="stow"]:not([hidden]){display:block!important;grid-column:1/-1}
 @keyframes solPulse{0%{box-shadow:0 0 0 0 rgba(32,88,201,.3)}100%{box-shadow:0 0 0 12px rgba(32,88,201,0)}}
 .pulse{animation:solPulse .6s ease-out}
 body.hc .wbCard{background:#000;border-color:#fff}

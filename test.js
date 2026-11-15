@@ -946,4 +946,21 @@ assert(E.fa7OrbCheck(0,400).ok,"400 km matches the 93-minute job");
 assert(E.fa7OrbCheck(1,20200).ok,"20200 km matches 12 hours");
 assert(E.fa7OrbCheck(2,35786).ok,"35786 km matches a day");
 assert(!E.fa7OrbCheck(0,3000).ok,"3000 km is far off 93 minutes")});
+T("know your base live quiz",function(){
+var s=E.newGame("moon",7,"explorer");
+var qs=E.fa8KnowQs(s);
+assert(qs.length===5,"five questions");
+qs.forEach(function(q){assert(q.opts[q.correct]!==undefined,"each question has a correct option")});
+assert(E.fa8KnowScore(qs,2,qs[2].correct).ok,"crew count answer scores");
+assert(!E.fa8KnowScore(qs,2,(qs[2].correct+1)%3).ok,"wrong pick fails")});
+T("stow the lander trim",function(){
+var sc=E.fa8StowScen(0);
+assert(sc.items.length===6,"six items");
+var r=E.fa8StowCheck(0,{0:"port",1:"star",2:"star",3:"port",4:"star",5:"port"});
+assert(!r.ok&&r.pct>5,"lopsided load fails");
+var best=null,bp=1e9;
+for(var m=0;m<64;m++){var sides={};sc.items.forEach(function(it,idx){sides[idx]=(m>>idx)&1?"star":"port"});
+var c=E.fa8StowCheck(0,sides);if(c.pct<bp){bp=c.pct;best=c}}
+assert(best.ok&&best.stars===3,"a near-perfect split exists");
+assert(!E.fa8StowCheck(1,{}).ok,"all-port ascent load fails")});
 process.exit(fail+fail2+fail3+fail4+fail7+(fR8)+(fR9)+(fR10)+(fR11)+(fR12)+(fR13)+(fR14)+(fR15)+(fR16)+(fR17)+(fR18)?1:0);

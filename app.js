@@ -1045,7 +1045,9 @@ power:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="
 oxygen:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="5"/><path d="M6 8a2 2 0 014 0"/></svg>',
 shield:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M8 1l6 3v4c0 4-3 6-6 7-3-1-6-3-6-7V4z"/></svg>',
 spin:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="6"/><path d="M8 8l4-3"/><circle cx="8" cy="8" r="1"/></svg>',
-orbit:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><ellipse cx="8" cy="8" rx="7" ry="3.5"/><circle cx="8" cy="8" r="1.6"/><circle cx="14" cy="6" r="1"/></svg>'};
+orbit:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><ellipse cx="8" cy="8" rx="7" ry="3.5"/><circle cx="8" cy="8" r="1.6"/><circle cx="14" cy="6" r="1"/></svg>',
+know:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="3" y="3" width="10" height="10" rx="2"/><path d="M6 8l1.5 1.5L11 6"/></svg>',
+stow:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M8 3v10M3 8h10"/><rect x="2" y="6" width="4" height="4"/><rect x="10" y="6" width="4" height="4"/></svg>'};
 document.querySelectorAll(".wbCard").forEach(function(cd){var f=cd.getAttribute("data-feat");if(FEATICONS[f]){var ic=document.createElement("span");ic.className="wi";ic.innerHTML=FEATICONS[f];cd.insertBefore(ic,cd.firstChild)}});
 r580Drill();r580Pass();
 if(reduceMotion){var bg0=document.getElementById("spaceBg");if(bg0){bgCv=bg0;bgX=bg0.getContext("2d");bg0.width=innerWidth;bg0.height=innerHeight;stars=[];for(var si=0;si<160;si++){stars.push({x:Math.random(),y:Math.random(),z:Math.random(),tw:0})}bgStatic()}}
@@ -1544,4 +1546,57 @@ var prOx=window.__featRefresh.oxygen;window.__featRefresh.oxygen=function(){oxRe
 var prRd=window.__featRefresh.shield;window.__featRefresh.shield=function(){rdRender();if(prRd){prRd()}};
 var prSp=window.__featRefresh.spin;window.__featRefresh.spin=function(){spRender();if(prSp){prSp()}};
 var prOb=window.__featRefresh.orbit;window.__featRefresh.orbit=function(){obRender();if(prOb){prOb()}};
+})();
+
+(function(){
+function G(id){return document.getElementById(id)}
+var knQs=null,knI=0;
+function knRender(){
+var s=window.__gameState?window.__gameState():null;
+if(!s){G("knBrief").textContent="Start a mission first - this quiz reads your live base.";G("knQ").textContent="";G("knList").innerHTML="";G("knOut").textContent="";return}
+knQs=TrainerEngine.fa8KnowQs(s);knI=0;
+G("knBrief").textContent="Five questions about the mission you are running right now. Answer from what you know of your base - or go look, then come back.";
+knQ()}
+function knQ(){
+var q=knQs[knI];
+G("knQ").textContent="Question "+(knI+1)+" of "+knQs.length+": "+q.q;
+var list=G("knList");list.innerHTML="";
+q.opts.forEach(function(t,i){
+var b=document.createElement("button");b.className="wnOpt";b.textContent=t;
+b.onclick=function(){
+var r=TrainerEngine.fa8KnowScore(knQs,knI,i);
+b.classList.add(r.ok?"ok":"no");
+b.disabled=true;
+G("knOut").textContent=r.why;
+if(r.ok){Array.prototype.forEach.call(list.children,function(x){x.disabled=true});
+setTimeout(function(){knI++;if(knI>=knQs.length){G("knQ").textContent="Done. You know your base.";G("knList").innerHTML="";G("knOut").textContent=""}else{knQ()}},2200)}};
+list.appendChild(b)})}
+var stI=0,stSides={};
+function stRender(){
+var sc=TrainerEngine.fa8StowScen(stI);
+G("stBrief").textContent="Craft "+sc.round+" of "+sc.total+": "+sc.name+". Tap each item to move it between the port and starboard bays, then check the trim. The offset must stay within "+sc.limit+" percent. "+sc.why;
+var list=G("stList");list.innerHTML="";
+stSides={};
+sc.items.forEach(function(it,idx){
+stSides[idx]="port";
+var b=document.createElement("button");b.className="cjTask";
+b.textContent=it.t+" ("+it.kg+" kg) - port";
+b.onclick=function(){
+stSides[idx]=stSides[idx]==="port"?"star":"port";
+b.classList.toggle("on",stSides[idx]==="star");
+b.textContent=it.t+" ("+it.kg+" kg) - "+(stSides[idx]==="star"?"starboard":"port");
+stNow()};
+list.appendChild(b)});
+stNow();G("stOut").textContent=""}
+function stNow(){
+var r=TrainerEngine.fa8StowCheck(stI,stSides);
+G("stNow").textContent="Port "+r.port+" kg, starboard "+r.star+" kg. Offset "+r.pct+" percent against a "+r.limit+" percent limit."}
+G("stGo").onclick=function(){
+var r=TrainerEngine.fa8StowCheck(stI,stSides);
+G("stOut").textContent=r.ok?("Trim accepted. "+r.note):r.note;
+if(r.ok){G("stNext").hidden=false;if(r.stars===3){window.__fx.toast("Perfect trim!")}}};
+G("stNext").onclick=function(){stI++;G("stNext").hidden=true;stRender()};
+if(window.__featRefresh===undefined){window.__featRefresh={}}
+var prKn=window.__featRefresh.know;window.__featRefresh.know=function(){knRender();if(prKn){prKn()}};
+var prSt=window.__featRefresh.stow;window.__featRefresh.stow=function(){stRender();if(prSt){prSt()}};
 })();

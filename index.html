@@ -82,29 +82,32 @@
 <button class="wbCard" data-feat="log"><b>Log</b><span>Everything that happened, sol by sol</span></button>
 </div>
 <div class="wbMenu v-learn" id="menuLearn">
-<button class="wbCard" data-feat="stats"><b>Stats &amp; records</b><span>How this mission is going, and best runs</span></button>
-<button class="wbCard" data-feat="daily"><b>Daily briefing</b><span>A new space fact every day</span></button>
-<button class="wbCard" data-feat="drill"><b>Event drill</b><span>Practice handling real emergencies</span></button>
-<button class="wbCard" data-feat="passport"><b>Knowledge passport</b><span>Master space facts one by one</span></button>
-<button class="wbCard" data-feat="marathon"><b>Quiz marathon</b><span>Twenty questions, three lives</span></button>
-<button class="wbCard" data-feat="timeline"><b>Event timeline</b><span>What can happen at each site</span></button>
-<button class="wbCard" data-feat="ach"><b>Achievements</b><span>Badges for smart commanding</span></button>
-<button class="wbCard" data-feat="hunt"><b>Achievement hunt</b><span>How close you are to each badge</span></button>
-<button class="wbCard" data-feat="comms"><b>Radio delay</b><span>How long a message really takes</span></button>
-<button class="wbCard" data-feat="eva"><b>Pack the EVA bag</b><span>A mass-budget spacewalk challenge</span></button>
-<button class="wbCard" data-feat="grav"><b>Space weights</b><span>What you would weigh off Earth</span></button>
-<button class="wbCard" data-feat="scout"><b>Site scout</b><span>Pick the right place to land</span></button>
-<button class="wbCard" data-feat="dayplan"><b>Crew day planner</b><span>Fit sleep, exercise and science into one sol</span></button>
+<div class="wbSub">Your mission</div>
+<button class="wbCard" data-feat="know"><b>Know your base</b><span>Five questions about your live mission</span></button>
+<div class="wbSub">Fly there</div>
+<button class="wbCard" data-feat="window"><b>Launch window</b><span>When Earth and Mars line up</span></button>
 <button class="wbCard" data-feat="dock"><b>Docking approach</b><span>Brake in time to meet the station</span></button>
 <button class="wbCard" data-feat="rocket"><b>Build the rocket</b><span>Stack the stages in the right order</span></button>
 <button class="wbCard" data-feat="dv"><b>Delta-v budget</b><span>Fuel a mission with the rocket equation</span></button>
-<button class="wbCard" data-feat="window"><b>Launch window</b><span>When Earth and Mars line up</span></button>
-<button class="wbCard" data-feat="conj"><b>Blackout planner</b><span>Two weeks with no signal from Mars</span></button>
+<button class="wbCard" data-feat="orbit"><b>Orbit match</b><span>Park the satellite at the right altitude</span></button>
+<button class="wbCard" data-feat="spin"><b>Spin gravity</b><span>Radius and spin rate make artificial g</span></button>
+<div class="wbSub">Live off-world</div>
 <button class="wbCard" data-feat="power"><b>Power budget</b><span>Size the array and batteries to last the night</span></button>
 <button class="wbCard" data-feat="oxygen"><b>Oxygen garden</b><span>Balance stored air against algae tanks</span></button>
 <button class="wbCard" data-feat="shield"><b>Radiation shield</b><span>Stack layers to pull the dose under the limit</span></button>
-<button class="wbCard" data-feat="spin"><b>Spin gravity</b><span>Radius and spin rate make artificial g</span></button>
-<button class="wbCard" data-feat="orbit"><b>Orbit match</b><span>Park the satellite at the right altitude</span></button>
+<button class="wbCard" data-feat="conj"><b>Blackout planner</b><span>Two weeks with no signal from Mars</span></button>
+<button class="wbCard" data-feat="stow"><b>Stow the lander</b><span>Balance the cargo or tip on touchdown</span></button>
+<button class="wbCard" data-feat="eva"><b>Pack the EVA bag</b><span>A mass-budget spacewalk challenge</span></button>
+<button class="wbCard" data-feat="dayplan"><b>Crew day planner</b><span>Fit sleep, exercise and science into one sol</span></button>
+<div class="wbSub">Learn the facts</div>
+<button class="wbCard" data-feat="passport"><b>Knowledge passport</b><span>Master space facts one by one</span></button>
+<button class="wbCard" data-feat="marathon"><b>Quiz marathon</b><span>Twenty questions, three lives</span></button>
+<button class="wbCard" data-feat="grav"><b>Space weights</b><span>What you would weigh off Earth</span></button>
+<button class="wbCard" data-feat="comms"><b>Radio delay</b><span>How long a message really takes</span></button>
+<button class="wbCard" data-feat="scout"><b>Site scout</b><span>Pick the right place to land</span></button>
+<button class="wbCard" data-feat="timeline"><b>Event timeline</b><span>What can happen at each site</span></button>
+<button class="wbCard" data-feat="hunt"><b>Achievement hunt</b><span>How close you are to each badge</span></button>
+<button class="wbCard" data-feat="ach"><b>Achievements</b><span>Badges for smart commanding</span></button>
 <button class="wbCard" data-feat="sources"><b>Sources</b><span>Which facts are real, which numbers are simulated</span></button>
 </div>
 <div class="wbMenu v-reports" id="menuReports">
@@ -375,6 +378,23 @@
 <button id="obGo">Take the job</button>
 <p class="hint" id="obOut"></p>
 <button id="obNext" hidden>Next job</button>
+</section>
+<section data-feat="know" class="panel v-learn">
+<h2>Know your base</h2>
+<p class="hint" id="knBrief"></p>
+<p id="knQ"></p>
+<div id="knList"></div>
+<p class="hint" id="knOut"></p>
+</section>
+<section data-feat="stow" class="panel v-learn">
+<h2>Stow the lander</h2>
+<p class="hint" id="stBrief"></p>
+<p id="stStat"></p>
+<div id="stList"></div>
+<p class="hint" id="stNow"></p>
+<button id="stGo">Check the trim</button>
+<p class="hint" id="stOut"></p>
+<button id="stNext" hidden>Next craft</button>
 </section>
 <div id="endBanner" class="v-mission" hidden></div>
 <div id="toast" hidden></div>
