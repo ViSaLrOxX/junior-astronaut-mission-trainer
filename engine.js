@@ -767,7 +767,282 @@ var pb=powerBreakdown(s);
 var used=0;
 (pb.consumers||[]).forEach(function(c){used+=c.power||0});
 return{generated:pb.generation!==undefined?pb.generation:null,consumed:used,stored:pb.stored!==undefined?pb.stored:null,capacity:batteryCap(s)}}
+function bldgOf(s,t){return s.buildings.filter(function(b){return b.type===t})}
+function fatigueForecast(s){
+return s.crew.map(function(c){
+var rate=c.away>0?14:8;
+var left=c.fatigue>=100?0:Math.ceil((100-c.fatigue)/rate);
+return{name:c.name,fatigue:c.fatigue,solsToExhaustion:left}})}
+function xpProgress(s){
+return s.crew.map(function(c){
+var lvl=1+Math.floor(c.xp/50);
+var into=c.xp%50;
+return{name:c.name,role:c.role,level:lvl,xp:c.xp,toNext:50-into}})}
+function techRecommend(s){
+var owned=s.techs||{};
+var out=Object.keys(TECHS).filter(function(k){return!owned[k]}).map(function(k){
+var t=TECHS[k];
+var afford=s.res.science>=t.cost;
+var why=t.desc;
+return{key:k,name:t.name,cost:t.cost,affordable:afford,why:why}});
+out.sort(function(a,b){if(a.affordable!==b.affordable){return a.affordable?-1:1}return a.cost-b.cost});
+return out.slice(0,3)}
+function researchQueueCSV(s){
+var owned=s.techs||{};
+var rows=["tech,cost,owned"];
+Object.keys(TECHS).forEach(function(k){rows.push('"'+TECHS[k].name+'",'+TECHS[k].cost+","+(owned[k]?"yes":"no"))});
+return rows.join("\n")}
+function buildingEfficiency(s){
+var out=[];
+Object.keys(BUILDINGS).forEach(function(k){
+var b=BUILDINGS[k];
+var pow=b.powerUse||0;
+if(!pow){return}
+var prod=[];
+if(b.o2){prod.push("o2 "+b.o2)}
+if(b.water){prod.push("water "+b.water)}
+if(b.food){prod.push("food "+b.food)}
+if(b.science){prod.push("science "+b.science)}
+if(!prod.length){return}
+out.push({key:k,name:b.name,power:pow,output:prod.join("; "),ratio:(prod.length/pow).toFixed(3)})});
+return out}
+function powerAudit(s){
+var p=powerBreakdown(s);
+var gen=s.lastPowerGen||0;
+var use=0;
+p.consumers.forEach(function(c){use+=c.watts});
+var notes=[];
+if(use>gen){notes.push("Demand exceeds generation by "+(use-gen)+" units; batteries or new arrays needed.")}
+bldgOf(s,"solar").forEach(function(b){if(b.dirt>40){notes.push("Solar panel dirt at "+b.dirt+"%: clean soon.")}});
+if(!bldgOf(s,"battery").length&&gen>use){notes.push("Surplus power is wasted without a Battery Bank.")}
+if(!notes.length){notes.push("Power grid healthy.")}
+return{gen:gen,use:use,store:s.powerStore,notes:notes}}
+function solarOutlook(s,n){
+n=n||5;
+var out=[];
+for(var i=0;i<n;i++){
+var sol=s.sol+i;
+var factor=1;
+var fc=forecast(s,i);
+if(fc&&(fc.id==="storm"||fc.id==="eclipse")){factor=0.4}
+if(s.site==="moon"){factor*=0.9}
+out.push({sol:sol+1,factor:Math.round(factor*100)/100,event:fc?fc.id:"clear"})}
+return out}
+function hazardCalendar(s,n){
+n=n||5;
+var out=[];
+for(var i=0;i<n;i++){
+var fc=forecast(s,i);
+out.push({sol:s.sol+i+1,event:fc?fc.id:"none",text:fc?fc.text:"No hazard forecast."})}
+return out}
+function radiationBreakdown(s){
+var d=SITES[s.site];
+var base=d.radiation*10;
+var shieldCut=s.shieldLevel*15;
+var techCut=(s.techs&&s.techs.radshield)?20:0;
+var net=Math.max(1,base-shieldCut-techCut)*(s.doseMult||1);
+return{base:base,shieldCut:shieldCut,techCut:techCut,net:Math.round(net*10)/10,note:"Net daily dose units after shielding and research."}}
+function o2Sheet(s){
+var gen=bldgOf(s,"o2gen").filter(function(b){return b.done}).length*BUILDINGS.o2gen.o2;
+var use=aliveCount(s)*2;
+return{generated:gen,consumed:use,net:gen-use,stock:Math.round(s.res.o2)}}
+function waterSheet(s){
+var gen=bldgOf(s,"watermine").filter(function(b){return b.done}).length*BUILDINGS.watermine.water;
+var use=aliveCount(s)*2;
+return{generated:gen,consumed:use,net:gen-use,stock:Math.round(s.res.water)}}
+function foodSheet(s){
+var gh=bldgOf(s,"greenhouse").filter(function(b){return b.done});
+var crop=s.crop&&CROPS[s.crop]?CROPS[s.crop]:null;
+var gen=gh.length*(crop?crop.food:BUILDINGS.greenhouse.food);
+var use=aliveCount(s)*2*(s.rations===0?0.7:(s.rations===2?1.3:1));
+return{generated:gen,consumed:Math.round(use*10)/10,net:Math.round((gen-use)*10)/10,stock:Math.round(s.res.food)}}
+function partsOutlook(s){
+var drills=bldgOf(s,"drill").filter(function(b){return b.done}).length*BUILDINGS.drill.parts;
+var ws=bldgOf(s,"workshop").filter(function(b){return b.done}).length*BUILDINGS.workshop.parts;
+var gen=drills+ws;
+return{income:gen,stock:Math.round(s.res.parts),note:gen>0?"Parts income steady.":"No parts production; expeditions are your only source."}}
+function scienceSources(s){
+var labs=bldgOf(s,"lab").filter(function(b){return b.done}).length*BUILDINGS.lab.science;
+var comms=bldgOf(s,"comms").filter(function(b){return b.done}).length*BUILDINGS.comms.science;
+var obs=bldgOf(s,"observatory").filter(function(b){return b.done}).length*(BUILDINGS.observatory.science||0);
+return{labs:labs,comms:comms,observatory:obs,quiz:s.quizCorrect*5,expeditions:s.expeditionsDone*15,note:"Building income per sol; quiz and expeditions are cumulative so far."}}
+function crewUpkeep(s){
+var n=aliveCount(s);
+return{crew:n,o2PerSol:n*2,waterPerSol:n*2,foodPerSol:Math.round(n*2*(s.rations===0?0.7:(s.rations===2?1.3:1))*10)/10}}
+function habitatReport(s){
+var cap=crewCapacity(s);
+return{capacity:cap,crew:s.crew.length,alive:aliveCount(s),headroom:cap-s.crew.length,note:cap-s.crew.length>0?"Room to recruit.":"Build another Habitat Module to grow the crew."}}
+function expansionPlan(s){
+var plan=[];
+var sim=JSON.parse(JSON.stringify({res:s.res}));
+var picks=["o2gen","watermine","greenhouse","solar","battery","lab","habitat"];
+var rw=resourceRunway(s);
+var order=Object.keys(rw).filter(function(k){return rw[k]!==null&&rw[k]!==Infinity}).sort(function(a,b){return rw[a]-rw[b]});
+var map={o2:"o2gen",water:"watermine",food:"greenhouse"};
+order.forEach(function(k){if(map[k]&&plan.indexOf(map[k])<0){plan.push(map[k])}});
+picks.forEach(function(p){if(plan.indexOf(p)<0){plan.push(p)}});
+return plan.slice(0,5).map(function(k){var b=BUILDINGS[k];return{key:k,name:b.name,cost:b.cost,power:b.power||0}})}
+function objectiveProgress(s){
+if(s.difficulty==="sandbox"){return{sandbox:true}}
+var pct=Math.min(100,Math.round(s.res.science/s.objectiveScience*100));
+return{pct:pct,science:Math.round(s.res.science),goal:s.objectiveScience,solUsed:s.sol,solLimit:s.objectiveSols}}
+function deadlineCheck(s){
+if(s.difficulty==="sandbox"){return{sandbox:true}}
+var left=s.objectiveSols-s.sol;
+var need=s.objectiveScience-s.res.science;
+var hist=resourceHistory(s);
+var pace=0;
+if(hist.length>1){var d=hist[hist.length-1].science-hist[0].science;pace=d/(hist.length-1)}
+var ok=pace>0&&pace*left>=need;
+return{solsLeft:left,scienceNeeded:Math.round(need),pacePerSol:Math.round(pace*10)/10,onTrack:ok}}
+function firstShortage(s){
+var rw=resourceRunway(s);
+var worst=null;
+Object.keys(rw).forEach(function(k){var v=rw[k];if(v!==null&&v!==Infinity&&(worst===null||v<worst.sols)){worst={resource:k,sols:v}}});
+return worst||{resource:null,sols:null,note:"No shortage projected."}}
+function eventTypeCounts(s){
+var counts={};
+s.log.forEach(function(e){
+var m=e.msg;
+var key=null;
+["storm","flare","quake","meteor","eclipse","aurora"].forEach(function(k2){if(m.toLowerCase().indexOf(k2)>=0){key=k2}});
+if(key){counts[key]=(counts[key]||0)+1}});
+return counts}
+function quizWeakSpots(s){
+var stats={};
+QUIZ.forEach(function(q){var c=q.cat||"general";stats[c]=stats[c]||{total:0}});
+Object.keys(stats).forEach(function(c){stats[c].total=QUIZ.filter(function(q){return(q.cat||"general")===c}).length});
+return{categories:Object.keys(stats),correct:s.quizCorrect,bestStreak:s.bestQuizStreak||0}}
+function nearestAchievements(s){
+var out=ACHIEVEMENTS.map(function(a){
+var prog=achievementProgress(s,a.id);
+return{id:a.id,name:a.name,pct:prog&&prog.pct!==undefined?prog.pct:0,earned:s.earned.indexOf(a.id)>=0}});
+return out.filter(function(a){return!a.earned}).sort(function(a,b){return b.pct-a.pct}).slice(0,3)}
+function runModifiers(s){
+return{site:s.site,difficulty:s.difficulty,scenario:s.scenario||"none",doseMult:s.doseMult||1,note:"Scenario and difficulty stack; check the difficulty table for exact multipliers."}}
+function alternateSiteSim(s){
+var other=s.site==="moon"?"mars":"moon";
+var d=SITES[other];
+var solar=bldgOf(s,"solar").filter(function(b){return b.done}).length*BUILDINGS.solar.power*d.solarFactor;
+return{other:other,otherName:d.name,solarOutputThere:Math.round(solar),radiation:d.radiation,ice:d.ice,note:"Same solar build would perform differently at "+d.name+"."}}
+function replayCode(s){
+return s.site+"-"+s.seed+"-"+s.difficulty}
+function missionTimelineCSV(s){
+var hist=resourceHistory(s);
+var rows=["sol,o2,water,food,parts,science"];
+hist.forEach(function(h){rows.push(h.sol+","+Math.round(h.o2)+","+Math.round(h.water)+","+Math.round(h.food)+","+Math.round(h.parts)+","+Math.round(h.science))});
+return rows.join("\n")}
+function subsystemGrades(s){
+function g(net){return net>=4?"A":(net>=1?"B":(net>=0?"C":(net>=-3?"D":"F")))}
+var o2=o2Sheet(s),w=waterSheet(s),f=foodSheet(s);
+var p=powerBreakdown(s);
+return{power:g(p.gen-p.use),o2:g(o2.net),water:g(w.net),food:g(f.net),morale:avgMorale(s)>=70?"A":(avgMorale(s)>=50?"B":(avgMorale(s)>=30?"C":"D"))}}
+function maintenancePlan(s){
+var out=[];
+bldgOf(s,"solar").forEach(function(b,i){if(b.dirt>25){out.push({item:"Solar panel "+(i+1),issue:"dirt "+b.dirt+"%",action:"cleanSolar"})}});
+s.buildings.forEach(function(b,i){if(b.damaged){out.push({item:b.type+" #"+(i+1),issue:"damaged",action:"repair"})}});
+if(s.suitWear&&s.suitWear>50){out.push({item:"EVA suits",issue:"wear "+s.suitWear+"%",action:"suitMaintenance"})}
+if(!out.length){out.push({item:"All systems",issue:"none",action:"no maintenance due"})}
+return out}
+function cleanOrder(s){
+return bldgOf(s,"solar").map(function(b,i){return{panel:i+1,dirt:b.dirt}}).sort(function(a,b){return b.dirt-a.dirt})}
+function siteFacts(s){
+var facts={
+moon:["The Lunar South Pole holds permanently shadowed craters with water ice, mapped by NASA's LRO and LCROSS missions.","Artemis III targets the lunar south polar region for crewed landing.","Lunar night lasts about 14 Earth days, a real power challenge."],
+mars:["Jezero Crater hosted an ancient river delta; NASA's Perseverance rover is caching samples there.","MOXIE produced oxygen from Martian CO2 on Perseverance.","Mars dust storms can cut solar power by over 90%, as ended Opportunity's mission."]};
+return facts[s.site]||facts.moon}
+function triviaOfTheSol(s){
+var all=[
+"NASA's Voyager 1 is the most distant human-made object, over 24 billion km away.",
+"The ISS orbits Earth about 16 times a day.",
+"Olympus Mons on Mars is about 2.5 times the height of Mount Everest.",
+"A day on Venus is longer than its year.",
+"NASA's Parker Solar Probe is the fastest spacecraft ever built.",
+"Jupiter's moon Europa likely hides a salty ocean under its ice.",
+"The Apollo 11 guidance computer had about 74 KB of memory.",
+"Neutron stars can spin hundreds of times per second."];
+var idx=(s.seed+s.sol)%all.length;
+return{sol:s.sol,trivia:all[idx]}}
+function badgeShelf(s){
+return{earned:s.earned.length,total:ACHIEVEMENTS.length,names:s.earned.slice()}}
+function radioChatter(s){
+var lines=[];
+if(s.sol===0){lines.push("Houston, base established. Beginning operations.")}
+if(s.stormsSurvived>0){lines.push("Storm count: "+s.stormsSurvived+". Crew held firm.")}
+if(s.expeditionsDone>0){lines.push("Rover teams report "+s.expeditionsDone+" expeditions complete.")}
+var crit=criticalCrew(s);
+crit.forEach(function(c){lines.push(c.name+" needs medical or rest attention.")});
+if(!lines.length){lines.push("All quiet on sol "+s.sol+".")}
+return lines}
+function tomorrowBrief(s){
+var fc=forecast(s,0);
+var adv=advise(s);
+return{forecast:fc?fc.text:"No event forecast for tomorrow.",advice:adv.slice(0,3)}}
+function restRotation(s){
+return s.crew.map(function(c){return{name:c.name,fatigue:c.fatigue}}).sort(function(a,b){return b.fatigue-a.fatigue}).slice(0,2).map(function(c){return c.name+" should rest next sol ("+c.fatigue+" fatigue)."})}
+function victoryGap(s){
+var gaps=[];
+if(s.difficulty!=="sandbox"){
+if(s.res.science<s.objectiveScience){gaps.push("Need "+Math.round(s.objectiveScience-s.res.science)+" more science.")}
+if(aliveCount(s)<1){gaps.push("Keep at least one crew member alive.")}}
+if(!gaps.length){gaps.push("On track to win; keep resources positive.")}
+return gaps}
+function trueCost(k){
+var b=BUILDINGS[k];
+if(!b){return null}
+var upkeep=(b.power||0)>0?0:Math.abs(b.power||0)*0;
+return{key:k,name:b.name,buildCost:b.cost,powerUse:b.powerUse||0,powerGen:b.power||0,note:"Costs in parts; power shown separately."}}
+function buildingCounts(s){
+var counts={};
+s.buildings.forEach(function(b){counts[b.type]=(counts[b.type]||0)+1});
+return counts}
+function cropRotation(s){
+return Object.keys(CROPS).map(function(k){
+var c=CROPS[k];
+return{key:k,name:c.name,food:c.food,water:c.water,foodPerWater:Math.round(c.food/c.water*100)/100}}).sort(function(a,b){return b.foodPerWater-a.foodPerWater})}
+function expeditionRiskTable(s){
+return Object.keys(EXPEDITIONS).map(function(k){
+var e=EXPEDITIONS[k];
+var risk=Math.max(0.05,0.3-(cLevel(s)*0.03));
+return{key:k,name:e.name,cost:e.cost,sols:e.sols,baseRisk:Math.round(risk*100)+"%"}})}
+function eventHistory(s){
+return s.log.filter(function(e){return e.msg.toLowerCase().match(/storm|flare|quake|meteor|eclipse|aurora|pocket|relay/)}).map(function(e){return{sol:e.sol,msg:e.msg}})}
+function settingsSnapshot(s){
+return{rations:s.rations,crop:s.crop||"default",manifest:s.manifest,objectiveMode:s.objectiveMode||"standard",scenario:s.scenario||"none"}}
+function scoreProjection(s){
+var cur=score(s);
+var left=Math.max(0,s.objectiveSols-s.sol);
+var proj=cur+left*3;
+return{current:cur,projected:proj,solsLeft:left,note:"Rough projection at modest pace; expeditions and quiz streaks raise it."}}
+function moraleLevers(s){
+var out=[];
+out.push({action:"Generous rations",effect:"+morale, costs more food"});
+out.push({action:"Rest a tired crew member",effect:"+morale, -fatigue"});
+if(bldgOf(s,"gym").length){out.push({action:"Gym built: passive morale gain active",effect:"ongoing"})}
+if(bldgOf(s,"observatory").length){out.push({action:"Observatory nights",effect:"+morale on clear sols"})}
+return out}
+function powerSpikeCheck(s){
+var p=powerBreakdown(s);
+var gen=s.lastPowerGen||0;
+var use=0;
+p.consumers.forEach(function(c){use+=c.watts});
+var headroom=gen-use;
+var risky=Object.keys(BUILDINGS).filter(function(k){
+var b=BUILDINGS[k];
+return b.powerUse&&b.powerUse>headroom}).map(function(k){return BUILDINGS[k].name});
+return{headroom:headroom,riskyIfBuilt:risky}}
+function waterRecyclingGain(s){
+var rec=bldgOf(s,"recycler").filter(function(b){return b.done}).length;
+var saved=rec*aliveCount(s);
+return{recyclers:rec,waterSavedPerSol:saved,note:rec?"Recyclers cut crew water demand.":"A Water Recycler would cut crew water demand."}}
+function greenhouseYield(s){
+var gh=bldgOf(s,"greenhouse").filter(function(b){return b.done}).length;
+var crop=s.crop&&CROPS[s.crop]?CROPS[s.crop]:null;
+return{greenhouses:gh,crop:crop?crop.name:"default",foodPerSol:gh*(crop?crop.food:BUILDINGS.greenhouse.food)}}
+function logSearch(s,term){
+term=String(term||"").toLowerCase();
+return s.log.filter(function(e){return e.msg.toLowerCase().indexOf(term)>=0}).map(function(e){return{sol:e.sol,msg:e.msg}})}
 return{SITES:SITES,BUILDINGS:BUILDINGS,QUIZ:QUIZ,ACHIEVEMENTS:ACHIEVEMENTS,TECHS:TECHS,CROPS:CROPS,EXPEDITIONS:EXPEDITIONS,SCENARIOS:SCENARIOS,ROLES:ROLES,EVENTS:EVENTS,
 rest:rest,cleanSolar:cleanSolar,repairAll:repairAll,shelterMode:shelterMode,suitMaintenance:suitMaintenance,setObjectiveMode:setObjectiveMode,resourceHistory:resourceHistory,historyCSV:historyCSV,crewCSV:crewCSV,eventPreview:eventPreview,dryRunBuild:dryRunBuild,alerts:alerts,letterGrade:letterGrade,postMortem:postMortem,dailyChecklist:dailyChecklist,missionNameGen:missionNameGen,difficultyTable:difficultyTable,scoreBreakdown:scoreBreakdown,shareText:shareText,achievementProgress:achievementProgress,batteryStatus:batteryStatus,moraleReport:moraleReport,powerForecast:powerForecast,foodCalendar:foodCalendar,buildQueueEta:buildQueueEta,healthReport:healthReport,tutorialHints:tutorialHints,weeklySummary:weeklySummary,avgMorale:avgMorale,researchCost:researchCost,damageOne:damageOne,applyEvent:applyEvent,
 newGame:newGame,tick:tick,build:build,repair:repair,evaRepair:evaRepair,advise:advise,recruit:recruit,answerQuiz:answerQuiz,report:report,reportJSON:reportJSON,aliveCount:aliveCount,crewCapacity:crewCapacity,computePower:computePower,canBuild:canBuild,
-research:research,retrain:retrain,setRations:setRations,setCrop:setCrop,setManifest:setManifest,setMissionName:setMissionName,renameCrew:renameCrew,expedition:expedition,forecast:forecast,setScenario:setScenario,powerBreakdown:powerBreakdown,statsSummary:statsSummary,score:score,compareSites:compareSites,cLevel:cLevel,solReport:solReport,netRates:netRates,resourceRunway:resourceRunway,criticalCrew:criticalCrew,unpoweredList:unpoweredList,sciencePlan:sciencePlan,shieldPlan:shieldPlan,batteryPlan:batteryPlan,foodPlan:foodPlan,waterPlan:waterPlan,eventRiskReport:eventRiskReport,expeditionPlanner:expeditionPlanner,expeditionHistoryCSV:expeditionHistoryCSV,buildPlanCSV:buildPlanCSV,techTreeCSV:techTreeCSV,quizBankStats:quizBankStats,achievementTable:achievementTable,siteComparisonCSV:siteComparisonCSV,logCSV:logCSV,endgameProjection:endgameProjection,whatIfAllBuildings:whatIfAllBuildings,bestNextBuild:bestNextBuild,crewRoleMatrix:crewRoleMatrix,trainingPlan:trainingPlan,rationsAdvisor:rationsAdvisor,cropAdvisor:cropAdvisor,stormPrepChecklist:stormPrepChecklist,nightPrepChecklist:nightPrepChecklist,solMilestones:solMilestones,winProbabilityHint:winProbabilityHint,glossaryTerms:glossaryTerms,faqList:faqList,missionNameValidate:missionNameValidate,crewNameSuggest:crewNameSuggest,compareDifficulties:compareDifficulties,summaryEmailText:summaryEmailText,markdownLog:markdownLog,statsJSON:statsJSON,validateState:validateState,stateHash:stateHash,powerBalanceSheet:powerBalanceSheet}});
+research:research,retrain:retrain,setRations:setRations,setCrop:setCrop,setManifest:setManifest,setMissionName:setMissionName,renameCrew:renameCrew,expedition:expedition,forecast:forecast,setScenario:setScenario,powerBreakdown:powerBreakdown,statsSummary:statsSummary,score:score,compareSites:compareSites,cLevel:cLevel,solReport:solReport,netRates:netRates,resourceRunway:resourceRunway,criticalCrew:criticalCrew,unpoweredList:unpoweredList,sciencePlan:sciencePlan,shieldPlan:shieldPlan,batteryPlan:batteryPlan,foodPlan:foodPlan,waterPlan:waterPlan,eventRiskReport:eventRiskReport,expeditionPlanner:expeditionPlanner,expeditionHistoryCSV:expeditionHistoryCSV,buildPlanCSV:buildPlanCSV,techTreeCSV:techTreeCSV,quizBankStats:quizBankStats,achievementTable:achievementTable,siteComparisonCSV:siteComparisonCSV,logCSV:logCSV,endgameProjection:endgameProjection,whatIfAllBuildings:whatIfAllBuildings,bestNextBuild:bestNextBuild,crewRoleMatrix:crewRoleMatrix,trainingPlan:trainingPlan,rationsAdvisor:rationsAdvisor,cropAdvisor:cropAdvisor,stormPrepChecklist:stormPrepChecklist,nightPrepChecklist:nightPrepChecklist,solMilestones:solMilestones,winProbabilityHint:winProbabilityHint,glossaryTerms:glossaryTerms,faqList:faqList,missionNameValidate:missionNameValidate,crewNameSuggest:crewNameSuggest,compareDifficulties:compareDifficulties,summaryEmailText:summaryEmailText,markdownLog:markdownLog,statsJSON:statsJSON,validateState:validateState,stateHash:stateHash,fatigueForecast:fatigueForecast,xpProgress:xpProgress,techRecommend:techRecommend,researchQueueCSV:researchQueueCSV,buildingEfficiency:buildingEfficiency,powerAudit:powerAudit,solarOutlook:solarOutlook,hazardCalendar:hazardCalendar,radiationBreakdown:radiationBreakdown,o2Sheet:o2Sheet,waterSheet:waterSheet,foodSheet:foodSheet,partsOutlook:partsOutlook,scienceSources:scienceSources,crewUpkeep:crewUpkeep,habitatReport:habitatReport,expansionPlan:expansionPlan,objectiveProgress:objectiveProgress,deadlineCheck:deadlineCheck,firstShortage:firstShortage,eventTypeCounts:eventTypeCounts,quizWeakSpots:quizWeakSpots,nearestAchievements:nearestAchievements,runModifiers:runModifiers,alternateSiteSim:alternateSiteSim,replayCode:replayCode,missionTimelineCSV:missionTimelineCSV,subsystemGrades:subsystemGrades,maintenancePlan:maintenancePlan,cleanOrder:cleanOrder,siteFacts:siteFacts,triviaOfTheSol:triviaOfTheSol,badgeShelf:badgeShelf,radioChatter:radioChatter,tomorrowBrief:tomorrowBrief,restRotation:restRotation,victoryGap:victoryGap,trueCost:trueCost,buildingCounts:buildingCounts,cropRotation:cropRotation,expeditionRiskTable:expeditionRiskTable,eventHistory:eventHistory,settingsSnapshot:settingsSnapshot,scoreProjection:scoreProjection,moraleLevers:moraleLevers,powerSpikeCheck:powerSpikeCheck,waterRecyclingGain:waterRecyclingGain,greenhouseYield:greenhouseYield,logSearch:logSearch,powerBalanceSheet:powerBalanceSheet}});

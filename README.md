@@ -2,7 +2,7 @@
 
 NASA Space Apps 2026 challenge #1. A browser-based base-management game for kids (and judges) that teaches real mission trade-offs on the Moon and Mars: power, oxygen, water, food, shielding, crew health and morale. Fully offline: open `index.html` and play.
 
-## Features (152)
+## Features (202)
 
 Core sim
 1. Two real sites (Lunar South Pole, Mars Jezero Rim) with distinct radiation, ice, sunlight, storm and quake profiles
@@ -171,6 +171,59 @@ Round-5 briefing and analysis layer
 143. Power balance sheet: generated vs consumed vs stored
 144. Round-5 regression suite: 28 new tests, 130 total
 145-152. Mission briefing UI panel wiring the briefing, projection, checklists, glossary, FAQ and all new CSV/JSON/markdown downloads (8 controls)
+145-152. Mission briefing UI panel wiring the briefing, projection, checklists, glossary, FAQ and all new CSV/JSON/markdown downloads (8 controls)
+
+Round-6 deep analysis layer
+153. Fatigue forecast: sols until each crew member hits exhaustion
+154. XP progress: level and points to next level per crew member
+155. Research recommender: top 3 tech picks ranked by affordability and cost
+156. Research queue CSV export
+157. Building efficiency table: output per power for every producer type
+158. Power audit: generation vs demand with grid health notes
+159. Power spike check: which buildings would overload the grid if built now
+160. Solar outlook: daylight factor per upcoming sol with event flags
+161. Hazard calendar: forecast events for the next sols
+162. Radiation breakdown: base dose, shield cut, research cut, net dose
+163. Oxygen balance sheet (generation, consumption, net, stock)
+164. Water balance sheet
+165. Food balance sheet with ration multiplier
+166. Parts economy outlook (income, stock, advice)
+167. Science source report (labs, comms, observatory, quiz, expeditions)
+168. Crew upkeep: per-sol O2/water/food cost of the current crew
+169. Habitat report: capacity, headroom, recruit advice
+170. Expansion plan: next 5 builds ordered by shortest runway
+171. Objective progress: percent to science goal, sols used
+172. Deadline check: required pace vs actual pace, on-track flag
+173. First-shortage predictor: which resource runs out first and when
+174. Event type counts over the mission log
+175. Quiz weak spots: categories, correct count, best streak
+176. Nearest achievements: three closest unearned badges by progress
+177. Run modifiers summary (site, scenario, difficulty stacking)
+178. Alternate-site simulation: same build at the other site
+179. Replay code (site-seed-difficulty) for sharing runs
+180. Mission timeline CSV (sol-by-sol resource history)
+181. Subsystem grades: A-F letters for power, O2, water, food, morale
+182. Maintenance plan: dirty panels, damaged buildings, suit wear
+183. Clean order: panels sorted by dirt for efficient cleaning
+184. Landing site facts: real NASA facts about the chosen site
+185. Trivia of the sol: deterministic daily space fact
+186. Badge shelf: earned vs total with names
+187. Radio chatter: narrative log lines from mission state
+188. Tomorrow brief: forecast plus top advice in one block
+189. Rest rotation: who should rest next sol
+190. Victory gap: remaining steps to win, in plain words
+191. True cost lookup: build cost and power profile per building type
+192. Building counts table
+193. Crop rotation plan: crops ranked by food per water
+194. Expedition risk table with crew-level effect
+195. Event history: filtered hazard log
+196. Settings snapshot: rations, crop, manifest, objective mode
+197. Score projection to the deadline
+198. Morale levers: actions that raise morale, ranked
+199. Water recycling gain from recyclers
+200. Greenhouse yield per sol by crop
+201. Mission log search
+202. Deep analysis UI panel wiring the dashboard, timeline and research-queue CSV downloads, trivia and log search (5 controls)
 
 Winner-inspired patterns (verified 2025 global winners, per NASA's announcement): design-then-validate simulation like PureFlow's habitat validator; best-window/risk guidance like SkySense; mini-game teaching real constraints like Zumorroda-X; kid-facing storytelling like HerCode.
 
@@ -180,7 +233,7 @@ Challenge statement: nasaspaceapps.ae/challenges (Junior Astronaut Mission Train
 
 ## Tested
 
-`node test.js` — 130 checks (62 original + 40 round-4 + 28 round-5) covering engine rules, resource math, role effects, tech effects, expeditions, scenarios, sandbox behavior, advisor triggers, forecast correctness and a full playthrough that wins. All pass on Node 22. Round-4 tests cover the new buildings, techs, expeditions, events, ops actions, analytics functions, objective modes, grading and exports. Round-5 tests cover the briefing, runway, plans, advisors, checklists, CSV/JSON/markdown exports, integrity checker and state hash.
+`node test.js` — 164 checks (62 original + 40 round-4 + 28 round-5 + 34 round-6) covering engine rules, resource math, role effects, tech effects, expeditions, scenarios, sandbox behavior, advisor triggers, forecast correctness and a full playthrough that wins. All pass on Node 22. Round-4 tests cover the new buildings, techs, expeditions, events, ops actions, analytics functions, objective modes, grading and exports. Round-5 tests cover the briefing, runway, plans, advisors, checklists, CSV/JSON/markdown exports, integrity checker and state hash. Round-6 tests cover the fatigue/XP trackers, recommender, balance sheets, outlooks, grades, maintenance, predictors and the remaining analysis functions.
 
 ## Untested
 

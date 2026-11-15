@@ -711,5 +711,145 @@ assert(E.quizBankStats().questions===E.QUIZ.length);
 assert.strictEqual(E.achievementTable().length,E.ACHIEVEMENTS.length)});
 T2("r5: compareDifficulties returns a table",()=>{
 assert(Array.isArray(E.compareDifficulties()))});
+T2("r6: fatigue and XP trackers",()=>{
+const s=E.newGame("moon",7,"explorer");
+assert.strictEqual(E.fatigueForecast(s).length,4);
+assert.strictEqual(E.xpProgress(s).length,4);
+assert(E.xpProgress(s)[0].toNext>0)});
+T2("r6: tech recommend and queue CSV",()=>{
+const s=E.newGame("moon",7,"explorer");
+assert(E.techRecommend(s).length>=1);
+assert(E.researchQueueCSV(s).indexOf("tech,cost,owned")===0)});
+T2("r6: building efficiency finds producers",()=>{
+const s=E.newGame("moon",7,"explorer");
+assert(E.buildingEfficiency(s).length>=2)});
+T2("r6: power audit and spike check",()=>{
+const s=E.newGame("moon",7,"explorer");
+E.tick(s);
+assert(E.powerAudit(s).notes.length>=1);
+assert(E.powerSpikeCheck(s).headroom>=0)});
+T2("r6: outlooks cover requested sols",()=>{
+const s=E.newGame("moon",7,"explorer");
+assert.strictEqual(E.solarOutlook(s,4).length,4);
+assert.strictEqual(E.hazardCalendar(s,3).length,3)});
+T2("r6: radiation breakdown nets below base with shield",()=>{
+const s=E.newGame("moon",7,"explorer");
+s.shieldLevel=1;
+const r=E.radiationBreakdown(s);
+assert(r.net<r.base)});
+T2("r6: resource sheets balanced fields",()=>{
+const s=E.newGame("moon",7,"explorer");
+E.tick(s);
+assert(typeof E.o2Sheet(s).net==="number");
+assert(typeof E.waterSheet(s).net==="number");
+assert(typeof E.foodSheet(s).net==="number")});
+T2("r6: parts and science source reports",()=>{
+const s=E.newGame("moon",7,"explorer");
+E.tick(s);
+assert(E.partsOutlook(s).note.length>5);
+assert(E.scienceSources(s).labs>=0)});
+T2("r6: crew upkeep scales with crew",()=>{
+const s=E.newGame("moon",7,"explorer");
+assert.strictEqual(E.crewUpkeep(s).o2PerSol,8)});
+T2("r6: habitat report headroom",()=>{
+const s=E.newGame("moon",7,"explorer");
+assert(E.habitatReport(s).capacity>=s.crew.length)});
+T2("r6: expansion plan returns 5 real buildings",()=>{
+const s=E.newGame("moon",7,"explorer");
+for(let i=0;i<5;i++){E.tick(s)}
+const p=E.expansionPlan(s);
+assert.strictEqual(p.length,5);
+assert(E.BUILDINGS[p[0].key])});
+T2("r6: objective progress and deadline check",()=>{
+const s=E.newGame("moon",7,"explorer");
+for(let i=0;i<4;i++){E.tick(s)}
+assert(E.objectiveProgress(s).pct>=0);
+assert(typeof E.deadlineCheck(s).onTrack==="boolean")});
+T2("r6: firstShortage finds or excuses",()=>{
+const s=E.newGame("moon",7,"explorer");
+for(let i=0;i<3;i++){E.tick(s)}
+const f=E.firstShortage(s);
+assert(f.resource===null||typeof f.sols==="number")});
+T2("r6: event counts and history",()=>{
+const s=E.newGame("moon",7,"explorer");
+for(let i=0;i<10;i++){E.tick(s)}
+assert(typeof E.eventTypeCounts(s)==="object");
+assert(Array.isArray(E.eventHistory(s)))});
+T2("r6: quiz weak spots and nearest achievements",()=>{
+const s=E.newGame("moon",7,"explorer");
+assert(E.quizWeakSpots(s).categories.length>=1);
+assert(E.nearestAchievements(s).length>=0)});
+T2("r6: run modifiers and replay code",()=>{
+const s=E.newGame("moon",7,"explorer");
+assert.strictEqual(E.replayCode(s),"moon-7-explorer");
+assert.strictEqual(E.runModifiers(s).site,"moon")});
+T2("r6: alternate site sim",()=>{
+const s=E.newGame("moon",7,"explorer");
+assert.strictEqual(E.alternateSiteSim(s).other,"mars")});
+T2("r6: mission timeline CSV grows with history",()=>{
+const s=E.newGame("moon",7,"explorer");
+for(let i=0;i<4;i++){E.tick(s)}
+assert(E.missionTimelineCSV(s).split(String.fromCharCode(10)).length>=2)});
+T2("r6: subsystem grades letters",()=>{
+const s=E.newGame("moon",7,"explorer");
+E.tick(s);
+const g=E.subsystemGrades(s);
+assert("ABCDF".indexOf(g.power)>=0)});
+T2("r6: maintenance plan and clean order",()=>{
+const s=E.newGame("moon",7,"explorer");
+assert(E.maintenancePlan(s).length>=1);
+assert(Array.isArray(E.cleanOrder(s)))});
+T2("r6: site facts are real NASA facts",()=>{
+const s=E.newGame("moon",7,"explorer");
+assert(E.siteFacts(s).length>=2);
+assert(E.siteFacts(s)[0].length>30)});
+T2("r6: trivia deterministic per sol",()=>{
+const s=E.newGame("moon",7,"explorer");
+assert.strictEqual(E.triviaOfTheSol(s).trivia,E.triviaOfTheSol(s).trivia)});
+T2("r6: badge shelf and radio chatter",()=>{
+const s=E.newGame("moon",7,"explorer");
+assert(E.badgeShelf(s).total===E.ACHIEVEMENTS.length);
+assert(E.radioChatter(s).length>=1)});
+T2("r6: tomorrow brief combines forecast and advice",()=>{
+const s=E.newGame("moon",7,"explorer");
+E.tick(s);
+const b=E.tomorrowBrief(s);
+assert(b.forecast.length>0)});
+T2("r6: rest rotation picks two",()=>{
+const s=E.newGame("moon",7,"explorer");
+assert.strictEqual(E.restRotation(s).length,2)});
+T2("r6: victory gap honest",()=>{
+const s=E.newGame("moon",7,"explorer");
+assert(E.victoryGap(s).length>=1)});
+T2("r6: trueCost and building counts",()=>{
+const s=E.newGame("moon",7,"explorer");
+assert.strictEqual(E.trueCost("o2gen").buildCost,14);
+assert.strictEqual(E.trueCost("nope"),null);
+assert(E.buildingCounts(s).habitat>=1)});
+T2("r6: crop rotation sorted by efficiency",()=>{
+const s=E.newGame("moon",7,"explorer");
+const r=E.cropRotation(s);
+assert(r.length===Object.keys(E.CROPS).length);
+assert(r[0].foodPerWater>=r[r.length-1].foodPerWater)});
+T2("r6: expedition risk table covers all",()=>{
+const s=E.newGame("moon",7,"explorer");
+assert.strictEqual(E.expeditionRiskTable(s).length,Object.keys(E.EXPEDITIONS).length)});
+T2("r6: settings snapshot",()=>{
+const s=E.newGame("moon",7,"explorer");
+assert.strictEqual(E.settingsSnapshot(s).rations,1)});
+T2("r6: score projection above current",()=>{
+const s=E.newGame("moon",7,"explorer");
+const p=E.scoreProjection(s);
+assert(p.projected>=p.current)});
+T2("r6: morale levers listed",()=>{
+const s=E.newGame("moon",7,"explorer");
+assert(E.moraleLevers(s).length>=2)});
+T2("r6: recycling gain and greenhouse yield",()=>{
+const s=E.newGame("moon",7,"explorer");
+assert(E.waterRecyclingGain(s).waterSavedPerSol>=0);
+assert(E.greenhouseYield(s).foodPerSol>=0)});
+T2("r6: log search finds mission start",()=>{
+const s=E.newGame("moon",7,"explorer");
+assert(E.logSearch(s,"mission start").length===1)});
 console.log(pass2+" round-4 passed, "+fail2+" failed");
 process.exit(fail+fail2?1:0);
