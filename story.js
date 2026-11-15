@@ -23,17 +23,34 @@ var c=queue.shift();if(!c){ov.hidden=true;open=false;return}
 open=true;ov.hidden=false;
 var ab=$("autoBtn");if(ab&&/on/i.test(ab.textContent)){ab.click()}
 var h='<div class="who">'+esc(c.who||"")+'</div><h3>'+esc(c.title)+'</h3>';
-(c.text||[]).forEach(function(p){h+="<p>"+p+"</p>"});
-if(c.rule){h+='<div class="rule">'+c.rule+'</div>'}
+var paras=c.text||[];
+paras.forEach(function(p,i){h+='<p class="stLayer'+(i===0?" on":"")+'">'+p+"</p>"});
+if(c.rule){h+='<div class="rule stLayer'+(paras.length<=1?" on":"")+'">'+c.rule+'</div>'}
 var box=document.createElement("div");
 var card=$("stCard");card.innerHTML=h;card.appendChild(box);
+var layers=card.querySelectorAll(".stLayer");
+if(layers.length>1){
+box.style.visibility="hidden";
+var more=document.createElement("button");
+more.type="button";more.className="stMore";more.textContent="Keep reading";
+more.onclick=function(){
+for(var li=0;li<layers.length;li++){
+if(!layers[li].classList.contains("on")){
+layers[li].classList.add("on");
+if(li===layers.length-1){more.hidden=true;box.style.visibility="";var fb=box.querySelector("button:not([disabled])");if(fb){fb.focus()}}
+return}}
+more.hidden=true;box.style.visibility=""};
+card.insertBefore(more,box)}
 (c.options||[{label:"Continue"}]).forEach(function(o){
 var b=document.createElement("button");b.type="button";
 b.innerHTML="<b>"+esc(o.label)+"</b>"+(o.sub?"<small>"+esc(o.sub)+"</small>":"");
 if(o.disabled){b.disabled=true;b.style.opacity=".55"}
 b.onclick=function(){if(o.fn){o.fn()}var s=S();if(s&&o.log){choose(s,o.log)}next();refresh()};
 box.appendChild(b)});
-var f=card.querySelector("button:not([disabled])");if(f){f.focus()}
+if(window.__speak){
+var spoken=(c.who?c.who+". ":"")+(c.title?c.title+". ":"")+paras.map(function(p){return String(p).replace(/<[^>]*>/g,"")}).join(" ");
+window.__speak(spoken)}
+var f=(layers.length>1?null:card.querySelector("button:not([disabled])"));if(f){f.focus()}
 card.scrollTop=0}
 function choose(s,txt){s.story.choices.push({sol:s.sol,text:txt})}
 function toast(s,m){var w=$("stWarn");w.textContent=m;w.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(function(){w.hidden=true},6500)}
@@ -304,7 +321,7 @@ if(st.ending&&s.over&&!st.debriefed){debrief(s)}
 refresh()}
 function init(){
 addUi();
-$("startBtn").addEventListener("click",function(){setTimeout(function(){begin();check()},0)});
+$("startBtn").addEventListener("click",function(){var tries=0;(function wait(){if(S()){begin();check()}else if(++tries<30){setTimeout(wait,300)}})()});
 var lb=$("loadBtn");if(lb){lb.addEventListener("click",function(){setTimeout(function(){var s=S();if(s&&s.story){s.story.prev=s.story.prev||{o2:s.res.o2,water:s.res.water,food:s.res.food};refresh()}},0)})}
 $("solBtn").addEventListener("click",function(){setTimeout(check,0)});
 setInterval(check,400);

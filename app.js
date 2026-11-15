@@ -730,19 +730,46 @@ var cs=TrainerEngine.compareSites();
 var h='<table class="cmp"><tr><th>Site</th><th>Radiation</th><th>Ice</th><th>Solar</th><th>Storms</th></tr>';
 cs.forEach(function(c){h+="<tr><td>"+c.name+"</td><td>"+c.radiation+"</td><td>"+c.ice+"</td><td>"+Math.round(c.solarFactor*100)+"%</td><td>"+Math.round(c.stormChance*100)+'%/sol</td></tr><tr><td colspan="5"><small>'+c.desc+"</small></td></tr>"});
 $("siteCompare").innerHTML=h+"</table>"}
-$("startBtn").onclick=function(){
+function doLaunch(){
 s=TrainerEngine.newGame($("siteSel").value,parseInt($("seedSel").value,10)||1,$("diffSel").value);
 var sc=$("scenSel").value;
 if(sc){TrainerEngine.setScenario(s,sc)}
 TrainerEngine.setMissionName(s,$("nameSel").value);
 TrainerEngine.setObjectiveMode(s,$("objSel").value);
-var lv=$("launchVeil");
-if(lv&&!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches)){lv.hidden=false;void lv.offsetWidth;lv.classList.add("go");setTimeout(function(){lv.classList.remove("go");setTimeout(function(){lv.hidden=true},320)},380)}
 storyArm();window.__warpTo=14;setTimeout(function(){window.__warpTo=1},1400);
 window.__gameState=function(){return s};window.__S=function(){return s};window.__render=function(){render()};
 window.__armQuiz=function(){if(s&&s.pendingQuiz===null&&!s.over){s.pendingQuiz=s.quizIndex%TrainerEngine.QUIZ.length;render()}};
 window.__fx.setRoom("mission");
-$("setup").hidden=true;$("game").hidden=false;render();restoreView();if(window.__walkHome&&window.__walkHome()&&window.__openFeat&&document.getElementById("walkPanel")&&!(document.getElementById("game").dataset.feat)){window.__openFeat("walk")}if(window.__applyDiff){window.__applyDiff(s.difficulty)}if(window.__tourEvent){window.__tourEvent("launch")}};
+$("setup").hidden=true;$("game").hidden=false;render();restoreView();if(window.__walkHome&&window.__walkHome()&&window.__openFeat&&document.getElementById("walkPanel")&&!(document.getElementById("game").dataset.feat)){window.__openFeat("walk")}if(window.__applyDiff){window.__applyDiff(s.difficulty)}if(window.__tourEvent){window.__tourEvent("launch")}}
+var lvBusy=false;
+$("startBtn").onclick=function(){
+if(lvBusy){return}
+var lv=$("launchVeil");
+var calm=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+if(!lv||calm){lvBusy=true;doLaunch();lvBusy=false;return}
+lvBusy=true;
+var stages=["Fuelling the rocket","Crew boarding","Guidance locked","Final checks","Liftoff!"];
+var bar=lv.querySelector("#lvBar span");
+var st=$("lvStatus");
+lv.hidden=false;void lv.offsetWidth;lv.classList.add("go");
+var i=0,done=false;
+st.textContent=stages[0];
+bar.style.width="12%";
+function finish(){
+if(done){return}
+done=true;
+clearInterval(lv.t);
+lv.classList.remove("go");
+setTimeout(function(){lv.hidden=true;bar.style.width="0"},300);
+lvBusy=false;
+doLaunch()}
+lv.t=setInterval(function(){
+i++;
+if(i>=stages.length){finish();return}
+st.textContent=stages[i];
+bar.style.width=Math.round(12+i/stages.length*88)+"%"},820);
+lv.onclick=finish;
+setTimeout(finish,5200)}
 $("solBtn").onclick=function(){if(!s)return;TrainerEngine.tick(s);sndSol();if(window.__tourEvent){window.__tourEvent("sol")}postTick();render();if(window.__openFeat&&!window.__quizWas){window.__openFeat(window.__walkHome&&window.__walkHome()&&document.getElementById("walkPanel")?"walk":"status")}var sp=$("statusPanel");sp.classList.remove("pulse");void sp.offsetWidth;sp.classList.add("pulse")};
 $("autoBtn").onclick=function(){
 if(!s)return;
@@ -1082,26 +1109,26 @@ $("r650HuntOut").textContent=TrainerEngine.fa3HuntText(unlocked);
 (function(){
 function G(id){return document.getElementById(id)}
 var steps=[
-{text:"Hi, future commander! This is Mission Control. I will walk you through your first sol, one small step at a time. You do the tapping, I keep score."},
-{target:"setup",text:"First, set up your mission: give it a name, pick the Moon or Mars, and choose a class. The table shows what each site is like."},
-{target:"startBtn",wait:"launch",text:"Your turn: press Launch to begin."},
-{sel:"#menuMission .wbCard[data-feat='walk']",menu:true,wait:"feat:walk",text:"You play as the astronaut. Your base is a menu of workbenches, and the first one is Walk the base. Your turn: open it."},
-{target:"walkPanel",text:"This is your base, seen through your own helmet. Turn with the left and right arrows (or A and D), walk with up and down (or W and S) or the on-screen buttons, face a module and press E. Or tap a job in the list and you will be walked there. Jobs keep the base alive and fix faults."},
-{target:"wkHours",text:"Time is limited. Each sol gives you a short working day of hours, and every job spends some. Mission experiments cost the most. When you Advance one sol, unused hours are lost, and the return window counts down. Reach the science goal before it closes."},
-{sel:"#menuMission .wbCard[data-feat='status']",menu:true,wait:"feat:status",text:"Back to the menu. Your turn: open the Status board."},
-{target:"statusPanel",text:"These gauges keep your crew alive: oxygen, water, food, plus parts and data. If air, water or food runs out, the crew is in real trouble."},
-{sel:"#menuMission .wbCard[data-feat='build']",menu:true,wait:"feat:build",text:"Back to the menu. Your turn: open the Build yard."},
-{target:"buildList",text:"Spend parts here. A Solar Array and an O2 Generator are smart first builds."},
-{target:"solBtn",menu:true,wait:"sol",text:"Your turn: press Advance one sol and live your first day."},
-{target:"hud",text:"See the counters at the top? Data and parts, always in view. After this tour, those + buttons open a full guided walkthrough for every way to earn more - facts first, then the real thing."},
-{target:"hudPartsPlus",wait:"hudparts",text:"Try it now: tap the + next to Parts."},
-{target:"partsHelp",text:"There it is: every way to get more parts - drills and workshops, salvage trips, pods, quizzes and milestones."},
-{target:"hudSciPlus",menu:true,wait:"hudsci",text:"Now tap the + next to Data."},
-{target:"sciHelp",text:"And every way to earn data - labs, survey trips, quizzes and relays. You will never be stuck for either again."},
-{sel:"#menuMission .wbCard[data-feat='log']",menu:true,wait:"feat:log",text:"One more. Your turn: open the Log."},
-{target:"log",text:"Everything that happens is written down here, sol by sol."},
-{target:"viewNav",menu:true,text:"Up here you switch rooms: Mission to run the base, Learn & play for quizzes and drills, Reports for charts and downloads."},
-{text:"You've learnt the basics - you're good to go now. Good luck, commander!"}
+{text:"Hey, commander! Mission Control here. The little rover in the corner is Sprout - it goes where you go. I'll read everything out loud too, or tap Voice to hush me."},
+{target:"setup",text:"First job: name your mission, pick the Moon or Mars, and choose your class. The table tells you what each place is like."},
+{target:"startBtn",wait:"launch",text:"Your turn. Hit Launch."},
+{sel:"#menuMission .wbCard[data-feat='walk']",menu:true,wait:"feat:walk",text:"Nice landing! This menu is your whole base. Tap Walk the base and I'll show you around."},
+{target:"walkPanel",text:"You're looking out of your own helmet. Walk with the arrows or W, A, S, D, face a module and press E. Or just tap a job in the list and you'll stroll over on your own."},
+{target:"wkHours",text:"Each sol is one short workday. Every job spends hours, and leftover hours vanish when the sol ends. Finish your science before the return window closes."},
+{sel:"#menuMission .wbCard[data-feat='status']",menu:true,wait:"feat:status",text:"Back to the menu. Open the Status board."},
+{target:"statusPanel",text:"These gauges keep your crew alive - air, water, food, plus parts and data. If air, water or food hits zero, you're in real trouble."},
+{sel:"#menuMission .wbCard[data-feat='build']",menu:true,wait:"feat:build",text:"Menu again. Open the Build yard."},
+{target:"buildList",text:"This is where parts turn into buildings. A Solar Array and an O2 Generator are a brilliant first pair."},
+{target:"solBtn",menu:true,wait:"sol",text:"Ready for day one? Hit Advance one sol."},
+{target:"hud",text:"See the counters up top? Data and parts, always in view. Later, those + buttons open a full guided walkthrough of every way to earn more - facts first, then the real thing."},
+{target:"hudPartsPlus",wait:"hudparts",text:"Go on, try one. Tap the + next to Parts."},
+{target:"partsHelp",text:"Every way to get more parts, right there: drills, workshops, salvage trips, pods, quizzes, milestones."},
+{target:"hudSciPlus",menu:true,wait:"hudsci",text:"Now the + next to Data."},
+{target:"sciHelp",text:"And every way to earn data. Being stuck is officially impossible now."},
+{sel:"#menuMission .wbCard[data-feat='log']",menu:true,wait:"feat:log",text:"Last stop. Open the Log."},
+{target:"log",text:"Everything that happens gets written down here, sol by sol. Good place to check what a sol cost you."},
+{target:"viewNav",menu:true,text:"These tabs switch rooms: Mission runs the base, Learn & play has the quizzes and drills, Reports has the charts."},
+{text:"That's the lot. The base is yours, commander - good luck out there. Sprout and I are cheering for you."}
 ];
 var cur=0,active=false;
 function clearGlow(){document.querySelectorAll(".tourGlow").forEach(function(x){x.classList.remove("tourGlow")})}
@@ -1117,11 +1144,21 @@ m.classList.remove("anim");void m.offsetWidth;m.classList.add("anim")}
 function closeFeat(){var m=G("game");m.classList.remove("wb-open");delete m.dataset.feat;try{localStorage.removeItem("jamt_view")}catch(e){}m.classList.remove("anim");void m.offsetWidth;m.classList.add("anim")}
 window.__openFeat=openFeat;
 window.__closeFeat=closeFeat;
+function speak(txt){
+try{
+if(localStorage.getItem("jamt_voice")==="off"){return}
+if(!window.speechSynthesis||!window.SpeechSynthesisUtterance){return}
+speechSynthesis.cancel();
+var u=new SpeechSynthesisUtterance(txt);
+u.rate=1.02;
+speechSynthesis.speak(u)}catch(e){}}
+window.__speak=speak;
 function showStep(){
 clearGlow();
 var st=steps[cur];
 if(st.feat){openFeat(st.feat)}else if(st.menu){closeFeat()}
 G("tourText").textContent="Step "+(cur+1)+" of "+steps.length+": "+st.text;
+speak(st.text);
 var nb=G("tourNext");
 nb.textContent=cur===steps.length-1?"Done":"Next";
 nb.style.display=st.wait?"none":"";
@@ -1129,12 +1166,17 @@ var el=st.target?G(st.target):(st.sel?document.querySelector(st.sel):null);
 if(el){el.classList.add("tourGlow");try{el.scrollIntoView({block:"center",behavior:"smooth"})}catch(e){el.scrollIntoView()}}
 }
 function tourStart(){active=true;cur=0;G("tour").hidden=false;showStep()}
-function tourEnd(){active=false;G("tour").hidden=true;clearGlow();try{localStorage.setItem("tourDone","1")}catch(e){}}
+function tourEnd(){active=false;G("tour").hidden=true;clearGlow();try{if(window.speechSynthesis){speechSynthesis.cancel()}}catch(e){}try{localStorage.setItem("tourDone","1")}catch(e){}}
 G("tourNext").onclick=function(){
 cur++;
 if(cur>=steps.length){tourEnd();return}
 showStep()};
 G("tourSkip").onclick=tourEnd;
+G("tourVoice").onclick=function(){
+var cur2=localStorage.getItem("jamt_voice")==="off";
+try{if(cur2){localStorage.removeItem("jamt_voice")}else{localStorage.setItem("jamt_voice","off");if(window.speechSynthesis){speechSynthesis.cancel()}}}catch(e){}
+G("tourVoice").textContent="Voice: "+(cur2?"on":"off")};
+try{if(localStorage.getItem("jamt_voice")==="off"){G("tourVoice").textContent="Voice: off"}}catch(e){}
 window.__tourActive=function(){return active};
 window.__tourEvent=function(name){if(active&&steps[cur].wait===name){cur++;showStep()}};
 G("helpBtn").onclick=tourStart;
