@@ -1603,8 +1603,18 @@ var prSt=window.__featRefresh.stow;window.__featRefresh.stow=function(){stRender
 
 (function(){
 function G(id){return document.getElementById(id)}
+function dirRender(){
+var line=G("dirLine");if(!line){return}
+var s=window.__gameState?window.__gameState():null;
+var d=s?TrainerEngine.directiveInfo(s):null;
+if(!d){line.hidden=true;return}
+line.hidden=false;
+G("dirSol").textContent="sol "+d.forSol;
+G("dirText").textContent=d.text+".";
+G("dirReward").textContent="Reward: "+d.reward}
 function decRender(){
 var card=G("decCard");if(!card){return}
+dirRender();
 var s=window.__gameState?window.__gameState():null;
 var stOv=G("stOv");
 if(stOv&&!stOv.hidden){card.hidden=true;return}

@@ -123,8 +123,9 @@ assert(eng);
 var b=s.buildings.find(function(x){return x.type==="solar"});
 b.damaged=true;
 var p=s.res.parts;
+var tink=s.crew.some(function(c){return c.health>0&&(c.away||0)<=0&&c.trait==="tinkerer"});
 assert(E.repair(s,s.buildings.indexOf(b)));
-assert.strictEqual(s.res.parts,p-3)});
+assert.strictEqual(s.res.parts,p-(tink?2:3))});
 T("v2: EVA repair works and costs 2 parts",function(){
 var s=E.newGame("moon",7,"explorer");
 var b=s.buildings.find(function(x){return x.type==="solar"});
@@ -992,4 +993,22 @@ var s=E.newGame("mars",3,"cadet");
 for(var i=0;i<3;i++){E.tick(s)}
 var rt=JSON.parse(JSON.stringify(s));
 assert(rt.crew.every(function(c){return !!c.trait}),"traits survive serialisation")});
+T("daily directives",function(){
+var s=E.newGame("moon",7,"explorer");
+E.tick(s);
+var d=E.directiveInfo(s);
+assert(d&&d.text&&d.reward,"a directive is set for sol 2");
+assert(d.forSol===2,"directive targets the next sol");
+E.tick(s);E.tick(s);
+var outcomes=s.log.filter(function(l){return (l.msg||"").indexOf("Directive m")===0});
+assert(outcomes.length>=2,"directives evaluate each sol");
+assert(s.directive&&s.directive.forSol===s.sol+1,"a fresh directive is always queued")});
+T("crew voice lines",function(){
+var s=E.newGame("mars",3,"cadet");
+E.tick(s);
+var q=s.log.filter(function(l){return /: "/.test(l.msg||"")});
+assert(q.length===1,"one voice line after one sol");
+for(var i=0;i<4;i++){E.tick(s)}
+q=s.log.filter(function(l){return /: "/.test(l.msg||"")});
+assert(q.length===5,"one voice line per sol")});
 process.exit(fail+fail2+fail3+fail4+fail7+(fR8)+(fR9)+(fR10)+(fR11)+(fR12)+(fR13)+(fR14)+(fR15)+(fR16)+(fR17)+(fR18)?1:0);

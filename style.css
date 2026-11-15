@@ -120,6 +120,9 @@ main.anim .panel:nth-of-type(n+4){animation-delay:.08s}
 @media print{header,#controls,#setup,#viewNav,.wbMenu,#wbBack{display:none}body{background:#fff;color:#000}}
 
 .wbMenu{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+#dirLine{grid-column:1/-1;font-size:.84rem;color:#bfe9ff;background:rgba(10,19,40,.6);border:1px dashed rgba(94,234,212,.3);border-radius:8px;padding:7px 12px}
+#dirLine .chip{margin-left:8px}
+body.hc #dirLine{background:#000;border-color:#fff;color:#fff}
 #decCard{grid-column:1/-1;background:rgba(10,19,40,.78);backdrop-filter:blur(10px);border:1px solid rgba(94,234,212,.45);border-radius:10px;padding:12px 14px;color:#dbe7fb;box-shadow:0 10px 34px rgba(0,0,0,.5)}
 #decCard h3{margin:0 0 6px;color:#bfe9ff;font-size:1rem}
 #decCard p{margin:0 0 10px;font-size:.88rem}
