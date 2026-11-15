@@ -393,7 +393,7 @@ s.schedule[0]="stowaway";E.tick(s);
 assert(s.res.food<f0+30)});
 T("v3: quiz pool now has 20 questions with facts",function(){
 assert.strictEqual(E.QUIZ.length,20);
-E.QUIZ.forEach(function(q){assert(q.fact.length>10);assert.strictEqual(q.c,0)})});
+E.QUIZ.forEach(function(q){assert(q.fact.length>10);assert(q.c>=0&&q.c<q.a.length)});var qdist=[0,0,0,0];E.QUIZ.forEach(function(q){qdist[q.c]++});assert.deepStrictEqual(qdist,[5,5,5,5])});
 T("v3: achievements pool has 20 entries",function(){
 assert.strictEqual(E.ACHIEVEMENTS.length,20)});
 T("v3: full game with all v3 systems still wins",function(){

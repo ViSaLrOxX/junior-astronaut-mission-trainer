@@ -4,6 +4,24 @@ var autoTimer=null;
 var $=function(id){return document.getElementById(id)};
 var E=function(){return TrainerEngine};
 var RES=[["o2","Oxygen","#6fd3ff",160],["water","Water","#4d9bff",160],["food","Food","#8be08b",120],["parts","Parts","#ffd166",100],["regolith","Regolith","#c9a27a",120],["science","Science","#d79bff",250]];
+var sndOn=true;try{sndOn=localStorage.getItem("sndOn")!=="0"}catch(e){}
+var actx=null;
+function tone(f,dur,type,vol,delay){
+if(!sndOn){return}
+try{
+if(!actx){actx=new (window.AudioContext||window.webkitAudioContext)()}
+if(actx.state==="suspended"){actx.resume()}
+var t=actx.currentTime+(delay||0);
+var o=actx.createOscillator(),g=actx.createGain();
+o.type=type||"sine";o.frequency.value=f;
+g.gain.setValueAtTime(0.0001,t);
+g.gain.exponentialRampToValueAtTime(vol||0.07,t+0.015);
+g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+o.connect(g);g.connect(actx.destination);o.start(t);o.stop(t+dur+0.03)}catch(e){}}
+function sndRight(streak){tone(660,.12,"sine",.07);tone(880,.16,"sine",.07,.09);if(streak>=3){tone(1108,.14,"sine",.06,.2);tone(1318,.18,"sine",.06,.3)}}
+function sndWrong(){tone(196,.22,"sawtooth",.05);tone(147,.26,"sawtooth",.045,.08)}
+function applySnd(){$("sndBtn").textContent="Sound: "+(sndOn?"on":"off")}
+
 function download(name,text,type){
 var blob=new Blob([text],{type:type||"text/plain"});
 var a=document.createElement("a");
@@ -122,10 +140,12 @@ Array.prototype.forEach.call(document.querySelectorAll("[data-quiz]"),function(b
 btn.onclick=function(){
 if(!s)return;
 var r=TrainerEngine.answerQuiz(s,parseInt(btn.getAttribute("data-quiz"),10));
+btn.classList.add(r.correct?"ok":"no");
+if(!r.correct){var cb=document.querySelector('[data-quiz="'+q.c+'"]');if(cb){cb.classList.add("ok")}}
+if(r.correct){sndRight(s.quizStreak)}else{sndWrong()}
+Array.prototype.forEach.call(document.querySelectorAll("[data-quiz]"),function(x){x.disabled=true});
 $("quizFact").textContent=(r.correct?"Correct! +6 parts, +5 science. ":"Not quite. ")+r.fact+(s.quizStreak>1?" Streak: "+s.quizStreak+".":"");
-$("quizOpts").innerHTML="";
-setTimeout(function(){qp.hidden=true;render()},4200);
-render()}});
+setTimeout(function(){qp.hidden=true;if(window.__closeFeat){window.__closeFeat()}render()},4200)}});
 }else{qp.hidden=true}
 var quizNow=s.pendingQuiz!==null&&!s.over;
 if(quizNow&&!window.__quizWas&&window.__openFeat){window.__openFeat("quiz")}
@@ -220,6 +240,8 @@ if(!raw){return}
 s=JSON.parse(raw);
 $("setup").hidden=true;$("game").hidden=false;render();if(window.__tourEvent){window.__tourEvent("launch")}};
 $("contrastBtn").onclick=function(){document.body.classList.toggle("hc")};
+$("sndBtn").onclick=function(){sndOn=!sndOn;try{localStorage.setItem("sndOn",sndOn?"1":"0")}catch(e){};applySnd();if(sndOn){tone(660,.1,"sine",.06)}};
+applySnd();
 $("rationSel").onchange=function(){if(s){TrainerEngine.setRations(s,parseFloat($("rationSel").value));render()}};
 $("manifestSel").onchange=function(){if(s){TrainerEngine.setManifest(s,$("manifestSel").value);render()}};
 $("newBtn").onclick=function(){if(autoTimer){clearInterval(autoTimer);autoTimer=null}$("setup").hidden=false;$("game").hidden=true;s=null};
@@ -261,7 +283,7 @@ $("projOut").innerHTML=ph;
 var gh="<h4>Night prep</h4><p>"+E.nightPrepChecklist(s).join("; ")+"</p>";
 gh+="<h4>Glossary</h4><p>"+E.glossaryTerms().map(function(g){return g.term+": "+g.def}).join("<br>")+"</p>";
 gh+="<h4>FAQ</h4><p>"+E.faqList().map(function(f){return f.q+" - "+f.a}).join("<br>")+"</p>";
-gh+="<h4>Quiz bank</h4><p>"+E.quizBankStats().questions+" questions across "+E.quizBankStats().categories.join(", ")+"</p>";
+gh+="<h4>Quiz bank</h4><p>"+E.quizBankStats().questions+" questions across "+Object.keys(E.quizBankStats().byDifficulty).join(", ")+"</p>";
 $("guideOut").innerHTML=gh};
 $("summaryBtn").onclick=function(){
 if(!s)return;
@@ -404,26 +426,70 @@ $("r5Quiz2Btn").onclick=function(){var i=Math.floor(Math.random()*E().QUIZ.lengt
 r5Show("<p><b>"+q.q+"</b></p>"+q.a.map(function(a,j){return'<button data-j="'+j+'" class="q01r5">'+a+"</button>"}).join(" ")+'<span id="q01r5msg"></span>');
 Array.prototype.forEach.call(document.querySelectorAll(".q01r5"),function(btn){
 btn.onclick=function(){var r=E().quizCheck01(i,+btn.dataset.j);
+btn.classList.add(r.correct?"ok":"no");
+if(r.correct){sndRight(0)}else{sndWrong()}
 document.getElementById("q01r5msg").textContent=(r.correct?" Correct! ":" Not quite. ")+r.fact}})};
 
 function r580day(){var d=new Date();return Math.floor((d-new Date(d.getFullYear(),0,0))/864e5)}
 $("r580BriefBtn").onclick=function(){var b=TrainerEngine.fa2Briefing(r580day());$("r580Brief").textContent="Fact: "+b.fact+" | Watch for: "+b.event+" | Aim for: "+b.target};
 $("r580Trained").onclick=function(){var today=r580day();var last=parseInt(localStorage.getItem("r580last")||"-1",10);var streak=parseInt(localStorage.getItem("r580streak")||"0",10);var ns=TrainerEngine.fa2StreakNext(streak,last,today);localStorage.setItem("r580last",String(today));localStorage.setItem("r580streak",String(ns));$("r580Streak").textContent="Streak: "+ns};
 var r580drill=-1;
-function r580Drill(){r580drill=(r580drill+1)%TrainerEngine.fa2DrillCount();var d=TrainerEngine.fa2Drill(r580drill);$("r580DrillQ").textContent="Where does this hit? "+d.text;var bb=$("r580DrillBtns");bb.innerHTML="";d.choices.forEach(function(c,idx){var b=document.createElement("button");b.textContent=c;b.onclick=function(){$("r580DrillOut").textContent=idx===d.correct?"Correct - it affects "+c+". (weight "+d.weight+")":"Not quite - the right answer was "+d.choices[d.correct]+".";r580Drill()};bb.appendChild(b)})}
+function r580Drill(){r580drill=(r580drill+1)%TrainerEngine.fa2DrillCount();var d=TrainerEngine.fa2Drill(r580drill);$("r580DrillQ").textContent="Where does this hit? "+d.text;var bb=$("r580DrillBtns");bb.innerHTML="";d.choices.forEach(function(c,idx){var b=document.createElement("button");b.textContent=c;b.onclick=function(){
+var right=idx===d.correct;
+b.classList.add(right?"ok":"no");
+if(!right){var cb=bb.children[d.correct];if(cb){cb.classList.add("ok")}}
+if(right){sndRight(0)}else{sndWrong()}
+Array.prototype.forEach.call(bb.children,function(x){x.disabled=true});
+$("r580DrillOut").textContent=right?"Correct - it affects "+c+". (weight "+d.weight+")":"Not quite - the right answer was "+d.choices[d.correct]+".";
+setTimeout(r580Drill,1100)};bb.appendChild(b)})}
 $("r580DrillQ").onclick=function(){};
-function r580Pass(){var done=[];try{done=JSON.parse(localStorage.getItem("r580pass")||"[]")}catch(e){}$("r580PassBar").textContent=TrainerEngine.fa2PassportPct(done)+"% mastered ("+done.length+"/"+TrainerEngine.fa2PassportTotal()+")";var ll=$("r580PassList");ll.innerHTML="";var rem=TrainerEngine.fa2PassportRemaining(done);rem.slice(0,6).forEach(function(idx){var b=document.createElement("button");b.textContent="Master fact "+(idx+1);b.onclick=function(){done.push(idx);localStorage.setItem("r580pass",JSON.stringify(done));r580Pass()};ll.appendChild(b)})}
+function r580Pass(){
+var done=[];try{done=JSON.parse(localStorage.getItem("r580pass")||"[]")}catch(e){}
+$("r580PassBar").textContent=TrainerEngine.fa2PassportPct(done)+"% mastered ("+done.length+"/"+TrainerEngine.fa2PassportTotal()+")";
+var ll=$("r580PassList");ll.innerHTML="";
+var rem=TrainerEngine.fa2PassportRemaining(done);
+if(!rem.length){var p=document.createElement("p");p.className="hint";p.textContent="Passport complete - every fact mastered. Well done, commander.";ll.appendChild(p);return}
+rem.slice(0,6).forEach(function(idx){
+var q=TrainerEngine.QUIZ[idx];
+var card=document.createElement("div");card.className="passQ";
+var qt=document.createElement("div");qt.className="pq";qt.textContent="Fact "+(idx+1)+": "+q.q;card.appendChild(qt);
+q.a.forEach(function(ans,j){
+var b=document.createElement("button");b.textContent=ans;
+b.onclick=function(){
+var right=j===q.c;
+b.classList.add(right?"ok":"no");
+if(right){sndRight(0)}else{sndWrong();var cb=card.querySelectorAll("button")[q.c];if(cb){cb.classList.add("ok")}}
+Array.prototype.forEach.call(card.querySelectorAll("button"),function(x){x.disabled=true});
+var f=document.createElement("div");f.className="passFact";
+f.textContent=right?q.fact:("Not quite - the right answer is: "+q.a[q.c]+". "+q.fact);
+card.appendChild(f);
+if(right){
+if(done.indexOf(idx)<0){done.push(idx);localStorage.setItem("r580pass",JSON.stringify(done))}
+$("r580PassBar").textContent=TrainerEngine.fa2PassportPct(done)+"% mastered ("+done.length+"/"+TrainerEngine.fa2PassportTotal()+")";
+setTimeout(r580Pass,2600)}
+else{setTimeout(r580Pass,4200)}};
+card.appendChild(b)});
+ll.appendChild(card)})}
 $("r580PassExport").onclick=function(){var done=[];try{done=JSON.parse(localStorage.getItem("r580pass")||"[]")}catch(e){}$("r580PassBar").textContent=TrainerEngine.fa2PassportText(done).slice(0,200)};
+window.__featRefresh={passport:r580Pass,hunt:function(){var u=[];try{u=JSON.parse(localStorage.getItem("ach-unlocked")||"[]")}catch(e){}$("r650HuntOut").textContent=TrainerEngine.fa3HuntText(u)}};
 r580Drill();r580Pass();
 
 (function(){
 var mar=null;
 function showQ(){if(!mar){return}var q=TrainerEngine.fa3MarathonQ(mar);
+$("r650Q").classList.remove("streakPop");
 if(!q){$("r650Q").textContent="Marathon over. Final score "+mar.score+", best streak "+mar.bestStreak+".";$("r650Opts").innerHTML="";return}
 $("r650Q").textContent="Q"+q.n+"/"+q.total+" (lives "+q.lives+", score "+q.score+"): "+q.q;
 var box=$("r650Opts");box.innerHTML="";
-q.choices.forEach(function(c,idx){var b=document.createElement("button");b.textContent=c;b.onclick=function(){var r=TrainerEngine.fa3MarathonAnswer(mar,idx);$("r650MarOut").textContent=(r.right?"Correct! ":"Wrong - the answer was: "+r.correctAnswer+". ")+r.fact;showQ()};box.appendChild(b)})}
-$("r650Start").onclick=function(){mar=TrainerEngine.fa3MarathonNew();$("r650MarOut").textContent="";showQ()};
+q.choices.forEach(function(c,idx){var b=document.createElement("button");b.textContent=c;b.onclick=function(){
+var r=TrainerEngine.fa3MarathonAnswer(mar,idx);
+b.classList.add(r.right?"ok":"no");
+if(!r.right){var corr=box.children[q.answer];if(corr){corr.classList.add("ok")}}
+if(r.right){sndRight(mar.streak);if(mar.streak>=3){$("r650Q").classList.add("streakPop")}}else{sndWrong()}
+Array.prototype.forEach.call(box.children,function(x){x.disabled=true});
+$("r650MarOut").textContent=(r.right?"Correct! ":"Wrong - the answer was: "+r.correctAnswer+". ")+r.fact;
+setTimeout(showQ,1200)};box.appendChild(b)})}
+$("r650Start").onclick=function(){mar=TrainerEngine.fa3MarathonNew();$("r650MarOut").textContent="";$("r650Start").textContent="Restart marathon";showQ()};
 $("r650Tl").onclick=function(){var t=TrainerEngine.fa3Timeline($("r650Site").value||null);
 var h="<ol class='tl'>";
 t.events.forEach(function(e){h+="<li><span class='tlid'>"+e.id+"</span> "+e.text+"</li>"});
@@ -456,10 +522,12 @@ function openFeat(f){
 var m=G("game");
 m.classList.add("wb-open");
 m.dataset.feat=f;
+if(window.__featRefresh&&window.__featRefresh[f]){window.__featRefresh[f]()}
 if(f==="quiz"&&G("quizPanel").hidden){G("quizPanel").hidden=false;if(!G("quizQ").textContent){G("quizQ").textContent="Mission Control will call with a quiz when something interesting happens."}}
 m.classList.remove("anim");void m.offsetWidth;m.classList.add("anim")}
 function closeFeat(){var m=G("game");m.classList.remove("wb-open");delete m.dataset.feat;m.classList.remove("anim");void m.offsetWidth;m.classList.add("anim")}
 window.__openFeat=openFeat;
+window.__closeFeat=closeFeat;
 function showStep(){
 clearGlow();
 var st=steps[cur];
