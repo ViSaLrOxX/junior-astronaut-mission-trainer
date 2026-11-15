@@ -26,20 +26,39 @@ function sndSol(){tone(330,.07,"sine",.045)}
 var reduceMotion=false;try{reduceMotion=window.matchMedia("(prefers-reduced-motion: reduce)").matches}catch(e){}
 var musOn=true;try{musOn=localStorage.getItem("musOn")!=="0"}catch(e){}
 var musNodes=null;
-var CHORDS={mission:[110,165,220,330],learn:[87.3,130.8,174.6,261.6],reports:[73.4,146.8,185,220],setup:[98,147,196,294]};
-var musChord=CHORDS.setup;
+var ROOTS={mission:55,learn:49,reports:41.2,setup:61.7};
+var musRoot=ROOTS.setup;
+var musVol=.06;try{musVol=Math.max(0,Math.min(.12,parseFloat(localStorage.getItem("musVol")||".06")))}catch(e){}
+function musPing(){if(!musNodes){return}var f=560+Math.random()*160;
+[[.028,0],[.016,.5],[.008,.12]].forEach(function(p){
+var o=actx.createOscillator();o.type="sine";o.frequency.value=f*(p[1]===.12?2:1);
+var g=actx.createGain();g.gain.value=0;o.connect(g);g.connect(actx.destination);
+var t0=actx.currentTime+p[1];
+g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime(p[0],t0+.02);g.gain.exponentialRampToValueAtTime(.0001,t0+1.2);
+o.start(t0);o.stop(t0+1.3)})}
 function musStart(){
 if(musNodes||!musOn){return}
 if(!actx){actx=new (window.AudioContext||window.webkitAudioContext)()}
 if(actx.state==="suspended"){actx.resume()}
 var g=actx.createGain();g.gain.value=0;g.connect(actx.destination);
-var filt=actx.createBiquadFilter();filt.type="lowpass";filt.frequency.value=420;filt.connect(g);
-var lfo=actx.createOscillator();lfo.frequency.value=.08;var lg=actx.createGain();lg.gain.value=140;lfo.connect(lg);lg.connect(filt.frequency);lfo.start();
-var oscs=musChord.map(function(f,i){var o=actx.createOscillator();o.type=i<2?"sine":"triangle";o.frequency.value=f;var og=actx.createGain();og.gain.value=i<2?.5:.18;o.connect(og);og.connect(filt);o.start();return o});
-g.gain.setTargetAtTime(.05,actx.currentTime,2);
-musNodes={g:g,oscs:oscs,lfo:lfo}}
-function musStop(){if(!musNodes){return}var n=musNodes;musNodes=null;n.g.gain.setTargetAtTime(0,actx.currentTime,.3);setTimeout(function(){n.oscs.forEach(function(o){try{o.stop()}catch(e){}});try{n.lfo.stop()}catch(e){}},1200)}
-function setRoom(v){musChord=CHORDS[v]||CHORDS.mission;if(musNodes){musNodes.oscs.forEach(function(o,i){o.frequency.setTargetAtTime(musChord[i],actx.currentTime,.8)})}}
+var filt=actx.createBiquadFilter();filt.type="lowpass";filt.frequency.value=220;filt.connect(g);
+var oscs=[["sine",musRoot,.5],["sine",musRoot*1.012,.5],["triangle",musRoot/1.5,.3]].map(function(d){
+var o=actx.createOscillator();o.type=d[0];o.frequency.value=d[1];
+var og=actx.createGain();og.gain.value=d[2];o.connect(og);og.connect(filt);o.start();return o});
+var nb=actx.createBuffer(1,actx.sampleRate*2,actx.sampleRate);
+var nd=nb.getChannelData(0);for(var i=0;i<nd.length;i++){nd[i]=Math.random()*2-1}
+var ns=actx.createBufferSource();ns.buffer=nb;ns.loop=true;
+var nf=actx.createBiquadFilter();nf.type="lowpass";nf.frequency.value=140;
+var ng=actx.createGain();ng.gain.value=.1;
+ns.connect(nf);nf.connect(ng);ng.connect(filt);ns.start();
+var lfo=actx.createOscillator();lfo.frequency.value=.06;var lg=actx.createGain();lg.gain.value=.06;
+lfo.connect(lg);lg.connect(ng.gain);lfo.start();
+g.gain.setTargetAtTime(musVol,actx.currentTime,2.5);
+var ping=setInterval(musPing,6500+Math.random()*3000);
+musNodes={g:g,oscs:oscs,extra:[ns,lfo],ping:ping}}
+function musStop(){if(!musNodes){return}var n=musNodes;musNodes=null;clearInterval(n.ping);n.g.gain.setTargetAtTime(0,actx.currentTime,.3);setTimeout(function(){n.oscs.concat(n.extra).forEach(function(o){try{o.stop()}catch(e){}})},1200)}
+function setRoom(v){musRoot=ROOTS[v]||ROOTS.mission;if(musNodes){musNodes.oscs[0].frequency.setTargetAtTime(musRoot,actx.currentTime,1.2);musNodes.oscs[1].frequency.setTargetAtTime(musRoot*1.012,actx.currentTime,1.2);musNodes.oscs[2].frequency.setTargetAtTime(musRoot/1.5,actx.currentTime,1.2)}}
+function musSetVol(v){musVol=Math.max(0,Math.min(.12,v));try{localStorage.setItem("musVol",String(musVol))}catch(e){}if(musNodes){musNodes.g.gain.setTargetAtTime(musVol,actx.currentTime,.15)}}
 var burstP=[];
 function burstFrom(el){
 if(reduceMotion||!el){return}
@@ -87,8 +106,24 @@ if(p.life<=0){burstP.splice(i,1);continue}
 bgX.globalAlpha=p.life;bgX.fillStyle=p.col;bgX.fillRect(p.x,p.y,3,3)}
 bgX.globalAlpha=1;
 var ck=document.getElementById("cockpit");
-if(ck&&ck.offsetParent!==null){var cx=ck.getContext("2d");drawScene(cx,ck.width,ck.height,t*.05,true);hudFrame(cx,ck.width,ck.height)}
+if(ck&&ck.offsetParent!==null){var cx=ck.getContext("2d");drawScene(cx,ck.width,ck.height,t*.05,true);drawShip(cx,ck.width,ck.height,t);hudFrame(cx,ck.width,ck.height)}
 requestAnimationFrame(bgTick)}
+function drawShip(ctx,W,H,t){
+var bx=W*.62,by=H*.42+Math.sin(t*1.3)*4;
+ctx.save();ctx.translate(bx,by);ctx.rotate(Math.sin(t*.9)*.03);
+var fl=10+Math.sin(t*23)*4+Math.random()*4;
+ctx.beginPath();ctx.moveTo(-34,0);ctx.lineTo(-34-fl,-5);ctx.lineTo(-34-fl*.8,0);ctx.lineTo(-34-fl,5);ctx.closePath();
+ctx.fillStyle="rgba(255,180,80,.9)";ctx.fill();
+ctx.beginPath();ctx.moveTo(-34,0);ctx.lineTo(-34-fl*.5,-3);ctx.lineTo(-34-fl*.4,0);ctx.lineTo(-34-fl*.5,3);ctx.closePath();
+ctx.fillStyle="rgba(255,230,150,.95)";ctx.fill();
+ctx.beginPath();ctx.moveTo(30,0);ctx.lineTo(6,-10);ctx.lineTo(-26,-10);ctx.lineTo(-34,-4);ctx.lineTo(-34,4);ctx.lineTo(-26,10);ctx.lineTo(6,10);ctx.closePath();
+ctx.fillStyle="#c8d2e4";ctx.fill();ctx.strokeStyle="#5b6b8a";ctx.lineWidth=1.5;ctx.stroke();
+ctx.beginPath();ctx.moveTo(12,-10);ctx.lineTo(-2,-22);ctx.lineTo(-12,-10);ctx.closePath();ctx.fillStyle="#9aa8c2";ctx.fill();
+ctx.beginPath();ctx.moveTo(12,10);ctx.lineTo(-2,22);ctx.lineTo(-12,10);ctx.closePath();ctx.fillStyle="#9aa8c2";ctx.fill();
+ctx.beginPath();ctx.arc(12,0,5,0,6.29);ctx.fillStyle="#6fd3ff";ctx.fill();ctx.strokeStyle="#2c4a6a";ctx.stroke();
+ctx.fillStyle="rgba(111,211,255,"+(.4+.3*Math.sin(t*6))+")";
+ctx.fillRect(-20,-2,3,3);ctx.fillRect(-14,-2,3,3);ctx.fillRect(-8,-2,3,3);
+ctx.restore()}
 function hudFrame(ctx,W,H){
 ctx.strokeStyle="rgba(111,211,255,.5)";ctx.lineWidth=2;
 var m=8,L=18;
@@ -102,7 +137,7 @@ function bgStatic(){
 var t=1;
 drawScene(bgX,bgCv.width,bgCv.height,t,false);
 var ck=document.getElementById("cockpit");
-if(ck&&ck.offsetParent!==null){drawScene(ck.getContext("2d"),ck.width,ck.height,t,true);hudFrame(ck.getContext("2d"),ck.width,ck.height)}}
+if(ck&&ck.offsetParent!==null){drawScene(ck.getContext("2d"),ck.width,ck.height,t,true);drawShip(ck.getContext("2d"),ck.width,ck.height,1);hudFrame(ck.getContext("2d"),ck.width,ck.height)}}
 function sndBadge(){tone(523,.12,"sine",.07);tone(659,.12,"sine",.07,.1);tone(784,.2,"sine",.07,.2)}
 function sndRank(){tone(440,.1,"triangle",.07);tone(554,.1,"triangle",.07,.09);tone(659,.1,"triangle",.07,.18);tone(880,.24,"triangle",.07,.27)}
 function sndWin(){[523,659,784,1046].forEach(function(f,i){tone(f,.22,"sine",.07,i*.15)})}
@@ -124,7 +159,7 @@ if(window.__rankSeen===undefined){window.__rankSeen=ri}
 if(ri>window.__rankSeen){window.__rankSeen=ri;sndRank();showToast("Promoted to "+cur[1]+"! Keep going, commander.");burstFrom(el)}
 var pct=next?Math.min(100,Math.round(100*(sc-cur[0])/(next[0]-cur[0]))):100;
 el.innerHTML="<span>Rank: <b>"+cur[1]+"</b> ("+sc+" XP)"+(next?" &middot; "+(next[0]-sc)+" XP to "+next[1]:" &middot; top rank")+'</span><span class="rankBar"><span class="fill" style="width:'+pct+'%"></span></span>'}
-window.__fx={burstFrom:burstFrom,setRoom:setRoom,musState:function(){return musOn},musToggle:function(){musOn=!musOn;try{localStorage.setItem("musOn",musOn?"1":"0")}catch(e){}if(musOn){musStart()}else{musStop()}return musOn},armAutoStart:function(){document.addEventListener("pointerdown",function once(){document.removeEventListener("pointerdown",once);if(musOn){musStart()}},{once:true})}}
+window.__fx={burstFrom:burstFrom,setRoom:setRoom,musSetVol:musSetVol,musVolGet:function(){return musVol},musState:function(){return musOn},musToggle:function(){musOn=!musOn;try{localStorage.setItem("musOn",musOn?"1":"0")}catch(e){}if(musOn){musStart()}else{musStop()}return musOn},armAutoStart:function(){document.addEventListener("pointerdown",function once(){document.removeEventListener("pointerdown",once);if(musOn){musStart()}},{once:true})}}
 function applySnd(){$("sndBtn").querySelector(".lb").textContent="Sound: "+(sndOn?"on":"off")}
 
 function download(name,text,type){
@@ -601,6 +636,8 @@ card.appendChild(b)});
 ll.appendChild(card)})}
 $("r580PassExport").onclick=function(){var done=[];try{done=JSON.parse(localStorage.getItem("r580pass")||"[]")}catch(e){}$("r580PassBar").textContent=TrainerEngine.fa2PassportText(done).slice(0,200)};
 window.__featRefresh={passport:r580Pass,hunt:function(){var u=[];try{u=JSON.parse(localStorage.getItem("ach-unlocked")||"[]")}catch(e){}$("r650HuntOut").textContent=TrainerEngine.fa3HuntText(u)}};
+var FEATICONS={status:"&#128752;",build:"&#128736;",research:"&#128300;",crew:"&#128104;&#8205;&#128640;",exped:"&#128761;",outpost:"&#127959;",advisor:"&#128161;",ops:"&#9889;",log:"&#128221;",stats:"&#127942;",daily:"&#128197;",drill:"&#9888;",passport:"&#128366;",marathon:"&#127937;",timeline:"&#128197;",ach:"&#127894;",hunt:"&#127919;",analytics:"&#128202;",history:"&#128200;",briefing:"&#128488;",deep:"&#128301;",workbench:"&#128295;"};
+document.querySelectorAll(".wbCard").forEach(function(cd){var f=cd.getAttribute("data-feat");if(FEATICONS[f]){var ic=document.createElement("span");ic.className="wi";ic.innerHTML=FEATICONS[f];cd.insertBefore(ic,cd.firstChild)}});
 r580Drill();r580Pass();
 if(reduceMotion){var bg0=document.getElementById("spaceBg");if(bg0){bgCv=bg0;bgX=bg0.getContext("2d");bg0.width=innerWidth;bg0.height=innerHeight;stars=[];for(var si=0;si<160;si++){stars.push({x:Math.random(),y:Math.random(),z:Math.random(),tw:0})}bgStatic()}}
 else{bgInit()}
@@ -681,6 +718,8 @@ G("helpBtn").onclick=tourStart;
 G("musBtn").onclick=function(){var on=window.__fx.musToggle();G("musBtn").querySelector(".lb").textContent="Music: "+(on?"on":"off")};
 G("musBtn").querySelector(".lb").textContent="Music: "+(window.__fx.musState()?"on":"off");
 window.__fx.armAutoStart();
+G("volR").value=String(Math.round(window.__fx.musVolGet()/.12*100));
+G("volR").oninput=function(){window.__fx.musSetVol(parseInt(G("volR").value,10)/100*.12)};
 G("helpSetup").onclick=tourStart;
 document.querySelectorAll(".wbCard").forEach(function(b){b.onclick=function(){openFeat(b.dataset.feat)}});
 G("wbBack").onclick=closeFeat;
