@@ -2,7 +2,7 @@
 
 NASA Space Apps 2026 challenge #1. A browser-based base-management game for kids (and judges) that teaches real mission trade-offs on the Moon and Mars: power, oxygen, water, food, shielding, crew health and morale. Fully offline: open `index.html` and play.
 
-## Features (1211)
+## Features (1411)
 
 Core sim
 1. Two real sites (Lunar South Pole, Mars Jezero Rim) with distinct radiation, ice, sunlight, storm and quake profiles
@@ -1250,6 +1250,206 @@ Round-5 UI
 1209. Feature deck button r370r
 1210. Feature deck button r370s
 1211. Feature deck button r370t
+1212. Engine: round-8 catalog export da0_achievements_scenario_hash
+1213. Engine: round-8 catalog export da0_achievements_hoarder_hash
+1214. Engine: round-8 catalog export da0_events_tag_mars
+1215. Engine: round-8 catalog export da0_events_tag_moon
+1216. Engine: round-8 catalog export da0_events_sites_distinct
+1217. Engine: round-8 catalog export da0_quiz_tag_oxygen
+1218. Engine: round-8 catalog export da0_quiz_tag_water
+1219. Engine: round-8 catalog export da0_quiz_tag_methane
+1220. Engine: round-8 catalog export da0_quiz_tag_hydrogen
+1221. Engine: round-8 catalog export da0_quiz_tag_permanently_shadowed_craters
+1222. Engine: round-8 catalog export da0_quiz_tag_it_is_the_warmest_region
+1223. Engine: round-8 catalog export da0_quiz_tag_it_has_the_strongest_gravity
+1224. Engine: round-8 catalog export da0_quiz_tag_it_is_closest_to_earth
+1225. Engine: round-8 catalog export da0_quiz_tag_24_hours_37_minutes
+1226. Engine: round-8 catalog export da0_quiz_tag_12_hours
+1227. Engine: round-8 catalog export da0_quiz_tag_48_hours
+1228. Engine: round-8 catalog export da0_quiz_tag_29_5_days
+1229. Engine: round-8 catalog export da0_quiz_tag_carbon_dioxide
+1230. Engine: round-8 catalog export da0_quiz_tag_nitrogen
+1231. Engine: round-8 catalog export da0_quiz_tag_3_to_22_minutes
+1232. Engine: round-8 catalog export da0_quiz_tag_instant
+1233. Engine: round-8 catalog export da0_quiz_tag_2_seconds
+1234. Engine: round-8 catalog export da0_quiz_tag_3_hours
+1235. Engine: round-8 catalog export da0_quiz_tag_earth_s_magnetosphere
+1236. Engine: round-8 catalog export da0_quiz_tag_thick_glass
+1237. Engine: round-8 catalog export da0_quiz_tag_lead_walls
+1238. Engine: round-8 catalog export da0_quiz_tag_the_solar_arrays
+1239. Engine: round-8 catalog export da0_quiz_tag_about_29_5_earth_days
+1240. Engine: round-8 catalog export da0_quiz_tag_24_hours
+1241. Engine: round-8 catalog export da0_quiz_tag_7_days
+1242. Engine: round-8 catalog export da0_quiz_tag_365_days
+1243. Engine: round-8 catalog export da0_quiz_tag_heat_from_decaying_plutonium
+1244. Engine: round-8 catalog export da0_quiz_tag_burning_methane
+1245. Engine: round-8 catalog export da0_quiz_tag_wind_turbines
+1246. Engine: round-8 catalog export da0_quiz_tag_coal_cells
+1247. Engine: round-8 catalog export da0_quiz_tag_resupply_from_earth_is_slow_
+1248. Engine: round-8 catalog export da0_quiz_tag_plants_glow_nicely
+1249. Engine: round-8 catalog export da0_quiz_tag_soil_is_free_in_space
+1250. Engine: round-8 catalog export da0_quiz_tag_it_removes_all_co2
+1251. Engine: round-8 catalog export da0_quiz_tag_dust_blocks_sunlight_and_coa
+1252. Engine: round-8 catalog export da0_quiz_tag_dust_freezes_panels
+1253. Engine: round-8 catalog export da0_quiz_tag_dust_conducts_electricity
+1254. Engine: round-8 catalog export da0_quiz_tag_no_hazard
+1255. Engine: round-8 catalog export da0_quiz_tag_artemis
+1256. Engine: round-8 catalog export da0_quiz_tag_apollo
+1257. Engine: round-8 catalog export da0_quiz_tag_gemini
+1258. Engine: round-8 catalog export da0_quiz_tag_mercury
+1259. Engine: round-8 catalog export da0_quiz_tag_james_webb
+1260. Engine: round-8 catalog export da0_quiz_tag_hubble
+1261. Engine: round-8 catalog export da0_quiz_tag_kepler
+1262. Engine: round-8 catalog export da0_quiz_tag_spitzer
+1263. Engine: round-8 catalog export da0_quiz_tag_it_absorbs_radiation_when_pi
+1264. Engine: round-8 catalog export da0_quiz_tag_it_is_magnetic
+1265. Engine: round-8 catalog export da0_quiz_tag_it_glows
+1266. Engine: round-8 catalog export da0_quiz_tag_it_is_radioactive
+1267. Engine: round-8 catalog export da0_quiz_tag_water_molecules
+1268. Engine: round-8 catalog export da0_quiz_tag_oil
+1269. Engine: round-8 catalog export da0_quiz_tag_methane_lakes
+1270. Engine: round-8 catalog export da0_quiz_tag_active_volcanoes
+1271. Engine: round-8 catalog export da0_quiz_tag_natural_caves_give_ready_mad
+1272. Engine: round-8 catalog export da0_quiz_tag_they_contain_gold
+1273. Engine: round-8 catalog export da0_quiz_tag_they_generate_heat
+1274. Engine: round-8 catalog export da0_quiz_tag_they_attract_rovers
+1275. Engine: round-8 catalog export da0_quiz_tag_using_local_resources_like_i
+1276. Engine: round-8 catalog export da0_quiz_tag_a_rocket_fuel
+1277. Engine: round-8 catalog export da0_quiz_tag_a_satellite_band
+1278. Engine: round-8 catalog export da0_quiz_tag_a_spacesuit_layer
+1279. Engine: round-8 catalog export da0_quiz_tag_toxic_to_humans_and_crops
+1280. Engine: round-8 catalog export da0_quiz_tag_delicious
+1281. Engine: round-8 catalog export da0_quiz_tag_radioactive
+1282. Engine: round-8 catalog export da0_quiz_tag_explosive
+1283. Engine: round-8 catalog export da0_quiz_tag_apollo_13
+1284. Engine: round-8 catalog export da0_quiz_tag_apollo_11
+1285. Engine: round-8 catalog export da0_quiz_tag_apollo_8
+1286. Engine: round-8 catalog export da0_quiz_tag_apollo_17
+1287. Engine: round-8 catalog export da0_quiz_tag_sunlight_there_is_weaker_and
+1288. Engine: round-8 catalog export da0_quiz_tag_plants_fear_mars
+1289. Engine: round-8 catalog export da0_quiz_tag_glass_freezes
+1290. Engine: round-8 catalog export da0_quiz_tag_it_doesn_t
+1291. Engine: round-8 catalog export da0_quiz_tag_solar_arrays_on_illuminated_
+1292. Engine: round-8 catalog export da0_quiz_tag_coal_plant
+1293. Engine: round-8 catalog export da0_quiz_tag_wind_farm
+1294. Engine: round-8 catalog export da0_quiz_tag_tidal_generator
+1295. Engine: round-8 catalog export da0_quiz_a_distinct
+1296. Engine: round-8 catalog export da0_storm_has_moon
+1297. Engine: round-8 catalog export da0_storm_has_mars
+1298. Engine: round-8 catalog export da0_micro_has_moon
+1299. Engine: round-8 catalog export da0_micro_has_mars
+1300. Engine: round-8 catalog export da0_illness_has_moon
+1301. Engine: round-8 catalog export da0_illness_has_mars
+1302. Engine: round-8 catalog export da0_aurora_has_moon
+1303. Engine: round-8 catalog export da0_aurora_has_mars
+1304. Engine: round-8 catalog export da0_quake_has_moon
+1305. Engine: round-8 catalog export da0_quake_has_mars
+1306. Engine: round-8 catalog export da0_find_has_moon
+1307. Engine: round-8 catalog export da0_find_has_mars
+1308. Engine: round-8 catalog export da0_relay_has_moon
+1309. Engine: round-8 catalog export da0_relay_has_mars
+1310. Engine: round-8 catalog export da0_calm_has_moon
+1311. Engine: round-8 catalog export da0_calm_has_mars
+1312. Engine: round-8 catalog export da0_flare_has_moon
+1313. Engine: round-8 catalog export da0_flare_has_mars
+1314. Engine: round-8 catalog export da0_birthday_has_moon
+1315. Engine: round-8 catalog export da0_birthday_has_mars
+1316. Engine: round-8 catalog export da0_stowaway_has_moon
+1317. Engine: round-8 catalog export da0_stowaway_has_mars
+1318. Engine: round-8 catalog export da0_coolant_has_moon
+1319. Engine: round-8 catalog export da0_coolant_has_mars
+1320. Engine: round-8 catalog export da0_podbonus_has_moon
+1321. Engine: round-8 catalog export da0_podbonus_has_mars
+1322. Engine: round-8 catalog export da0_breakthrough_has_moon
+1323. Engine: round-8 catalog export da0_breakthrough_has_mars
+1324. Engine: round-8 catalog export da0_homesick_has_moon
+1325. Engine: round-8 catalog export da0_homesick_has_mars
+1326. Engine: round-8 catalog export da0_meteorshower_has_moon
+1327. Engine: round-8 catalog export da0_meteorshower_has_mars
+1328. Engine: round-8 catalog export da0_o2leak_has_moon
+1329. Engine: round-8 catalog export da0_o2leak_has_mars
+1330. Engine: round-8 catalog export da0_blight_has_moon
+1331. Engine: round-8 catalog export da0_blight_has_mars
+1332. Engine: round-8 catalog export da0_argument_has_moon
+1333. Engine: round-8 catalog export da0_argument_has_mars
+1334. Engine: round-8 catalog export da0_dustdevil_has_moon
+1335. Engine: round-8 catalog export da0_dustdevil_has_mars
+1336. Engine: round-8 catalog export da0_suitpuncture_has_moon
+1337. Engine: round-8 catalog export da0_suitpuncture_has_mars
+1338. Engine: round-8 catalog export da0_icepocket_has_moon
+1339. Engine: round-8 catalog export da0_icepocket_has_mars
+1340. Engine: round-8 catalog export da0_what_did_nasa_s_moxie_experi_has_oxygen
+1341. Engine: round-8 catalog export da0_what_did_nasa_s_moxie_experi_has_methane
+1342. Engine: round-8 catalog export da0_what_did_nasa_s_moxie_experi_has_water
+1343. Engine: round-8 catalog export da0_what_did_nasa_s_moxie_experi_has_hydrogen
+1344. Engine: round-8 catalog export da0_what_did_nasa_s_moxie_experi_has_permanently_shadowed_craters
+1345. Engine: round-8 catalog export da0_what_did_nasa_s_moxie_experi_has_it_is_the_warmest_region
+1346. Engine: round-8 catalog export da0_what_did_nasa_s_moxie_experi_has_it_has_the_strongest_gravity
+1347. Engine: round-8 catalog export da0_what_did_nasa_s_moxie_experi_has_it_is_closest_to_earth
+1348. Engine: round-8 catalog export da0_what_did_nasa_s_moxie_experi_has_24_hours_37_minutes
+1349. Engine: round-8 catalog export da0_what_did_nasa_s_moxie_experi_has_12_hours
+1350. Engine: round-8 catalog export da0_what_did_nasa_s_moxie_experi_has_48_hours
+1351. Engine: round-8 catalog export da0_what_did_nasa_s_moxie_experi_has_29_5_days
+1352. Engine: round-8 catalog export da0_what_did_nasa_s_moxie_experi_has_carbon_dioxide
+1353. Engine: round-8 catalog export da0_what_did_nasa_s_moxie_experi_has_nitrogen
+1354. Engine: round-8 catalog export da0_what_did_nasa_s_moxie_experi_has_3_to_22_minutes
+1355. Engine: round-8 catalog export da0_what_did_nasa_s_moxie_experi_has_instant
+1356. Engine: round-8 catalog export da0_what_did_nasa_s_moxie_experi_has_2_seconds
+1357. Engine: round-8 catalog export da0_what_did_nasa_s_moxie_experi_has_3_hours
+1358. Engine: round-8 catalog export da0_what_did_nasa_s_moxie_experi_has_earth_s_magnetosphere
+1359. Engine: round-8 catalog export da0_what_did_nasa_s_moxie_experi_has_thick_glass
+1360. Engine: round-8 catalog export da0_what_did_nasa_s_moxie_experi_has_lead_walls
+1361. Engine: round-8 catalog export da0_what_did_nasa_s_moxie_experi_has_the_solar_arrays
+1362. Engine: round-8 catalog export da0_what_did_nasa_s_moxie_experi_has_about_29_5_earth_days
+1363. Engine: round-8 catalog export da0_what_did_nasa_s_moxie_experi_has_24_hours
+1364. Engine: round-8 catalog export da0_what_did_nasa_s_moxie_experi_has_7_days
+1365. Engine: round-8 catalog export da0_what_did_nasa_s_moxie_experi_has_365_days
+1366. Engine: round-8 catalog export da0_what_did_nasa_s_moxie_experi_has_heat_from_decaying_plutonium
+1367. Engine: round-8 catalog export da0_what_did_nasa_s_moxie_experi_has_burning_methane
+1368. Engine: round-8 catalog export da0_what_did_nasa_s_moxie_experi_has_wind_turbines
+1369. Engine: round-8 catalog export da0_what_did_nasa_s_moxie_experi_has_coal_cells
+1370. Engine: round-8 catalog export da0_what_did_nasa_s_moxie_experi_has_resupply_from_earth_is_slow_
+1371. Engine: round-8 catalog export da0_what_did_nasa_s_moxie_experi_has_plants_glow_nicely
+1372. Feature deck button r440a
+1373. Feature deck button r440b
+1374. Feature deck button r440c
+1375. Feature deck button r440d
+1376. Feature deck button r440e
+1377. Feature deck button r440f
+1378. Feature deck button r440g
+1379. Feature deck button r440h
+1380. Feature deck button r440i
+1381. Feature deck button r440j
+1382. Feature deck button r440k
+1383. Feature deck button r440l
+1384. Feature deck button r440m
+1385. Feature deck button r440n
+1386. Feature deck button r440o
+1387. Feature deck button r440p
+1388. Feature deck button r440q
+1389. Feature deck button r440r
+1390. Feature deck button r440s
+1391. Feature deck button r440t
+1392. Feature deck button r440u
+1393. Feature deck button r440v
+1394. Feature deck button r440w
+1395. Feature deck button r440x
+1396. Feature deck button r440y
+1397. Feature deck button r440z
+1398. Feature deck button r440aa
+1399. Feature deck button r440ab
+1400. Feature deck button r440ac
+1401. Feature deck button r440ad
+1402. Feature deck button r440ae
+1403. Feature deck button r440af
+1404. Feature deck button r440ag
+1405. Feature deck button r440ah
+1406. Feature deck button r440ai
+1407. Feature deck button r440aj
+1408. Feature deck button r440ak
+1409. Feature deck button r440al
+1410. Feature deck button r440am
+1411. Feature deck button r440an
 
 ## Data and sources
 
@@ -1257,7 +1457,7 @@ Challenge statement: nasaspaceapps.ae/challenges (Junior Astronaut Mission Train
 
 ## Tested
 
-`node test.js` — 875 checks (62 original + 102 round-4 + 66 round-5 + 61 round-6 + 124 round-7 + 380 round-8 + 80 round-9) covering engine rules, resource math, role effects, tech effects, expeditions, scenarios, sandbox behavior, advisor triggers, forecast correctness and a full playthrough that wins. All pass on Node 22. Round-4 tests cover the new buildings, techs, expeditions, events, ops actions, analytics functions, objective modes, grading and exports. Round-5 tests cover the briefing, runway, plans, advisors, checklists, CSV/JSON/markdown exports, integrity checker and state hash. Round-6 tests cover the new mission-analytics engine functions: resource aggregates, crew metrics, building and tech counters, objective progress, reserve warnings and per-crew ratios.
+`node test.js` — 1035 checks (62 original + 102 round-4 + 66 round-5 + 61 round-6 + 124 round-7 + 380 round-8 + 80 round-9 + 160 round-10) covering engine rules, resource math, role effects, tech effects, expeditions, scenarios, sandbox behavior, advisor triggers, forecast correctness and a full playthrough that wins. All pass on Node 22. Round-4 tests cover the new buildings, techs, expeditions, events, ops actions, analytics functions, objective modes, grading and exports. Round-5 tests cover the briefing, runway, plans, advisors, checklists, CSV/JSON/markdown exports, integrity checker and state hash. Round-6 tests cover the new mission-analytics engine functions: resource aggregates, crew metrics, building and tech counters, objective progress, reserve warnings and per-crew ratios.
 
 ## Untested
 
