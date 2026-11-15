@@ -12,7 +12,7 @@ var OUT={solar:1,rtg:1,comms:1,drill:1,observatory:1,pad:1,watermine:1,shield:1}
 var COL={solar:"#2f6fd6",rtg:"#c9a23a",battery:"#7a6fd0",o2gen:"#4fc3c9",scrubber:"#6aa5a8",watermine:"#4d9bff",recycler:"#5aa7e6",greenhouse:"#3fae62",habitat:"#9aa7bd",shield:"#8a8f98",medbay:"#e8e8f0",lab:"#b18ae8",comms:"#d0d6e0",drill:"#c98b4a",workshop:"#c9733a",algae:"#58b88a",observatory:"#8fb1ff",gym:"#e09a6a",pad:"#6d7280",mission:"#6fd3ff"};
 var JOB={
 solar:["Brush dust off the panels","parts",1],rtg:["Read the RTG temperature log","science",1],battery:["Check the battery cells","science",1],
-o2gen:["Swap the air filter","o2",4],scrubber:["Empty the CO2 cartridge","o2",3],watermine:["Empty the ice hopper","water",4],
+o2gen:["Swap the air filter","o2",4],scrubber:["Empty the CO₂ cartridge","o2",3],watermine:["Empty the ice hopper","water",4],
 recycler:["Clean the water filter","water",3],greenhouse:["Water the plants","food",3],habitat:["Tidy the bunks and check in with the crew","morale",3],
 shield:["Stack regolith bags on the wall","regolith",3],medbay:["Restock the first-aid shelf","health",2],lab:["Log a rock sample","science",3],
 comms:["Align the dish and check the signal","science",2],drill:["Clear the drill bit","regolith",3],workshop:["Sweep up the regolith dust","parts",1],
@@ -33,7 +33,7 @@ else if(tot+wc>w.hours){why="The plan needs "+tot+" h"+(wc?" (up to "+(tot+wc)+"
 var su=null;if(!why&&window.__suit){su=window.__suit.project(s,tot+wc,j.kind);if(su.why){why=su.why}}
 return{wc:wc,suit:su,total:tot,travel:r1(tr),dm:Math.round(dmOf(m)),task:j.cost,why:why,ok:!why,buddy:null,alive:alive.map(function(c){return c.name})}}
 var cv,cx,panel,jobsEl,infoEl,hoursEl,msgEl,warnEl;
-var P={x:-12,z:0,yaw:0,tgt:null,auto:false,act:null,prog:0,t:0,step:0},keys={},npcs=[],lastT=0,wasStorm=false,fx=[];
+var P={x:-12,z:0,yaw:0,tgt:null,auto:false,act:null,prog:0,t:0,step:0,boost:100,jumpY:0,jumpV:0},keys={},npcs=[],lastT=0,wasStorm=false,fx=[],popups=[];
 function S(){return window.__S?window.__S():null}
 function E(){return window.TrainerEngine}
 function W(s){s.flags=s.flags||{};var w=s.flags.walk;if(!w||w.sol!==s.sol){var storm=isStorm(s);w=s.flags.walk={sol:s.sol,hours:storm?STORM_DAY:DAY,done:{},exp:0,total:storm?STORM_DAY:DAY,jobs:(w&&w.jobs)||0}}return w}
@@ -93,7 +93,7 @@ w.done[key(m)]=1;
 if(d[1]==="morale"){s.crew.forEach(function(c){if(c.health>0){c.morale=Math.min(100,c.morale+amt)}});msg="Crew morale +"+amt+"."}
 else if(d[1]==="health"){var lo=s.crew.filter(function(c){return c.health>0}).sort(function(a,b){return a.health-b.health})[0];if(lo){lo.health=Math.min(100,lo.health+amt)}msg="Health +"+amt+" for the crew member who needed it most."}
 else if(d[1]==="science"){s.res.science+=amt;s.totals.science=(s.totals.science||0)+amt;msg="+"+amt+" science."}
-else{s.res[d[1]]=(s.res[d[1]]||0)+amt;msg="+"+amt+" "+d[1]+(urgent?" (urgent, doubled).":".")}}
+else{s.res[d[1]]=(s.res[d[1]]||0)+amt;msg="+"+amt+" "+(d[1]==="o2"?"O₂":d[1])+(urgent?" (urgent, doubled).":".")}}
 if(plan){var bd=s.crew.filter(function(c){return c.name===plan.buddy})[0];if(bd){bd.fatigue=Math.min(100,(bd.fatigue||0)+Math.round(plan.total*3))}
 if(window.__lab&&window.__lab.evaDose){window.__lab.evaDose(s,plan.buddy,plan.total)}
 msg+=" EVA "+plan.total+" h with "+(plan.buddy||"your buddy")+".";if(window.__suit&&plan.suit){msg+=window.__suit.finish(s,plan,j,{act:{ev:j.ev}})}}
@@ -101,6 +101,7 @@ s.log.unshift({sol:s.sol,msg:"Walk: "+j.label+(msg?" "+msg:"")});
 if(window.__render){window.__render()}
 say(msg+" "+w.hours+" hour"+(w.hours===1?"":"s")+" left today.");
 for(var i=0;i<14;i++){fx.push({x:cv.width/2+(Math.random()*120-60),y:cv.height*.7,vx:Math.random()*4-2,vy:-2-Math.random()*3,l:1,c:j.kind==="fix"?"#ffd166":"#7be0a0"})}
+popups.push({txt:msg.split(".")[0],x:cv.width/2,y:cv.height*0.55,l:1.0});
 list()}
 function abortEva(a,ev){var s=S(),w=W(s),pl=a.plan,tot=r1(EVA.egress+EVA.ingress+2*pl.travel+a.j.cost*.5);
 P.act=null;P.mini=null;P.prog=0;w.hours=r1(Math.max(0,w.hours-tot));w.jobs++;
@@ -123,7 +124,7 @@ jobsEl.querySelectorAll(".wkJob").forEach(function(b){b.onclick=function(){var i
 var fc=E().forecast?E().forecast(s,1):null;
 var warn=isStorm(s)?"STORM: outdoor jobs are unsafe and the day is shorter. Stay inside and keep the lights on.":(fc&&fc.id==="storm"?"Storm warning for next sol: finish outdoor jobs now and make sure shielding is ready.":"");
 warnEl.textContent=warn;warnEl.hidden=!warn;
-var res=s.res,chips=[["O2",res.o2,60],["Water",res.water,60],["Food",res.food,40],["Parts",res.parts,10]];
+var res=s.res,chips=[["O₂",res.o2,60],["Water",res.water,60],["Food",res.food,40],["Parts",res.parts,10]];
 infoEl.innerHTML=chips.map(function(c){var v=Math.floor(c[1]),cl=v<c[2]*0.6?"lo":(v<c[2]?"mid":"ok");return'<span class="wkChip '+cl+'">'+c[0]+" "+v+"</span>"}).join("")}
 /* ---------- first-person drawing (software 3D on a 2D canvas: perspective projection, shaded faces, long low-sun shadows) ---------- */
 var EYE=1.7,HZ0=.5,SUN=(function(){var v=[-.55,.28,.78],l=Math.sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);return[v[0]/l,v[1]/l,v[2]/l]})();
@@ -222,7 +223,9 @@ initWorld();cw=cv.width;ch=cv.height;F=cw*.6;HZ=ch*.5;
 var storm=isStorm(s),ms=mods(s);
 var dt=lastT?Math.min(.05,(now-lastT)/1000):0;lastT=now;P.t+=dt;
 var turn=(keys.r?1:0)-(keys.l?1:0),fwd=(keys.u?1:0)-(keys.d?1:0);
-var sp=(storm?2.2:3.4);
+var boosting=keys.boost&&P.boost>5&&(turn||fwd);
+if(boosting){P.boost=Math.max(0,P.boost-35*dt)}else{P.boost=Math.min(100,P.boost+22*dt)}
+var sp=(storm?2.2:3.4)*(boosting?2.15:1);
 if(P.act&&P.act.plan&&(turn||fwd)){turn=0;fwd=0}
 if(turn||fwd){P.tgt=null;P.auto=false;P.act=null;P.mini=null;if(P.pend){hidePlan()}}
 if(P.tgt){var dx=P.tgt.wx-P.x,dz=P.tgt.wz-P.z,dd=Math.sqrt(dx*dx+dz*dz),want=Math.atan2(dz,dx),df=want-P.yaw;while(df>Math.PI){df-=6.2832}while(df<-Math.PI){df+=6.2832}
@@ -233,7 +236,8 @@ if(fwd){var nx=P.x+cosY*sp*dt*fwd,nz=P.z+sinY*sp*dt*fwd;var ok=true;ms.forEach(f
 if(ok){P.x=nx;P.z=nz}P.step+=dt*(reduce?0:8)}
 if(P.act&&P.act.paused){}else if(P.act){if(P.act.j.kind==="fix"&&!window.__walkFast){miniStep(dt)}else{P.prog+=window.__walkFast?1:dt/1.1;if(P.act.plan&&window.__suit&&!P.act.chk&&P.act.j.kind!=="fix"&&(P.prog>=.5||window.__walkFast)&&!(window.__walkFast&&!window.__evaReal)){P.act.chk=1;window.__suit.mid(P.act)}if(P.act&&!P.act.paused&&P.prog>=1){var a=P.act;P.act=null;P.prog=0;apply(s,a.m,a.j,a.plan)}}}
 if(storm!==wasStorm){wasStorm=storm;list()}
-var bob=(!reduce&&fwd)?Math.sin(P.step)*3:0;HZ=ch*.5+bob;
+var grav=(s.site==="mars")?9.2:5.2;if(P.jumpY>0||P.jumpV!==0){P.jumpY+=P.jumpV*dt;if(P.jumpY>0){P.jumpV-=grav*dt}else{P.jumpY=0;P.jumpV=0}}
+var bob=((!reduce&&fwd)?Math.sin(P.step)*3:0)+P.jumpY*26;HZ=ch*.5+bob;
 var t=P.t;
 /* sky */
 var sky=cx.createLinearGradient(0,0,0,HZ);var mars=s.site==="mars";
@@ -275,14 +279,18 @@ var rg=cx.createLinearGradient(0,0,cw,ch);rg.addColorStop(0,"rgba(255,255,255,.0
 var wk=P.act&&!reduce?Math.sin(t*14)*8:0,hy=ch-(P.act?96:62)+bob*2;
 function glove(gx,gy){cx.fillStyle="#d9dde6";cx.beginPath();cx.ellipse(gx,gy,30,22,0,0,6.3);cx.fill();cx.fillStyle="#aab0be";cx.fillRect(gx-26,gy+8,52,6);cx.fillStyle="#c4c9d6";cx.beginPath();cx.arc(gx-14,gy-12,6,0,6.3);cx.arc(gx,gy-17,6,0,6.3);cx.arc(gx+14,gy-12,6,0,6.3);cx.fill()}
 glove(cw*.28,hy+wk);glove(cw*.72,hy-wk);
+if(P.act&&!reduce){cx.save();cx.strokeStyle=P.act.j.kind==="fix"?"rgba(255,209,102,0.85)":"rgba(111,211,255,0.85)";cx.lineWidth=3+Math.sin(t*30)*1.5;cx.beginPath();cx.moveTo(cw*.72-10,hy-wk-10);cx.lineTo(cw/2+Math.sin(t*22)*8,HZ+Math.cos(t*19)*6);cx.stroke();cx.fillStyle="#fff";cx.beginPath();cx.arc(cw/2+Math.sin(t*22)*8,HZ+Math.cos(t*19)*6,4+Math.random()*3,0,6.28);cx.fill();cx.restore()}
+for(var pi=popups.length-1;pi>=0;pi--){var pp=popups[pi];pp.y-=42*dt;pp.l-=0.75*dt;if(pp.l<=0){popups.splice(pi,1);continue}cx.save();cx.globalAlpha=Math.min(1,pp.l*1.4);cx.font="bold 16px Verdana";cx.fillStyle="#5eead4";cx.textAlign="center";cx.fillText(pp.txt,pp.x,pp.y);cx.restore()}
+cx.fillStyle="rgba(8,16,32,0.65)";cx.fillRect(cw*0.3,10,cw*0.4,20);cx.strokeStyle="rgba(111,211,255,0.4)";cx.strokeRect(cw*0.3,10,cw*0.4,20);
+ms.forEach(function(m){var ang=Math.atan2(m.wz-P.z,m.wx-P.x)-P.yaw;while(ang>Math.PI){ang-=6.2832}while(ang<-Math.PI){ang+=6.2832}if(Math.abs(ang)<1.2){var bx=cw*0.5+(ang/1.2)*(cw*0.19);cx.fillStyle=m.damaged?"#ff6b6b":(m.kind==="mission"?"#6fd3ff":"#7be0a0");cx.fillRect(bx-2,14,4,12)}});
 /* visor readout */
-var w=W(s);cx.font="bold 13px Verdana";cx.fillStyle="rgba(111,211,255,.9)";cx.fillText("HRS "+w.hours+"/"+w.total,cw*.12,34);cx.fillText("SOL "+s.sol+"/"+s.objectiveSols,cw*.12,52);cx.textAlign="right";cx.fillText("SCI "+Math.floor(s.res.science)+"/"+s.objectiveScience,cw*.88,34);cx.fillText("O2 "+Math.floor(s.res.o2),cw*.88,52);cx.textAlign="left";
+var w=W(s);cx.font="bold 13px Verdana";cx.fillStyle="rgba(111,211,255,.9)";cx.fillText("HRS "+w.hours+"/"+w.total,cw*.12,34);cx.fillText("SOL "+s.sol+"/"+s.objectiveSols,cw*.12,52);cx.fillText("BOOST "+Math.round(P.boost)+"%",cw*.12,70);cx.textAlign="right";cx.fillText("SCI "+Math.floor(s.res.science)+"/"+s.objectiveScience,cw*.88,34);cx.fillText("O₂ "+Math.floor(s.res.o2),cw*.88,52);cx.textAlign="left";
 /* crosshair + prompt */
 cx.strokeStyle="rgba(255,255,255,.5)";cx.lineWidth=1;cx.beginPath();cx.moveTo(cw/2-8,HZ);cx.lineTo(cw/2+8,HZ);cx.moveTo(cw/2,HZ-8);cx.lineTo(cw/2,HZ+8);cx.stroke();
 if(P.act&&P.mini){var q=P.mini,bx=cw/2-110,by=ch*.6;cx.fillStyle="rgba(0,0,0,.65)";cx.fillRect(bx-6,by-22,232,52);cx.fillStyle="#2b3350";cx.fillRect(bx,by,220,14);cx.fillStyle="#3fbf7a";cx.fillRect(bx+220*.37,by,220*.26,14);cx.fillStyle="#fff";cx.fillRect(bx+220*q.x-2,by-4,4,22);cx.font="12px Verdana";cx.textAlign="center";cx.fillStyle="#cfe6ff";cx.fillText("Seat the patch: press E when the bar is in the green ("+q.n+"/3)",cw/2,by-8);cx.textAlign="left"}
 else if(P.act){cx.fillStyle="rgba(0,0,0,.6)";cx.fillRect(cw/2-70,ch*.62,140,10);cx.fillStyle="#7be0a0";cx.fillRect(cw/2-70,ch*.62,140*Math.min(1,P.prog),10)}
 var nm=near(s,true);var txt="";
-if(nm&&!P.act){var j=jobFor(s,nm);txt=nm.name+": "+(j.kind==="none"?j.label:(j.ok?j.label+"  [E]":(j.why||j.label)))}else if(!P.act){var any=near(s,false);if(any){txt="Turn to face "+any.name+" (arrow keys or A and D)"}}
+if(nm&&!P.act){var j=jobFor(s,nm);txt=nm.name+": "+(j.kind==="none"?j.label:(j.ok?j.label+"  [E / Space]":(j.why||j.label)))}else if(!P.act){var any=near(s,false);if(any){txt="Turn to face "+any.name+" (arrow keys or A and D)"}}
 if(!txt&&!P.act&&!P.pend&&window.__survey){var svp=window.__survey.prompt(s,P.x,P.z,P.yaw);if(svp){txt=svp}}
 if(txt){cx.fillStyle="rgba(0,0,0,.62)";cx.fillRect(cw*.1,ch*.84,cw*.8,24);cx.fillStyle="#fff";cx.font="13px Verdana";cx.textAlign="center";cx.fillText(txt,cw/2,ch*.84+16);cx.textAlign="left"}}
 function dist2(a,b,c,d){return Math.sqrt((a-c)*(a-c)+(b-d)*(b-d))}
@@ -294,16 +302,21 @@ panel=document.createElement("section");panel.id="walkPanel";panel.className="pa
 panel.innerHTML='<h2>Walk the base</h2><p class="hint">You are the astronaut, seen through your own helmet. Turn with the left and right arrows (or A and D), walk with the up and down arrows (or W and S) or the on-screen buttons, face a module and press E, or tap a job to be walked there. Every job spends hours from a short working day. Everyday jobs keep the base alive. The mission needs hours too: reach the science goal before the return window closes.</p>'+
 '<div id="wkHours"></div><div id="wkWarn" class="wkWarn" hidden></div><div id="wkInfo"></div>'+
 '<canvas id="wkCv" width="800" height="450" tabindex="0" aria-label="First-person view of the outpost. Left and right arrows turn, up and down arrows walk, E does the job you are facing."></canvas>'+
-'<div class="wkPad"><button type="button" id="wkL" aria-label="Turn left">&#8630;</button><button type="button" id="wkU" aria-label="Walk forward">&#9650;</button><button type="button" id="wkD" aria-label="Walk back">&#9660;</button><button type="button" id="wkR" aria-label="Turn right">&#8631;</button><button type="button" id="wkAct">Do job (E)</button></div>'+
+'<div class="wkPad"><button type="button" id="wkL" aria-label="Turn left">&#8630;</button><button type="button" id="wkU" aria-label="Walk forward">&#9650;</button><button type="button" id="wkD" aria-label="Walk back">&#9660;</button><button type="button" id="wkR" aria-label="Turn right">&#8631;</button><button type="button" id="wkBoost" title="Hold Shift for Jetpack Sprint">Boost (Shift)</button><button type="button" id="wkAct">Do job (E / Space)</button></div>'+
 '<div id="wkMsg" role="status" aria-live="polite">Walk to a module to start.</div><div id="wkPlan" class="labBox" hidden></div><h3 class="wkH">Today\'s jobs</h3><div id="wkJobs"></div>'+
 '<p class="hint">Small rewards, small costs: jobs are simplified teaching rules. Advance one sol ends the day and unused hours are lost.</p>';
 var sp=$("statusPanel");g.insertBefore(panel,sp);
 cv=$("wkCv");cx=cv.getContext("2d");jobsEl=$("wkJobs");planEl=$("wkPlan");infoEl=$("wkInfo");hoursEl=$("wkHours");msgEl=$("wkMsg");warnEl=$("wkWarn");
 function hold(id,k){var b=$(id);var on=function(e){e.preventDefault();keys[k]=true},off=function(){keys[k]=false};b.addEventListener("pointerdown",on);b.addEventListener("pointerup",off);b.addEventListener("pointerleave",off);b.addEventListener("pointercancel",off)}
-hold("wkL","l");hold("wkR","r");hold("wkU","u");hold("wkD","d");$("wkAct").onclick=start;
+hold("wkL","l");hold("wkR","r");hold("wkU","u");hold("wkD","d");hold("wkBoost","boost");$("wkAct").onclick=start;
 document.addEventListener("keydown",function(e){var gm=$("game");if(!gm||gm.dataset.feat!=="walk"){return}var t=e.target&&e.target.tagName;if(t==="INPUT"||t==="SELECT"||t==="TEXTAREA"){return}
-var k=e.key;if(k==="ArrowLeft"||k==="a"||k==="A"){keys.l=true;e.preventDefault()}else if(k==="ArrowRight"||k==="d"||k==="D"){keys.r=true;e.preventDefault()}else if(k==="ArrowUp"||k==="w"||k==="W"){keys.u=true;e.preventDefault()}else if(k==="ArrowDown"||k==="s"||k==="S"){keys.d=true;e.preventDefault()}else if(k==="e"||k==="E"||(k===" "&&e.target===cv)){start();e.preventDefault()}});
-document.addEventListener("keyup",function(e){var k=e.key;if(k==="ArrowLeft"||k==="a"||k==="A"){keys.l=false}else if(k==="ArrowRight"||k==="d"||k==="D"){keys.r=false}else if(k==="ArrowUp"||k==="w"||k==="W"){keys.u=false}else if(k==="ArrowDown"||k==="s"||k==="S"){keys.d=false}});
+var k=e.key;if(k==="ArrowLeft"||k==="a"||k==="A"){keys.l=true;e.preventDefault()}else if(k==="ArrowRight"||k==="d"||k==="D"){keys.r=true;e.preventDefault()}else if(k==="ArrowUp"||k==="w"||k==="W"){keys.u=true;e.preventDefault()}else if(k==="ArrowDown"||k==="s"||k==="S"){keys.d=true;e.preventDefault()}else if(k==="Shift"){keys.boost=true}else if(k==="e"||k==="E"){start();e.preventDefault()}else if((k===" "||e.code==="Space")&&e.target===cv){
+e.preventDefault();
+var sNow=S(),mNow=sNow?near(sNow,true):null;
+if(mNow&&jobFor(sNow,mNow).ok){start()}
+else if(!P.pend){if(P.jumpY<=0.01){P.jumpV=(sNow&&sNow.site==="mars")?3.4:4.6}say("Low-gravity hop! ("+(sNow&&sNow.site==="mars"?"Mars 0.38g":"Moon 0.16g")+") - walk up to a module and press E or Space to do a job.")}
+}});
+document.addEventListener("keyup",function(e){var k=e.key;if(k==="ArrowLeft"||k==="a"||k==="A"){keys.l=false}else if(k==="ArrowRight"||k==="d"||k==="D"){keys.r=false}else if(k==="ArrowUp"||k==="w"||k==="W"){keys.u=false}else if(k==="ArrowDown"||k==="s"||k==="S"){keys.d=false}else if(k==="Shift"){keys.boost=false}});
 cv.addEventListener("click",function(e){var s=S();if(!s){return}if(P.act&&P.mini){lockMini();return}var r=cv.getBoundingClientRect(),mx=(e.clientX-r.left)*cv.width/r.width,best=null,bd=1e9;mods(s).forEach(function(m){var p=pr(m.wx,2,m.wz);if(p){var d=Math.abs(p.x-mx);if(d<bd&&d<cv.width*.18){bd=d;best=m}}});if(best){P.tgt=best;P.auto=false;P.act=null;say("Walking to "+best.name+"...")}});
 /* menu card, first in the Mission menu */
 var card=document.createElement("button");card.className="wbCard wkCard";card.setAttribute("data-feat","walk");card.innerHTML="<b>Walk the base</b><span>Play the astronaut: daily jobs, faults and the mission clock</span>";

@@ -1144,14 +1144,33 @@ m.classList.remove("anim");void m.offsetWidth;m.classList.add("anim")}
 function closeFeat(){var m=G("game");m.classList.remove("wb-open");delete m.dataset.feat;try{localStorage.removeItem("jamt_view")}catch(e){}m.classList.remove("anim");void m.offsetWidth;m.classList.add("anim")}
 window.__openFeat=openFeat;
 window.__closeFeat=closeFeat;
+var friendlyVoice=null;
+function pickFriendlyVoice(){
+try{
+if(!window.speechSynthesis){return null}
+var vs=speechSynthesis.getVoices()||[];
+if(!vs.length){return null}
+var pref=["Google UK English Female","Samantha","Karen","Moira","Tessa","Victoria","Microsoft Aria","Microsoft Jenny","Google US English","Siri","Natural","Female"];
+for(var pi=0;pi<pref.length;pi++){
+for(var vi=0;vi<vs.length;vi++){
+if(vs[vi].name&&vs[vi].name.indexOf(pref[pi])>=0&&/^en/i.test(vs[vi].lang||"en")){return vs[vi]}
+}}
+var en=vs.filter(function(v){return /^en/i.test(v.lang||"")});
+return en[0]||vs[0];
+}catch(e){return null}}
 function speak(txt){
 try{
 if(localStorage.getItem("jamt_voice")==="off"){return}
 if(!window.speechSynthesis||!window.SpeechSynthesisUtterance){return}
 speechSynthesis.cancel();
-var u=new SpeechSynthesisUtterance(txt);
-u.rate=1.02;
+var clean=String(txt||"").replace(/O₂/g,"O2").replace(/CO₂/g,"CO2");
+var u=new SpeechSynthesisUtterance(clean);
+if(!friendlyVoice){friendlyVoice=pickFriendlyVoice()}
+if(friendlyVoice){u.voice=friendlyVoice}
+u.pitch=1.14;
+u.rate=0.98;
 speechSynthesis.speak(u)}catch(e){}}
+try{if(window.speechSynthesis){friendlyVoice=pickFriendlyVoice();speechSynthesis.onvoiceschanged=function(){friendlyVoice=pickFriendlyVoice()}}}catch(e){}
 window.__speak=speak;
 function showStep(){
 clearGlow();
