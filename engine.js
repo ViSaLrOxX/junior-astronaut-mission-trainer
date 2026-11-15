@@ -16,12 +16,12 @@ greenhouse:{name:"Greenhouse",cost:18,buildSols:2,powerUse:12,waterUse:4,food:9,
 habitat:{name:"Habitat Module",cost:20,buildSols:2,crewCap:2,desc:"Living space. Each module houses 2 more crew."},
 shield:{name:"Shielding Works",cost:10,buildSols:1,regolithUse:15,shield:1,desc:"Buries habitats under regolith to block radiation."},
 medbay:{name:"Med Bay",cost:16,buildSols:2,powerUse:6,heal:6,desc:"Treats injuries and radiation exposure."},
-lab:{name:"Science Lab",cost:18,buildSols:2,powerUse:8,science:7,desc:"Runs experiments and produces science points."},
-comms:{name:"Comms Dish",cost:12,buildSols:1,powerUse:4,uplink:true,desc:"Radios results home. Adds a bonus on reported science."},
+lab:{name:"Science Lab",cost:18,buildSols:2,powerUse:8,science:7,desc:"Runs experiments and produces data."},
+comms:{name:"Comms Dish",cost:12,buildSols:1,powerUse:4,uplink:true,desc:"Radios results home. Adds a bonus on reported data."},
 drill:{name:"Regolith Drill",cost:10,buildSols:1,powerUse:6,regolith:20,desc:"Digs regolith used for shielding."},
 workshop:{name:"Regolith Workshop",cost:16,buildSols:2,powerUse:6,workshop:true,desc:"Sinters regolith into spare parts: 10 regolith becomes 3 parts per sol."},
 algae:{name:"Algae Tank",cost:14,buildSols:1,powerUse:8,waterUse:2,o2small:6,foodSmall:2,desc:"Bioreactor that breathes out oxygen and a little food, like experiments flown on the ISS."},
-observatory:{name:"Observatory",cost:20,buildSols:2,powerUse:5,science:4,moraleBoost:3,desc:"A small telescope dome: science by night, wonder for the crew."},
+observatory:{name:"Observatory",cost:20,buildSols:2,powerUse:5,science:4,moraleBoost:3,desc:"A small telescope dome: data by night, wonder for the crew."},
 gym:{name:"Exercise Gym",cost:12,buildSols:1,powerUse:4,gymHeal:2,moraleBoost:1,desc:"Treadmills and resistance gear fight bone and muscle loss, lifting health and spirits."},
 pad:{name:"Landing Pad",cost:18,buildSols:2,pad:true,desc:"A graded, marked pad: resupply pods land closer and carry 50% more."}
 };
@@ -65,14 +65,14 @@ var EVENTS=[
 {id:"aurora",sites:["moon"],text:"Solar particle event! Unshielded crew take radiation.",w:2},
 {id:"quake",sites:["moon"],text:"Moonquake rattles the base, damaging one building.",w:1},
 {id:"find",sites:["moon","mars"],text:"Surveyors find a rich ice pocket: +20 water.",w:2},
-{id:"relay",sites:["moon","mars"],text:"A satellite relay passes overhead: +15 science if a comms dish is online.",w:1},
+{id:"relay",sites:["moon","mars"],text:"A satellite relay passes overhead: +15 data if a comms dish is online.",w:1},
 {id:"calm",sites:["moon","mars"],text:"A calm sol. Crew morale improves.",w:3},
 {id:"flare",sites:["moon","mars"],text:"Solar flare! Extra radiation this sol.",w:2},
 {id:"birthday",sites:["moon","mars"],text:"A crew birthday lifts everyone's morale.",w:1},
 {id:"stowaway",sites:["moon","mars"],text:"A stowaway pest got into the stores: -15 food.",w:1},
 {id:"coolant",sites:["moon","mars"],text:"A coolant loop ruptures, damaging one building.",w:1},
 {id:"podbonus",sites:["moon","mars"],text:"A cargo lander drops bonus supplies: +8 parts.",w:1},
-{id:"breakthrough",sites:["moon","mars"],text:"Lab breakthrough: +10 science if a lab is online.",w:1},
+{id:"breakthrough",sites:["moon","mars"],text:"Lab breakthrough: +10 data if a lab is online.",w:1},
 {id:"homesick",sites:["moon","mars"],text:"Homesickness spreads: crew morale drops.",w:2},
 {id:"meteorshower",sites:["moon"],text:"Meteor shower! Two buildings take damage.",w:1},
 {id:"o2leak",sites:["moon","mars"],text:"An oxygen line springs a leak: -15 oxygen.",w:2},
@@ -153,7 +153,7 @@ for(var i=0;i<n;i++){s.crew.push({name:CREW_NAMES[i],health:100,morale:80,role:R
 s.buildings.push({type:"habitat",done:true,solsLeft:0,damaged:false,crop:null});
 s.buildings.push({type:"habitat",done:true,solsLeft:0,damaged:false,crop:null});
 s.buildings.push({type:"solar",done:true,solsLeft:0,damaged:false,crop:null});
-addLog(s,"Mission start at "+siteDef.name+". Keep the crew alive, reach "+s.objectiveScience+" science by sol "+s.objectiveSols+".");
+addLog(s,"Mission start at "+siteDef.name+". Keep the crew alive, reach "+s.objectiveScience+" data by sol "+s.objectiveSols+".");
 buildSchedule(s);
 return s}
 function buildSchedule(s){
@@ -236,7 +236,7 @@ if(broke){c.health=Math.max(1,c.health-10);addLog(s,c.name+"'s rover broke down 
 if(ex.science){var g=Math.round(ex.science*f);s.res.science+=g;s.totals.science+=g}
 if(ex.water){var w=Math.round(ex.water*f);if(dest==="icefield"&&s.icePocketArmed){w*=2;s.icePocketArmed=false;addLog(s,"The flagged ice pocket paid off: double water haul.")}s.res.water+=w;s.totals.water+=w}
 if(ex.parts){s.res.parts+=Math.round(ex.parts*f)}
-if(ex.relay){s.relayFixedUntil=s.sol+10;addLog(s,"Relay station back online: +2 science per sol for 10 sols.")}
+if(ex.relay){s.relayFixedUntil=s.sol+10;addLog(s,"Relay station back online: +2 data per sol for 10 sols.")}
 c.xp=(c.xp||0)+4;
 s.expeditionsDone+=1;
 addLog(s,c.name+" returned from "+ex.name+".")}
@@ -332,7 +332,7 @@ else if(s.manifest==="parts"){s.res.parts+=Math.round(24*pod);s.res.food+=Math.r
 else{s.res.parts+=Math.round(12*pod);s.res.food+=Math.round(20*pod);addLog(s,"Resupply pod landed: +"+Math.round(12*pod)+" parts, +"+Math.round(20*pod)+" food.")}}
 if(s.sol===s.quizDue){s.pendingQuiz=s.quizIndex%QUIZ.length}
 [50,100,200].forEach(function(mk){
-if(s.totals.science>=mk&&s.milestonesHit.indexOf(mk)<0){s.milestonesHit.push(mk);s.res.parts+=10;addLog(s,"Science milestone "+mk+": backers send +10 parts.")}});
+if(s.totals.science>=mk&&s.milestonesHit.indexOf(mk)<0){s.milestonesHit.push(mk);s.res.parts+=10;addLog(s,"Data milestone "+mk+": backers send +10 parts.")}});
 s.history.push({sol:s.sol,o2:Math.round(s.res.o2),water:Math.round(s.res.water),food:Math.round(s.res.food),parts:s.res.parts,science:Math.round(s.res.science)});
 if(s.history.length>75){s.history.shift()}
 s.sheltered=!!s.shelterNext;s.shelterNext=false;
@@ -346,8 +346,8 @@ else if(s.objectiveMode==="morale"){
 var am=avgMorale(s);
 if(am>=60){s.over=true;s.won=true;addLog(s,"Mission complete: crew morale held at "+Math.round(am)+".")}
 else{s.objectiveSols+=10;addLog(s,"Morale too low for review ("+Math.round(am)+"). Extension to sol "+s.objectiveSols+".")}}
-else if(s.res.science>=s.objectiveScience){s.over=true;s.won=true;addLog(s,"Mission complete! Science goal reached with the crew alive.")}
-else if(aliveNow>0){s.objectiveSols+=10;addLog(s,"Science shortfall. Extension granted to sol "+s.objectiveSols+".")}
+else if(s.res.science>=s.objectiveScience){s.over=true;s.won=true;addLog(s,"Mission complete! Data goal reached with the crew alive.")}
+else if(aliveNow>0){s.objectiveSols+=10;addLog(s,"Data shortfall. Extension granted to sol "+s.objectiveSols+".")}
 if(s.objectiveSols>60&&!s.over){s.over=true;s.won=s.objectiveMode==="science"?s.res.science>=s.objectiveScience:aliveNow>0;addLog(s,s.won?"Mission complete!":"Mission review failed.")}
 }
 return s}
@@ -403,7 +403,7 @@ var q=QUIZ[s.pendingQuiz];
 var ok=choice===q.c;
 if(ok){s.quizCorrect+=1;s.quizStreak=(s.quizStreak||0)+1;s.res.parts+=6;s.res.science+=5;s.totals.science+=5;
 if(s.quizStreak>s.bestQuizStreak){s.bestQuizStreak=s.quizStreak}
-if(s.quizStreak>0&&s.quizStreak%3===0){s.res.science+=10;s.totals.science+=10;addLog(s,"Quiz streak "+s.quizStreak+": bonus +10 science.")}}
+if(s.quizStreak>0&&s.quizStreak%3===0){s.res.science+=10;s.totals.science+=10;addLog(s,"Quiz streak "+s.quizStreak+": bonus +10 data.")}}
 else{s.quizStreak=0}
 s.pendingQuiz=null;s.quizIndex+=1;s.quizDue=s.sol+5;
 return{correct:ok,fact:q.fact}}
@@ -446,7 +446,7 @@ function setObjectiveMode(s,mode){if(["science","survival","morale"].indexOf(mod
 s.objectiveMode=mode;addLog(s,"Objective mode: "+mode+".");return true}
 function resourceHistory(s){return s.history}
 function historyCSV(s){
-var lines=["sol,o2,water,food,parts,science"];
+var lines=["sol,o2,water,food,parts,data"];
 s.history.forEach(function(h){lines.push([h.sol,h.o2,h.water,h.food,h.parts,h.science].join(","))});
 return lines.join(String.fromCharCode(10))}
 function crewCSV(s){
@@ -500,7 +500,7 @@ al.forEach(function(a){out.push("Fix: "+a.text)});
 var fc=forecast(s);
 if(fc&&(fc.id==="storm"||fc.id==="flare")){out.push("Consider shelter mode ahead of tomorrow's event")}
 if(s.crew.some(function(c){return c.health>0&&(c.fatigue||0)>70})){out.push("Rest exhausted crew before EVAs")}
-if(!out.length){out.push("Stable: push science, research, or an expedition")}
+if(!out.length){out.push("Stable: collect data, research tech, or run an expedition")}
 return out}
 
 
@@ -534,7 +534,7 @@ function tutorialHints(s){
 if(s.sol>3){return []}
 var out=["Sol 1 goal: check stores and power, then build toward water and oxygen."];
 if(s.sol>=1){out.push("Watch the forecast line: tomorrow's event is shown one sol ahead.")}
-if(s.sol>=2){out.push("Quiz sols come every 5 sols: right answers earn parts and science.")}
+if(s.sol>=2){out.push("Quiz sols come every 5 sols: right answers earn parts and data.")}
 return out}
 function weeklySummary(s){
 var h=s.history;
@@ -565,14 +565,14 @@ if(s.lastPowerUse>=s.lastPowerGen&&s.lastPowerGen>0){tips.push("The grid is satu
 if(s.shieldLevel<1&&s.sol>3){tips.push("No shielding yet: drill regolith and run Shielding Works to slow radiation damage.")}
 var damaged=s.buildings.filter(function(b){return b.damaged}).length;
 if(damaged>0){tips.push(damaged+" damaged building(s): repair from stores or send an EVA (cheaper but risky).")}
-if(s.res.science<s.objectiveScience*0.3&&s.sol>s.objectiveSols*0.5){tips.push("Science is behind schedule: Labs and a Comms Dish multiply returns.")}
+if(s.res.science<s.objectiveScience*0.3&&s.sol>s.objectiveSols*0.5){tips.push("Data collection is behind schedule: Labs and a Comms Dish multiply returns.")}
 if(s.res.parts<10){var per=s.techs.sintering?4:3;tips.push("Parts are scarce: a Regolith Drill digs regolith and a Regolith Workshop sinters every 10 regolith into "+per+" parts each sol. Debris Salvage expeditions bring back 12, resupply pods land more, and Mission Control quiz answers pay +6.")}
 var tired=s.crew.filter(function(c){return c.health>0&&(c.fatigue||0)>60}).length;
 if(tired>0){tips.push(tired+" crew are exhausted: hold off on EVAs and expeditions until they recover.")}
 if(Object.keys(s.techs).length===0&&s.res.science>=30&&s.sol>8){tips.push("You have enough science to research a technology: solar efficiency or water recycling pay off early.")}
 var fc=forecast(s);
 if(fc&&(fc.id==="storm"||fc.id==="flare"||fc.id==="aurora")){tips.push("Forecast for tomorrow: "+fc.text)}
-if(!tips.length){tips.push("Outpost stable. Push science and prepare for the next event.")}
+if(!tips.length){tips.push("Outpost stable. Collect data and prepare for the next event.")}
 return tips}
 function report(s){
 var lines=[];
@@ -620,7 +620,7 @@ return(pb.consumers||[]).filter(function(c){return c.powered===false})}
 function sciencePlan(s){
 var goal=s.objective&&s.objective.scienceGoal?s.objective.scienceGoal:1000;
 var rate=netRates(s).science||0;
-if(rate<=0){return{goal:goal,current:Math.round(s.res.science),perSol:0,etaSols:"n/a",note:"No science production trend yet; labs, dishes and expeditions earn science."}}
+if(rate<=0){return{goal:goal,current:Math.round(s.res.science),perSol:0,etaSols:"n/a",note:"No science production trend yet; labs, dishes and expeditions earn data."}}
 return{goal:goal,current:Math.round(s.res.science),perSol:Math.round(rate*10)/10,etaSols:Math.max(0,Math.ceil((goal-s.res.science)/rate))}}
 
 
@@ -667,13 +667,13 @@ return{reason:worst?"Shortest runway: "+worst+" ("+(worstV===Infinity?"stable":w
 function stormPrepChecklist(s){
 return["Charge batteries before the storm window","Pre-repair damaged buildings","Stock spare parts for EVA repairs","Delay expeditions until the storm passes","Keep crew indoors (no EVA during peak)"]}
 function nightPrepChecklist(s){
-return["Fill battery banks before nightfall","Shift heavy power use to daylight sols","Check RTG count if you rely on them","Run science and drills on day power"]}
+return["Fill battery banks before nightfall","Shift heavy power use to daylight sols","Check RTG count if you rely on them","Run labs and drills on day power"]}
 function solMilestones(s){
 var out=[];
 if(s.sol===1){out.push("First sol: get power and life support running")}
 if(s.sol===7){out.push("One week: review resource runways")}
 if(s.sol===14){out.push("Two weeks: first expedition window")}
-if(s.sol===30){out.push("One month: mid-mission review, check the science plan")}
+if(s.sol===30){out.push("One month: mid-mission review, check the data plan")}
 return out}
 function winProbabilityHint(s){
 var runway=resourceRunway(s);
@@ -683,7 +683,7 @@ var label;
 if(worst<3||plan.etaSols==="n/a"){label="at risk"}
 else if(worst<10){label="uncertain"}
 else{label="on track"}
-return{hint:label,note:"Heuristic from resource runways and science pace, not a guarantee."}}
+return{hint:label,note:"Heuristic from resource runways and data pace, not a guarantee."}}
 function glossaryTerms(){
 return[{term:"Sol",def:"A day on Mars (24 h 39 min); the game counts time in sols."},
 {term:"EVA",def:"Spacewalk: crew going outside in suits to fix or build things."},
@@ -694,7 +694,7 @@ return[{term:"Sol",def:"A day on Mars (24 h 39 min); the game counts time in sol
 function faqList(){
 return[{q:"Why did my power go negative?",a:"New buildings draw power; check the power priority list and add solar arrays, RTGs or batteries."},
 {q:"Crew morale keeps falling?",a:"Check rations, overcrowding and workload; rest days and generous rations recover morale."},
-{q:"How do I win?",a:"Reach the science goal before the deadline while keeping the crew alive."},
+{q:"How do I win?",a:"Reach the data goal before the deadline while keeping the crew alive."},
 {q:"What do scrubbers do?",a:"CO2 scrubbers boost every O2 generator by 25 percent."}]}
 
 
@@ -797,7 +797,7 @@ return out.filter(function(a){return!a.earned}).sort(function(a,b){return b.pct-
 
 function missionTimelineCSV(s){
 var hist=resourceHistory(s);
-var rows=["sol,o2,water,food,parts,science"];
+var rows=["sol,o2,water,food,parts,data"];
 hist.forEach(function(h){rows.push(h.sol+","+Math.round(h.o2)+","+Math.round(h.water)+","+Math.round(h.food)+","+Math.round(h.parts)+","+Math.round(h.science))});
 return rows.join("\n")}
 function subsystemGrades(s){
@@ -1061,9 +1061,9 @@ function quizStatsText(s){
 var q=quizRecord(s);
 return"Quiz: "+q.correct+"/"+q.answered+" correct ("+q.accuracy+"%), best streak "+q.best+"."}
 function glossaryR5(){
-return[{term:"Sol",def:"A Martian day, about 24 hours 39 minutes."},{term:"ISRU",def:"In-situ resource utilization: making water, oxygen or fuel from local material."},{term:"Regolith",def:"The loose dust and broken rock covering the surface; a building and shielding material."},{term:"Shield level",def:"Layered regolith or water protection cutting crew radiation dose."},{term:"Runway",def:"Sols until a resource runs out at current net rates."},{term:"Objective mode",def:"The win condition: science target, self-sufficiency, or a custom mix."}]}
+return[{term:"Sol",def:"A Martian day, about 24 hours 39 minutes."},{term:"ISRU",def:"In-situ resource utilization: making water, oxygen or fuel from local material."},{term:"Regolith",def:"The loose dust and broken rock covering the surface; a building and shielding material."},{term:"Shield level",def:"Layered regolith or water protection cutting crew radiation dose."},{term:"Runway",def:"Sols until a resource runs out at current net rates."},{term:"Objective mode",def:"The win condition: data target, self-sufficiency, or a custom mix."}]}
 function faqR5(){
-return[{q:"Is the Mars data real?",a:"Site facts, radiation, dust-storm behavior and crop science come from NASA sources; the game simulates around them."},{q:"What does difficulty change?",a:"Radiation dose, starting stockpiles, the science objective and the sol deadline."},{q:"How is the score computed?",a:"Science, surviving crew, shield level, sols survived, a win bonus and earned achievements."}]}
+return[{q:"Is the Mars data real?",a:"Site facts, radiation, dust-storm behavior and crop science come from NASA sources; the game simulates around them."},{q:"What does difficulty change?",a:"Radiation dose, starting stockpiles, the data objective and the sol deadline."},{q:"How is the score computed?",a:"Data, surviving crew, shield level, sols survived, a win bonus and earned achievements."}]}
 function triviaR5(seed){
 var facts=["A Mars sol is about 3% longer than an Earth day.","Jezero crater once held a lake billions of years ago.","Dust storms can cover the whole planet for weeks.","Mars gets about 43% of Earth's sunlight per square meter.","Potatoes really were grown in Mars-like soil in Peru as a proof of concept."];
 return{fact:facts[(seed||1)%facts.length]}}
