@@ -470,4 +470,18 @@ $("r580DrillQ").onclick=function(){};
 function r580Pass(){var done=[];try{done=JSON.parse(localStorage.getItem("r580pass")||"[]")}catch(e){}$("r580PassBar").textContent=TrainerEngine.fa2PassportPct(done)+"% mastered ("+done.length+"/"+TrainerEngine.fa2PassportTotal()+")";var ll=$("r580PassList");ll.innerHTML="";var rem=TrainerEngine.fa2PassportRemaining(done);rem.slice(0,6).forEach(function(idx){var b=document.createElement("button");b.textContent="Master fact "+(idx+1);b.onclick=function(){done.push(idx);localStorage.setItem("r580pass",JSON.stringify(done));r580Pass()};ll.appendChild(b)})}
 $("r580PassExport").onclick=function(){var done=[];try{done=JSON.parse(localStorage.getItem("r580pass")||"[]")}catch(e){}$("r580PassBar").textContent=TrainerEngine.fa2PassportText(done).slice(0,200)};
 r580Drill();r580Pass();
+
+(function(){
+var mar=null;
+function showQ(){if(!mar){return}var q=TrainerEngine.fa3MarathonQ(mar);
+if(!q){$("r650Q").textContent="Marathon over. Final score "+mar.score+", best streak "+mar.bestStreak+".";$("r650Opts").innerHTML="";return}
+$("r650Q").textContent="Q"+q.n+"/"+q.total+" (lives "+q.lives+", score "+q.score+"): "+q.q;
+var box=$("r650Opts");box.innerHTML="";
+q.choices.forEach(function(c,idx){var b=document.createElement("button");b.textContent=c;b.onclick=function(){var r=TrainerEngine.fa3MarathonAnswer(mar,idx);$("r650MarOut").textContent=(r.right?"Correct! ":"Wrong - the answer was: "+r.correctAnswer+". ")+r.fact;showQ()};box.appendChild(b)})}
+$("r650Start").onclick=function(){mar=TrainerEngine.fa3MarathonNew();$("r650MarOut").textContent="";showQ()};
+$("r650Tl").onclick=function(){$("r650TlOut").textContent=TrainerEngine.fa3TimelineText($("r650Site").value||null)};
+var unlocked=[];
+try{unlocked=JSON.parse(localStorage.getItem("ach-unlocked")||"[]")}catch(e){unlocked=[]}
+$("r650HuntOut").textContent=TrainerEngine.fa3HuntText(unlocked);
+})();
 })();

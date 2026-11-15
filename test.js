@@ -2179,5 +2179,23 @@ TR12("streaknext inc",function(){assert.strictEqual(E.fa2StreakNext(4,50,51),5)}
 TR12("streaknext reset",function(){assert.strictEqual(E.fa2StreakNext(4,50,60),1)});
 console.log(pR12+" round-12 passed, "+fR12+" failed");
 
+
+var pR13=0,fR13=0;
+function TQ13(n,c){if(c){pR13++}else{fR13++;console.log("FAIL13 "+n)}}
+TQ13("marathon new",function(){var m=M.fa3MarathonNew();assert.ok(m.lives===3&&m.score===0&&!m.over)});
+TQ13("marathon q shape",function(){var m=M.fa3MarathonNew();var q=M.fa3MarathonQ(m);assert.ok(q.q.length>5&&q.choices.length>=2)});
+TQ13("marathon right scores",function(){var m=M.fa3MarathonNew();var q=M.fa3MarathonQ(m);var r=M.fa3MarathonAnswer(m,q.answer);assert.ok(r.right&&m.score>=100)});
+TQ13("marathon wrong costs life",function(){var m=M.fa3MarathonNew();var q=M.fa3MarathonQ(m);var wrong=(q.answer+1)%q.choices.length;M.fa3MarathonAnswer(m,wrong);assert.strictEqual(m.lives,2)});
+TQ13("marathon ends at 0 lives",function(){var m=M.fa3MarathonNew();for(var i=0;i<3;i++){var q=M.fa3MarathonQ(m);M.fa3MarathonAnswer(m,(q.answer+1)%q.choices.length)}assert.ok(m.over)});
+TQ13("marathon ends after deck",function(){var m=M.fa3MarathonNew();for(var i=0;i<20;i++){var q=M.fa3MarathonQ(m);M.fa3MarathonAnswer(m,q.answer)}assert.ok(m.over&&m.bestStreak===20)});
+TQ13("timeline all",function(){assert.strictEqual(M.fa3Timeline(null).count,22)});
+TQ13("timeline filtered",function(){var t=M.fa3Timeline("mars");assert.ok(t.count>0&&t.count<22)});
+TQ13("timeline sorted by weight",function(){var t=M.fa3Timeline(null);for(var i=1;i<t.events.length;i++){assert.ok(t.events[i-1].weight>=t.events[i].weight)}return true});
+TQ13("timeline text",function(){assert.ok(M.fa3TimelineText("moon").indexOf("1.")===0)});
+TQ13("hunt empty",function(){var h=M.fa3Hunt([]);assert.ok(h.done===0&&h.total===20)});
+TQ13("hunt partial",function(){assert.strictEqual(M.fa3Hunt(["firstsol"]).done,1)});
+TQ13("hunt full text",function(){assert.ok(/All unlocked/.test(M.fa3HuntText(M.ACHIEVEMENTS.map(function(a){return a.id}))))});
+console.log(pR13+" round-13 passed, "+fR13+" failed");
+
 console.log(pass7+" round-7 passed, "+fail7+" failed");
-process.exit(fail+fail2+fail3+fail4+fail7+(fR8)+(fR9)+(fR10)+(fR11)+(fR12)?1:0);
+process.exit(fail+fail2+fail3+fail4+fail7+(fR8)+(fR9)+(fR10)+(fR11)+(fR12)+(fR13)?1:0);
