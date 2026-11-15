@@ -330,17 +330,17 @@ details summary{color:#9fb4d8}
 .ck-plate{font-size:.68rem;letter-spacing:.22em;color:#4e6a96;text-transform:uppercase}
 #launchVeil{position:fixed;inset:0;z-index:70;background:radial-gradient(ellipse at 50% 110%,#16294a 0%,#0a1128 55%,#05070f 100%);opacity:0;transition:opacity .25s ease;display:flex;align-items:center;justify-content:center}
 #launchVeil.go{opacity:1}
-#lvBox{text-align:center;color:#cfe2ff;padding:0 24px}
-#lvRocket{display:block;margin:0 auto 18px;animation:lvRise 4s ease-in forwards}
+#lvBox{position:fixed;top:12vh;left:0;right:0;text-align:center;color:#cfe2ff;padding:0 24px;z-index:2}
+#lvRocket{position:fixed;left:50%;margin-left:-60px;top:78%;animation:lvRise 4s ease-in forwards}
 .lvFlame{animation:lvFlick .18s infinite alternate;transform-origin:60px 128px}
 .lvFlame2{animation:lvFlick .13s infinite alternate-reverse;transform-origin:60px 128px}
-@keyframes lvRise{0%{transform:translateY(46vh)}55%{transform:translateY(4vh) rotate(-2deg)}80%{transform:translateY(-6vh) rotate(1.5deg)}100%{transform:translateY(-16vh)}}
+@keyframes lvRise{0%{top:78%}55%{top:56%}80%{top:44%}100%{top:36%}}
 @keyframes lvFlick{from{transform:scaleY(.8)}to{transform:scaleY(1.15)}}
 #lvStatus{font-size:1rem;letter-spacing:.04em;min-height:1.4em;margin-bottom:14px}
 #lvBar{width:min(280px,70vw);height:6px;border-radius:3px;background:rgba(148,163,184,.25);margin:0 auto 14px;overflow:hidden}
 #lvBar span{display:block;height:100%;width:0;background:linear-gradient(90deg,#5eead4,#7dd3fc);transition:width .7s ease}
 #lvSkip{font-size:.75rem;color:#7d90b0}
-#roverBot{position:absolute;top:-34px;left:-10px;animation:rvBob 2.6s ease-in-out infinite;pointer-events:none}
+#roverBot{float:left;width:58px;height:46px;margin:4px 12px 4px 0;animation:rvBob 2.6s ease-in-out infinite;pointer-events:none}
 .rvBlink{animation:rvBlink 1.6s infinite}
 .rvEye{animation:rvEye 3.8s infinite}
 @keyframes rvBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
@@ -351,7 +351,7 @@ details summary{color:#9fb4d8}
 .stLayer{display:none}
 .stLayer.on{display:block}
 .stMore{display:block;margin:2px auto 10px;font-size:.8rem;color:#5eead4;background:none;border:1px dashed rgba(94,234,212,.5);border-radius:999px;padding:4px 14px}
-@media (prefers-reduced-motion:reduce){#lvRocket,.lvFlame,.lvFlame2,#roverBot,.rvBlink,.rvEye{animation:none!important}#lvRocket{transform:none}}
+@media (prefers-reduced-motion:reduce){#lvRocket,.lvFlame,.lvFlame2,#roverBot,.rvBlink,.rvEye{animation:none!important}#lvRocket{top:52%}}
 body.bgpause .led,body.bgpause .ck-gauge span{animation-play-state:paused}
 header{position:relative;z-index:6}
 main{position:relative;z-index:6}
