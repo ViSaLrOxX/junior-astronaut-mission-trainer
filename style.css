@@ -526,3 +526,4 @@ main.wb-open[data-feat="walk"] section.panel[data-feat="walk"]:not([hidden]){dis
 .passQ .pq{font-size:1.05rem}
 #r650HuntOut{font-size:1.05rem}
 .r580card{font-size:1rem}
+main.wb-open[data-feat="lab"] section.panel[data-feat="lab"]:not([hidden]){display:block!important}
