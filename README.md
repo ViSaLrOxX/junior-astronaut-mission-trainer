@@ -4,7 +4,7 @@ A small browser game about running a Moon or Mars base. You pick a site and a di
 
 ## Running it
 
-Open index.html in any browser. No build step, no server, no network. To run the logic tests: node test.js.
+Open index.html in any browser. No build step, no server, no network. The page animates panels, bars and alerts gently; it stays still for anyone with reduced-motion turned on. To run the logic tests: node test.js.
 
 ## What's inside
 

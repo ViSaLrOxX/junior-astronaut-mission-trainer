@@ -202,7 +202,7 @@ if(sc){TrainerEngine.setScenario(s,sc)}
 TrainerEngine.setMissionName(s,$("nameSel").value);
 TrainerEngine.setObjectiveMode(s,$("objSel").value);
 $("setup").hidden=true;$("game").hidden=false;render()};
-$("solBtn").onclick=function(){if(!s)return;TrainerEngine.tick(s);render()};
+$("solBtn").onclick=function(){if(!s)return;TrainerEngine.tick(s);render();var sp=$("statusPanel");sp.classList.remove("pulse");void sp.offsetWidth;sp.classList.add("pulse")};
 $("autoBtn").onclick=function(){
 if(!s)return;
 if(autoTimer){clearInterval(autoTimer);autoTimer=null;$("autoBtn").textContent="Auto: off";return}
@@ -421,7 +421,10 @@ $("r650Q").textContent="Q"+q.n+"/"+q.total+" (lives "+q.lives+", score "+q.score
 var box=$("r650Opts");box.innerHTML="";
 q.choices.forEach(function(c,idx){var b=document.createElement("button");b.textContent=c;b.onclick=function(){var r=TrainerEngine.fa3MarathonAnswer(mar,idx);$("r650MarOut").textContent=(r.right?"Correct! ":"Wrong - the answer was: "+r.correctAnswer+". ")+r.fact;showQ()};box.appendChild(b)})}
 $("r650Start").onclick=function(){mar=TrainerEngine.fa3MarathonNew();$("r650MarOut").textContent="";showQ()};
-$("r650Tl").onclick=function(){$("r650TlOut").textContent=TrainerEngine.fa3TimelineText($("r650Site").value||null)};
+$("r650Tl").onclick=function(){var t=TrainerEngine.fa3Timeline($("r650Site").value||null);
+var h="<ol class='tl'>";
+t.events.forEach(function(e){h+="<li><span class='tlid'>"+e.id+"</span> "+e.text+"</li>"});
+$("r650TlOut").innerHTML=h+"</ol>"};
 var unlocked=[];
 try{unlocked=JSON.parse(localStorage.getItem("ach-unlocked")||"[]")}catch(e){unlocked=[]}
 $("r650HuntOut").textContent=TrainerEngine.fa3HuntText(unlocked);
