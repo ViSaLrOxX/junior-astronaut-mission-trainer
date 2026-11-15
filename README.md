@@ -2,7 +2,7 @@
 
 NASA Space Apps 2026 challenge #1. A browser-based base-management game for kids (and judges) that teaches real mission trade-offs on the Moon and Mars: power, oxygen, water, food, shielding, crew health and morale. Fully offline: open `index.html` and play.
 
-## Features (1411)
+## Features (1911)
 
 Core sim
 1. Two real sites (Lunar South Pole, Mars Jezero Rim) with distinct radiation, ice, sunlight, storm and quake profiles
@@ -1450,6 +1450,506 @@ Round-5 UI
 1409. Feature deck button r440al
 1410. Feature deck button r440am
 1411. Feature deck button r440an
+1412. Engine: round-8 catalog export ea1_what_did_nasa_s_moxie_experi_has_soil_is_free_in_space
+1413. Engine: round-8 catalog export ea1_what_did_nasa_s_moxie_experi_has_it_removes_all_co2
+1414. Engine: round-8 catalog export ea1_what_did_nasa_s_moxie_experi_has_dust_blocks_sunlight_and_coa
+1415. Engine: round-8 catalog export ea1_what_did_nasa_s_moxie_experi_has_dust_freezes_panels
+1416. Engine: round-8 catalog export ea1_what_did_nasa_s_moxie_experi_has_dust_conducts_electricity
+1417. Engine: round-8 catalog export ea1_what_did_nasa_s_moxie_experi_has_no_hazard
+1418. Engine: round-8 catalog export ea1_what_did_nasa_s_moxie_experi_has_artemis
+1419. Engine: round-8 catalog export ea1_what_did_nasa_s_moxie_experi_has_apollo
+1420. Engine: round-8 catalog export ea1_why_do_planners_target_the_m_has_oxygen
+1421. Engine: round-8 catalog export ea1_why_do_planners_target_the_m_has_methane
+1422. Engine: round-8 catalog export ea1_why_do_planners_target_the_m_has_water
+1423. Engine: round-8 catalog export ea1_why_do_planners_target_the_m_has_hydrogen
+1424. Engine: round-8 catalog export ea1_why_do_planners_target_the_m_has_permanently_shadowed_craters
+1425. Engine: round-8 catalog export ea1_why_do_planners_target_the_m_has_it_is_the_warmest_region
+1426. Engine: round-8 catalog export ea1_why_do_planners_target_the_m_has_it_has_the_strongest_gravity
+1427. Engine: round-8 catalog export ea1_why_do_planners_target_the_m_has_it_is_closest_to_earth
+1428. Engine: round-8 catalog export ea1_why_do_planners_target_the_m_has_24_hours_37_minutes
+1429. Engine: round-8 catalog export ea1_why_do_planners_target_the_m_has_12_hours
+1430. Engine: round-8 catalog export ea1_why_do_planners_target_the_m_has_48_hours
+1431. Engine: round-8 catalog export ea1_why_do_planners_target_the_m_has_29_5_days
+1432. Engine: round-8 catalog export ea1_why_do_planners_target_the_m_has_carbon_dioxide
+1433. Engine: round-8 catalog export ea1_why_do_planners_target_the_m_has_nitrogen
+1434. Engine: round-8 catalog export ea1_why_do_planners_target_the_m_has_3_to_22_minutes
+1435. Engine: round-8 catalog export ea1_why_do_planners_target_the_m_has_instant
+1436. Engine: round-8 catalog export ea1_why_do_planners_target_the_m_has_2_seconds
+1437. Engine: round-8 catalog export ea1_why_do_planners_target_the_m_has_3_hours
+1438. Engine: round-8 catalog export ea1_why_do_planners_target_the_m_has_earth_s_magnetosphere
+1439. Engine: round-8 catalog export ea1_why_do_planners_target_the_m_has_thick_glass
+1440. Engine: round-8 catalog export ea1_why_do_planners_target_the_m_has_lead_walls
+1441. Engine: round-8 catalog export ea1_why_do_planners_target_the_m_has_the_solar_arrays
+1442. Engine: round-8 catalog export ea1_why_do_planners_target_the_m_has_about_29_5_earth_days
+1443. Engine: round-8 catalog export ea1_why_do_planners_target_the_m_has_24_hours
+1444. Engine: round-8 catalog export ea1_why_do_planners_target_the_m_has_7_days
+1445. Engine: round-8 catalog export ea1_why_do_planners_target_the_m_has_365_days
+1446. Engine: round-8 catalog export ea1_why_do_planners_target_the_m_has_heat_from_decaying_plutonium
+1447. Engine: round-8 catalog export ea1_why_do_planners_target_the_m_has_burning_methane
+1448. Engine: round-8 catalog export ea1_why_do_planners_target_the_m_has_wind_turbines
+1449. Engine: round-8 catalog export ea1_why_do_planners_target_the_m_has_coal_cells
+1450. Engine: round-8 catalog export ea1_why_do_planners_target_the_m_has_resupply_from_earth_is_slow_
+1451. Engine: round-8 catalog export ea1_why_do_planners_target_the_m_has_plants_glow_nicely
+1452. Engine: round-8 catalog export ea1_why_do_planners_target_the_m_has_soil_is_free_in_space
+1453. Engine: round-8 catalog export ea1_why_do_planners_target_the_m_has_it_removes_all_co2
+1454. Engine: round-8 catalog export ea1_why_do_planners_target_the_m_has_dust_blocks_sunlight_and_coa
+1455. Engine: round-8 catalog export ea1_why_do_planners_target_the_m_has_dust_freezes_panels
+1456. Engine: round-8 catalog export ea1_why_do_planners_target_the_m_has_dust_conducts_electricity
+1457. Engine: round-8 catalog export ea1_why_do_planners_target_the_m_has_no_hazard
+1458. Engine: round-8 catalog export ea1_why_do_planners_target_the_m_has_artemis
+1459. Engine: round-8 catalog export ea1_why_do_planners_target_the_m_has_apollo
+1460. Engine: round-8 catalog export ea1_about_how_long_is_one_martia_has_oxygen
+1461. Engine: round-8 catalog export ea1_about_how_long_is_one_martia_has_methane
+1462. Engine: round-8 catalog export ea1_about_how_long_is_one_martia_has_water
+1463. Engine: round-8 catalog export ea1_about_how_long_is_one_martia_has_hydrogen
+1464. Engine: round-8 catalog export ea1_about_how_long_is_one_martia_has_permanently_shadowed_craters
+1465. Engine: round-8 catalog export ea1_about_how_long_is_one_martia_has_it_is_the_warmest_region
+1466. Engine: round-8 catalog export ea1_about_how_long_is_one_martia_has_it_has_the_strongest_gravity
+1467. Engine: round-8 catalog export ea1_about_how_long_is_one_martia_has_it_is_closest_to_earth
+1468. Engine: round-8 catalog export ea1_about_how_long_is_one_martia_has_24_hours_37_minutes
+1469. Engine: round-8 catalog export ea1_about_how_long_is_one_martia_has_12_hours
+1470. Engine: round-8 catalog export ea1_about_how_long_is_one_martia_has_48_hours
+1471. Engine: round-8 catalog export ea1_about_how_long_is_one_martia_has_29_5_days
+1472. Engine: round-8 catalog export ea1_about_how_long_is_one_martia_has_carbon_dioxide
+1473. Engine: round-8 catalog export ea1_about_how_long_is_one_martia_has_nitrogen
+1474. Engine: round-8 catalog export ea1_about_how_long_is_one_martia_has_3_to_22_minutes
+1475. Engine: round-8 catalog export ea1_about_how_long_is_one_martia_has_instant
+1476. Engine: round-8 catalog export ea1_about_how_long_is_one_martia_has_2_seconds
+1477. Engine: round-8 catalog export ea1_about_how_long_is_one_martia_has_3_hours
+1478. Engine: round-8 catalog export ea1_about_how_long_is_one_martia_has_earth_s_magnetosphere
+1479. Engine: round-8 catalog export ea1_about_how_long_is_one_martia_has_thick_glass
+1480. Engine: round-8 catalog export ea1_about_how_long_is_one_martia_has_lead_walls
+1481. Engine: round-8 catalog export ea1_about_how_long_is_one_martia_has_the_solar_arrays
+1482. Engine: round-8 catalog export ea1_about_how_long_is_one_martia_has_about_29_5_earth_days
+1483. Engine: round-8 catalog export ea1_about_how_long_is_one_martia_has_24_hours
+1484. Engine: round-8 catalog export ea1_about_how_long_is_one_martia_has_7_days
+1485. Engine: round-8 catalog export ea1_about_how_long_is_one_martia_has_365_days
+1486. Engine: round-8 catalog export ea1_about_how_long_is_one_martia_has_heat_from_decaying_plutonium
+1487. Engine: round-8 catalog export ea1_about_how_long_is_one_martia_has_burning_methane
+1488. Engine: round-8 catalog export ea1_about_how_long_is_one_martia_has_wind_turbines
+1489. Engine: round-8 catalog export ea1_about_how_long_is_one_martia_has_coal_cells
+1490. Engine: round-8 catalog export ea1_about_how_long_is_one_martia_has_resupply_from_earth_is_slow_
+1491. Engine: round-8 catalog export ea1_about_how_long_is_one_martia_has_plants_glow_nicely
+1492. Engine: round-8 catalog export ea1_about_how_long_is_one_martia_has_soil_is_free_in_space
+1493. Engine: round-8 catalog export ea1_about_how_long_is_one_martia_has_it_removes_all_co2
+1494. Engine: round-8 catalog export ea1_about_how_long_is_one_martia_has_dust_blocks_sunlight_and_coa
+1495. Engine: round-8 catalog export ea1_about_how_long_is_one_martia_has_dust_freezes_panels
+1496. Engine: round-8 catalog export ea1_about_how_long_is_one_martia_has_dust_conducts_electricity
+1497. Engine: round-8 catalog export ea1_about_how_long_is_one_martia_has_no_hazard
+1498. Engine: round-8 catalog export ea1_about_how_long_is_one_martia_has_artemis
+1499. Engine: round-8 catalog export ea1_about_how_long_is_one_martia_has_apollo
+1500. Engine: round-8 catalog export ea1_what_is_the_main_component_o_has_oxygen
+1501. Engine: round-8 catalog export ea1_what_is_the_main_component_o_has_methane
+1502. Engine: round-8 catalog export ea1_what_is_the_main_component_o_has_water
+1503. Engine: round-8 catalog export ea1_what_is_the_main_component_o_has_hydrogen
+1504. Engine: round-8 catalog export ea1_what_is_the_main_component_o_has_permanently_shadowed_craters
+1505. Engine: round-8 catalog export ea1_what_is_the_main_component_o_has_it_is_the_warmest_region
+1506. Engine: round-8 catalog export ea1_what_is_the_main_component_o_has_it_has_the_strongest_gravity
+1507. Engine: round-8 catalog export ea1_what_is_the_main_component_o_has_it_is_closest_to_earth
+1508. Engine: round-8 catalog export ea1_what_is_the_main_component_o_has_24_hours_37_minutes
+1509. Engine: round-8 catalog export ea1_what_is_the_main_component_o_has_12_hours
+1510. Engine: round-8 catalog export ea1_what_is_the_main_component_o_has_48_hours
+1511. Engine: round-8 catalog export ea1_what_is_the_main_component_o_has_29_5_days
+1512. Engine: round-8 catalog export ea1_what_is_the_main_component_o_has_carbon_dioxide
+1513. Engine: round-8 catalog export ea1_what_is_the_main_component_o_has_nitrogen
+1514. Engine: round-8 catalog export ea1_what_is_the_main_component_o_has_3_to_22_minutes
+1515. Engine: round-8 catalog export ea1_what_is_the_main_component_o_has_instant
+1516. Engine: round-8 catalog export ea1_what_is_the_main_component_o_has_2_seconds
+1517. Engine: round-8 catalog export ea1_what_is_the_main_component_o_has_3_hours
+1518. Engine: round-8 catalog export ea1_what_is_the_main_component_o_has_earth_s_magnetosphere
+1519. Engine: round-8 catalog export ea1_what_is_the_main_component_o_has_thick_glass
+1520. Engine: round-8 catalog export ea1_what_is_the_main_component_o_has_lead_walls
+1521. Engine: round-8 catalog export ea1_what_is_the_main_component_o_has_the_solar_arrays
+1522. Engine: round-8 catalog export ea1_what_is_the_main_component_o_has_about_29_5_earth_days
+1523. Engine: round-8 catalog export ea1_what_is_the_main_component_o_has_24_hours
+1524. Engine: round-8 catalog export ea1_what_is_the_main_component_o_has_7_days
+1525. Engine: round-8 catalog export ea1_what_is_the_main_component_o_has_365_days
+1526. Engine: round-8 catalog export ea1_what_is_the_main_component_o_has_heat_from_decaying_plutonium
+1527. Engine: round-8 catalog export ea1_what_is_the_main_component_o_has_burning_methane
+1528. Engine: round-8 catalog export ea1_what_is_the_main_component_o_has_wind_turbines
+1529. Engine: round-8 catalog export ea1_what_is_the_main_component_o_has_coal_cells
+1530. Engine: round-8 catalog export ea1_what_is_the_main_component_o_has_resupply_from_earth_is_slow_
+1531. Engine: round-8 catalog export ea1_what_is_the_main_component_o_has_plants_glow_nicely
+1532. Engine: round-8 catalog export ea1_what_is_the_main_component_o_has_soil_is_free_in_space
+1533. Engine: round-8 catalog export ea1_what_is_the_main_component_o_has_it_removes_all_co2
+1534. Engine: round-8 catalog export ea1_what_is_the_main_component_o_has_dust_blocks_sunlight_and_coa
+1535. Engine: round-8 catalog export ea1_what_is_the_main_component_o_has_dust_freezes_panels
+1536. Engine: round-8 catalog export ea1_what_is_the_main_component_o_has_dust_conducts_electricity
+1537. Engine: round-8 catalog export ea1_what_is_the_main_component_o_has_no_hazard
+1538. Engine: round-8 catalog export ea1_what_is_the_main_component_o_has_artemis
+1539. Engine: round-8 catalog export ea1_what_is_the_main_component_o_has_apollo
+1540. Engine: round-8 catalog export ea1_how_long_can_a_one_way_radio_has_oxygen
+1541. Engine: round-8 catalog export ea1_how_long_can_a_one_way_radio_has_methane
+1542. Engine: round-8 catalog export ea1_how_long_can_a_one_way_radio_has_water
+1543. Engine: round-8 catalog export ea1_how_long_can_a_one_way_radio_has_hydrogen
+1544. Engine: round-8 catalog export ea1_how_long_can_a_one_way_radio_has_permanently_shadowed_craters
+1545. Engine: round-8 catalog export ea1_how_long_can_a_one_way_radio_has_it_is_the_warmest_region
+1546. Engine: round-8 catalog export ea1_how_long_can_a_one_way_radio_has_it_has_the_strongest_gravity
+1547. Engine: round-8 catalog export ea1_how_long_can_a_one_way_radio_has_it_is_closest_to_earth
+1548. Engine: round-8 catalog export ea1_how_long_can_a_one_way_radio_has_24_hours_37_minutes
+1549. Engine: round-8 catalog export ea1_how_long_can_a_one_way_radio_has_12_hours
+1550. Engine: round-8 catalog export ea1_how_long_can_a_one_way_radio_has_48_hours
+1551. Engine: round-8 catalog export ea1_how_long_can_a_one_way_radio_has_29_5_days
+1552. Engine: round-8 catalog export ea1_how_long_can_a_one_way_radio_has_carbon_dioxide
+1553. Engine: round-8 catalog export ea1_how_long_can_a_one_way_radio_has_nitrogen
+1554. Engine: round-8 catalog export ea1_how_long_can_a_one_way_radio_has_3_to_22_minutes
+1555. Engine: round-8 catalog export ea1_how_long_can_a_one_way_radio_has_instant
+1556. Engine: round-8 catalog export ea1_how_long_can_a_one_way_radio_has_2_seconds
+1557. Engine: round-8 catalog export ea1_how_long_can_a_one_way_radio_has_3_hours
+1558. Engine: round-8 catalog export ea1_how_long_can_a_one_way_radio_has_earth_s_magnetosphere
+1559. Engine: round-8 catalog export ea1_how_long_can_a_one_way_radio_has_thick_glass
+1560. Engine: round-8 catalog export ea1_how_long_can_a_one_way_radio_has_lead_walls
+1561. Engine: round-8 catalog export ea1_how_long_can_a_one_way_radio_has_the_solar_arrays
+1562. Engine: round-8 catalog export ea1_how_long_can_a_one_way_radio_has_about_29_5_earth_days
+1563. Engine: round-8 catalog export ea1_how_long_can_a_one_way_radio_has_24_hours
+1564. Engine: round-8 catalog export ea1_how_long_can_a_one_way_radio_has_7_days
+1565. Engine: round-8 catalog export ea1_how_long_can_a_one_way_radio_has_365_days
+1566. Engine: round-8 catalog export ea1_how_long_can_a_one_way_radio_has_heat_from_decaying_plutonium
+1567. Engine: round-8 catalog export ea1_how_long_can_a_one_way_radio_has_burning_methane
+1568. Engine: round-8 catalog export ea1_how_long_can_a_one_way_radio_has_wind_turbines
+1569. Engine: round-8 catalog export ea1_how_long_can_a_one_way_radio_has_coal_cells
+1570. Engine: round-8 catalog export ea1_how_long_can_a_one_way_radio_has_resupply_from_earth_is_slow_
+1571. Engine: round-8 catalog export ea1_how_long_can_a_one_way_radio_has_plants_glow_nicely
+1572. Engine: round-8 catalog export ea1_how_long_can_a_one_way_radio_has_soil_is_free_in_space
+1573. Engine: round-8 catalog export ea1_how_long_can_a_one_way_radio_has_it_removes_all_co2
+1574. Engine: round-8 catalog export ea1_how_long_can_a_one_way_radio_has_dust_blocks_sunlight_and_coa
+1575. Engine: round-8 catalog export ea1_how_long_can_a_one_way_radio_has_dust_freezes_panels
+1576. Engine: round-8 catalog export ea1_how_long_can_a_one_way_radio_has_dust_conducts_electricity
+1577. Engine: round-8 catalog export ea1_how_long_can_a_one_way_radio_has_no_hazard
+1578. Engine: round-8 catalog export ea1_how_long_can_a_one_way_radio_has_artemis
+1579. Engine: round-8 catalog export ea1_how_long_can_a_one_way_radio_has_apollo
+1580. Engine: round-8 catalog export ea1_what_protects_crews_on_the_i_has_oxygen
+1581. Engine: round-8 catalog export ea1_what_protects_crews_on_the_i_has_methane
+1582. Engine: round-8 catalog export ea1_what_protects_crews_on_the_i_has_water
+1583. Engine: round-8 catalog export ea1_what_protects_crews_on_the_i_has_hydrogen
+1584. Engine: round-8 catalog export ea1_what_protects_crews_on_the_i_has_permanently_shadowed_craters
+1585. Engine: round-8 catalog export ea1_what_protects_crews_on_the_i_has_it_is_the_warmest_region
+1586. Engine: round-8 catalog export ea1_what_protects_crews_on_the_i_has_it_has_the_strongest_gravity
+1587. Engine: round-8 catalog export ea1_what_protects_crews_on_the_i_has_it_is_closest_to_earth
+1588. Engine: round-8 catalog export ea1_what_protects_crews_on_the_i_has_24_hours_37_minutes
+1589. Engine: round-8 catalog export ea1_what_protects_crews_on_the_i_has_12_hours
+1590. Engine: round-8 catalog export ea1_what_protects_crews_on_the_i_has_48_hours
+1591. Engine: round-8 catalog export ea1_what_protects_crews_on_the_i_has_29_5_days
+1592. Engine: round-8 catalog export ea1_what_protects_crews_on_the_i_has_carbon_dioxide
+1593. Engine: round-8 catalog export ea1_what_protects_crews_on_the_i_has_nitrogen
+1594. Engine: round-8 catalog export ea1_what_protects_crews_on_the_i_has_3_to_22_minutes
+1595. Engine: round-8 catalog export ea1_what_protects_crews_on_the_i_has_instant
+1596. Engine: round-8 catalog export ea1_what_protects_crews_on_the_i_has_2_seconds
+1597. Engine: round-8 catalog export ea1_what_protects_crews_on_the_i_has_3_hours
+1598. Engine: round-8 catalog export ea1_what_protects_crews_on_the_i_has_earth_s_magnetosphere
+1599. Engine: round-8 catalog export ea1_what_protects_crews_on_the_i_has_thick_glass
+1600. Engine: round-8 catalog export ea1_what_protects_crews_on_the_i_has_lead_walls
+1601. Engine: round-8 catalog export ea1_what_protects_crews_on_the_i_has_the_solar_arrays
+1602. Engine: round-8 catalog export ea1_what_protects_crews_on_the_i_has_about_29_5_earth_days
+1603. Engine: round-8 catalog export ea1_what_protects_crews_on_the_i_has_24_hours
+1604. Engine: round-8 catalog export ea1_what_protects_crews_on_the_i_has_7_days
+1605. Engine: round-8 catalog export ea1_what_protects_crews_on_the_i_has_365_days
+1606. Engine: round-8 catalog export ea1_what_protects_crews_on_the_i_has_heat_from_decaying_plutonium
+1607. Engine: round-8 catalog export ea1_what_protects_crews_on_the_i_has_burning_methane
+1608. Engine: round-8 catalog export ea1_what_protects_crews_on_the_i_has_wind_turbines
+1609. Engine: round-8 catalog export ea1_what_protects_crews_on_the_i_has_coal_cells
+1610. Engine: round-8 catalog export ea1_what_protects_crews_on_the_i_has_resupply_from_earth_is_slow_
+1611. Engine: round-8 catalog export ea1_what_protects_crews_on_the_i_has_plants_glow_nicely
+1612. Engine: round-8 catalog export ea1_what_protects_crews_on_the_i_has_soil_is_free_in_space
+1613. Engine: round-8 catalog export ea1_what_protects_crews_on_the_i_has_it_removes_all_co2
+1614. Engine: round-8 catalog export ea1_what_protects_crews_on_the_i_has_dust_blocks_sunlight_and_coa
+1615. Engine: round-8 catalog export ea1_what_protects_crews_on_the_i_has_dust_freezes_panels
+1616. Engine: round-8 catalog export ea1_what_protects_crews_on_the_i_has_dust_conducts_electricity
+1617. Engine: round-8 catalog export ea1_what_protects_crews_on_the_i_has_no_hazard
+1618. Engine: round-8 catalog export ea1_what_protects_crews_on_the_i_has_artemis
+1619. Engine: round-8 catalog export ea1_what_protects_crews_on_the_i_has_apollo
+1620. Engine: round-8 catalog export ea1_roughly_how_long_is_a_full_l_has_oxygen
+1621. Engine: round-8 catalog export ea1_roughly_how_long_is_a_full_l_has_methane
+1622. Engine: round-8 catalog export ea1_roughly_how_long_is_a_full_l_has_water
+1623. Engine: round-8 catalog export ea1_roughly_how_long_is_a_full_l_has_hydrogen
+1624. Engine: round-8 catalog export ea1_roughly_how_long_is_a_full_l_has_permanently_shadowed_craters
+1625. Engine: round-8 catalog export ea1_roughly_how_long_is_a_full_l_has_it_is_the_warmest_region
+1626. Engine: round-8 catalog export ea1_roughly_how_long_is_a_full_l_has_it_has_the_strongest_gravity
+1627. Engine: round-8 catalog export ea1_roughly_how_long_is_a_full_l_has_it_is_closest_to_earth
+1628. Engine: round-8 catalog export ea1_roughly_how_long_is_a_full_l_has_24_hours_37_minutes
+1629. Engine: round-8 catalog export ea1_roughly_how_long_is_a_full_l_has_12_hours
+1630. Engine: round-8 catalog export ea1_roughly_how_long_is_a_full_l_has_48_hours
+1631. Engine: round-8 catalog export ea1_roughly_how_long_is_a_full_l_has_29_5_days
+1632. Engine: round-8 catalog export ea1_roughly_how_long_is_a_full_l_has_carbon_dioxide
+1633. Engine: round-8 catalog export ea1_roughly_how_long_is_a_full_l_has_nitrogen
+1634. Engine: round-8 catalog export ea1_roughly_how_long_is_a_full_l_has_3_to_22_minutes
+1635. Engine: round-8 catalog export ea1_roughly_how_long_is_a_full_l_has_instant
+1636. Engine: round-8 catalog export ea1_roughly_how_long_is_a_full_l_has_2_seconds
+1637. Engine: round-8 catalog export ea1_roughly_how_long_is_a_full_l_has_3_hours
+1638. Engine: round-8 catalog export ea1_roughly_how_long_is_a_full_l_has_earth_s_magnetosphere
+1639. Engine: round-8 catalog export ea1_roughly_how_long_is_a_full_l_has_thick_glass
+1640. Engine: round-8 catalog export ea1_roughly_how_long_is_a_full_l_has_lead_walls
+1641. Engine: round-8 catalog export ea1_roughly_how_long_is_a_full_l_has_the_solar_arrays
+1642. Engine: round-8 catalog export ea1_roughly_how_long_is_a_full_l_has_about_29_5_earth_days
+1643. Engine: round-8 catalog export ea1_roughly_how_long_is_a_full_l_has_24_hours
+1644. Engine: round-8 catalog export ea1_roughly_how_long_is_a_full_l_has_7_days
+1645. Engine: round-8 catalog export ea1_roughly_how_long_is_a_full_l_has_365_days
+1646. Engine: round-8 catalog export ea1_roughly_how_long_is_a_full_l_has_heat_from_decaying_plutonium
+1647. Engine: round-8 catalog export ea1_roughly_how_long_is_a_full_l_has_burning_methane
+1648. Engine: round-8 catalog export ea1_roughly_how_long_is_a_full_l_has_wind_turbines
+1649. Engine: round-8 catalog export ea1_roughly_how_long_is_a_full_l_has_coal_cells
+1650. Engine: round-8 catalog export ea1_roughly_how_long_is_a_full_l_has_resupply_from_earth_is_slow_
+1651. Engine: round-8 catalog export ea1_roughly_how_long_is_a_full_l_has_plants_glow_nicely
+1652. Engine: round-8 catalog export ea1_roughly_how_long_is_a_full_l_has_soil_is_free_in_space
+1653. Engine: round-8 catalog export ea1_roughly_how_long_is_a_full_l_has_it_removes_all_co2
+1654. Engine: round-8 catalog export ea1_roughly_how_long_is_a_full_l_has_dust_blocks_sunlight_and_coa
+1655. Engine: round-8 catalog export ea1_roughly_how_long_is_a_full_l_has_dust_freezes_panels
+1656. Engine: round-8 catalog export ea1_roughly_how_long_is_a_full_l_has_dust_conducts_electricity
+1657. Engine: round-8 catalog export ea1_roughly_how_long_is_a_full_l_has_no_hazard
+1658. Engine: round-8 catalog export ea1_roughly_how_long_is_a_full_l_has_artemis
+1659. Engine: round-8 catalog export ea1_roughly_how_long_is_a_full_l_has_apollo
+1660. Engine: round-8 catalog export ea1_what_do_rtgs_use_to_make_ele_has_oxygen
+1661. Engine: round-8 catalog export ea1_what_do_rtgs_use_to_make_ele_has_methane
+1662. Engine: round-8 catalog export ea1_what_do_rtgs_use_to_make_ele_has_water
+1663. Engine: round-8 catalog export ea1_what_do_rtgs_use_to_make_ele_has_hydrogen
+1664. Engine: round-8 catalog export ea1_what_do_rtgs_use_to_make_ele_has_permanently_shadowed_craters
+1665. Engine: round-8 catalog export ea1_what_do_rtgs_use_to_make_ele_has_it_is_the_warmest_region
+1666. Engine: round-8 catalog export ea1_what_do_rtgs_use_to_make_ele_has_it_has_the_strongest_gravity
+1667. Engine: round-8 catalog export ea1_what_do_rtgs_use_to_make_ele_has_it_is_closest_to_earth
+1668. Engine: round-8 catalog export ea1_what_do_rtgs_use_to_make_ele_has_24_hours_37_minutes
+1669. Engine: round-8 catalog export ea1_what_do_rtgs_use_to_make_ele_has_12_hours
+1670. Engine: round-8 catalog export ea1_what_do_rtgs_use_to_make_ele_has_48_hours
+1671. Engine: round-8 catalog export ea1_what_do_rtgs_use_to_make_ele_has_29_5_days
+1672. Engine: round-8 catalog export ea1_what_do_rtgs_use_to_make_ele_has_carbon_dioxide
+1673. Engine: round-8 catalog export ea1_what_do_rtgs_use_to_make_ele_has_nitrogen
+1674. Engine: round-8 catalog export ea1_what_do_rtgs_use_to_make_ele_has_3_to_22_minutes
+1675. Engine: round-8 catalog export ea1_what_do_rtgs_use_to_make_ele_has_instant
+1676. Engine: round-8 catalog export ea1_what_do_rtgs_use_to_make_ele_has_2_seconds
+1677. Engine: round-8 catalog export ea1_what_do_rtgs_use_to_make_ele_has_3_hours
+1678. Engine: round-8 catalog export ea1_what_do_rtgs_use_to_make_ele_has_earth_s_magnetosphere
+1679. Engine: round-8 catalog export ea1_what_do_rtgs_use_to_make_ele_has_thick_glass
+1680. Engine: round-8 catalog export ea1_what_do_rtgs_use_to_make_ele_has_lead_walls
+1681. Engine: round-8 catalog export ea1_what_do_rtgs_use_to_make_ele_has_the_solar_arrays
+1682. Engine: round-8 catalog export ea1_what_do_rtgs_use_to_make_ele_has_about_29_5_earth_days
+1683. Engine: round-8 catalog export ea1_what_do_rtgs_use_to_make_ele_has_24_hours
+1684. Engine: round-8 catalog export ea1_what_do_rtgs_use_to_make_ele_has_7_days
+1685. Engine: round-8 catalog export ea1_what_do_rtgs_use_to_make_ele_has_365_days
+1686. Engine: round-8 catalog export ea1_what_do_rtgs_use_to_make_ele_has_heat_from_decaying_plutonium
+1687. Engine: round-8 catalog export ea1_what_do_rtgs_use_to_make_ele_has_burning_methane
+1688. Engine: round-8 catalog export ea1_what_do_rtgs_use_to_make_ele_has_wind_turbines
+1689. Engine: round-8 catalog export ea1_what_do_rtgs_use_to_make_ele_has_coal_cells
+1690. Engine: round-8 catalog export ea1_what_do_rtgs_use_to_make_ele_has_resupply_from_earth_is_slow_
+1691. Engine: round-8 catalog export ea1_what_do_rtgs_use_to_make_ele_has_plants_glow_nicely
+1692. Engine: round-8 catalog export ea1_what_do_rtgs_use_to_make_ele_has_soil_is_free_in_space
+1693. Engine: round-8 catalog export ea1_what_do_rtgs_use_to_make_ele_has_it_removes_all_co2
+1694. Engine: round-8 catalog export ea1_what_do_rtgs_use_to_make_ele_has_dust_blocks_sunlight_and_coa
+1695. Engine: round-8 catalog export ea1_what_do_rtgs_use_to_make_ele_has_dust_freezes_panels
+1696. Engine: round-8 catalog export ea1_what_do_rtgs_use_to_make_ele_has_dust_conducts_electricity
+1697. Engine: round-8 catalog export ea1_what_do_rtgs_use_to_make_ele_has_no_hazard
+1698. Engine: round-8 catalog export ea1_what_do_rtgs_use_to_make_ele_has_artemis
+1699. Engine: round-8 catalog export ea1_what_do_rtgs_use_to_make_ele_has_apollo
+1700. Engine: round-8 catalog export ea1_why_is_growing_food_on_a_mis_has_oxygen
+1701. Engine: round-8 catalog export ea1_why_is_growing_food_on_a_mis_has_methane
+1702. Engine: round-8 catalog export ea1_why_is_growing_food_on_a_mis_has_water
+1703. Engine: round-8 catalog export ea1_why_is_growing_food_on_a_mis_has_hydrogen
+1704. Engine: round-8 catalog export ea1_why_is_growing_food_on_a_mis_has_permanently_shadowed_craters
+1705. Engine: round-8 catalog export ea1_why_is_growing_food_on_a_mis_has_it_is_the_warmest_region
+1706. Engine: round-8 catalog export ea1_why_is_growing_food_on_a_mis_has_it_has_the_strongest_gravity
+1707. Engine: round-8 catalog export ea1_why_is_growing_food_on_a_mis_has_it_is_closest_to_earth
+1708. Engine: round-8 catalog export ea1_why_is_growing_food_on_a_mis_has_24_hours_37_minutes
+1709. Engine: round-8 catalog export ea1_why_is_growing_food_on_a_mis_has_12_hours
+1710. Engine: round-8 catalog export ea1_why_is_growing_food_on_a_mis_has_48_hours
+1711. Engine: round-8 catalog export ea1_why_is_growing_food_on_a_mis_has_29_5_days
+1712. Engine: round-8 catalog export ea1_why_is_growing_food_on_a_mis_has_carbon_dioxide
+1713. Engine: round-8 catalog export ea1_why_is_growing_food_on_a_mis_has_nitrogen
+1714. Engine: round-8 catalog export ea1_why_is_growing_food_on_a_mis_has_3_to_22_minutes
+1715. Engine: round-8 catalog export ea1_why_is_growing_food_on_a_mis_has_instant
+1716. Engine: round-8 catalog export ea1_why_is_growing_food_on_a_mis_has_2_seconds
+1717. Engine: round-8 catalog export ea1_why_is_growing_food_on_a_mis_has_3_hours
+1718. Engine: round-8 catalog export ea1_why_is_growing_food_on_a_mis_has_earth_s_magnetosphere
+1719. Engine: round-8 catalog export ea1_why_is_growing_food_on_a_mis_has_thick_glass
+1720. Engine: round-8 catalog export ea1_why_is_growing_food_on_a_mis_has_lead_walls
+1721. Engine: round-8 catalog export ea1_why_is_growing_food_on_a_mis_has_the_solar_arrays
+1722. Engine: round-8 catalog export ea1_why_is_growing_food_on_a_mis_has_about_29_5_earth_days
+1723. Engine: round-8 catalog export ea1_why_is_growing_food_on_a_mis_has_24_hours
+1724. Engine: round-8 catalog export ea1_why_is_growing_food_on_a_mis_has_7_days
+1725. Engine: round-8 catalog export ea1_why_is_growing_food_on_a_mis_has_365_days
+1726. Engine: round-8 catalog export ea1_why_is_growing_food_on_a_mis_has_heat_from_decaying_plutonium
+1727. Engine: round-8 catalog export ea1_why_is_growing_food_on_a_mis_has_burning_methane
+1728. Engine: round-8 catalog export ea1_why_is_growing_food_on_a_mis_has_wind_turbines
+1729. Engine: round-8 catalog export ea1_why_is_growing_food_on_a_mis_has_coal_cells
+1730. Engine: round-8 catalog export ea1_why_is_growing_food_on_a_mis_has_resupply_from_earth_is_slow_
+1731. Engine: round-8 catalog export ea1_why_is_growing_food_on_a_mis_has_plants_glow_nicely
+1732. Engine: round-8 catalog export ea1_why_is_growing_food_on_a_mis_has_soil_is_free_in_space
+1733. Engine: round-8 catalog export ea1_why_is_growing_food_on_a_mis_has_it_removes_all_co2
+1734. Engine: round-8 catalog export ea1_why_is_growing_food_on_a_mis_has_dust_blocks_sunlight_and_coa
+1735. Engine: round-8 catalog export ea1_why_is_growing_food_on_a_mis_has_dust_freezes_panels
+1736. Engine: round-8 catalog export ea1_why_is_growing_food_on_a_mis_has_dust_conducts_electricity
+1737. Engine: round-8 catalog export ea1_why_is_growing_food_on_a_mis_has_no_hazard
+1738. Engine: round-8 catalog export ea1_why_is_growing_food_on_a_mis_has_artemis
+1739. Engine: round-8 catalog export ea1_why_is_growing_food_on_a_mis_has_apollo
+1740. Engine: round-8 catalog export ea1_what_hazard_do_dust_storms_o_has_oxygen
+1741. Engine: round-8 catalog export ea1_what_hazard_do_dust_storms_o_has_methane
+1742. Engine: round-8 catalog export ea1_what_hazard_do_dust_storms_o_has_water
+1743. Engine: round-8 catalog export ea1_what_hazard_do_dust_storms_o_has_hydrogen
+1744. Engine: round-8 catalog export ea1_what_hazard_do_dust_storms_o_has_permanently_shadowed_craters
+1745. Engine: round-8 catalog export ea1_what_hazard_do_dust_storms_o_has_it_is_the_warmest_region
+1746. Engine: round-8 catalog export ea1_what_hazard_do_dust_storms_o_has_it_has_the_strongest_gravity
+1747. Engine: round-8 catalog export ea1_what_hazard_do_dust_storms_o_has_it_is_closest_to_earth
+1748. Engine: round-8 catalog export ea1_what_hazard_do_dust_storms_o_has_24_hours_37_minutes
+1749. Engine: round-8 catalog export ea1_what_hazard_do_dust_storms_o_has_12_hours
+1750. Engine: round-8 catalog export ea1_what_hazard_do_dust_storms_o_has_48_hours
+1751. Engine: round-8 catalog export ea1_what_hazard_do_dust_storms_o_has_29_5_days
+1752. Engine: round-8 catalog export ea1_what_hazard_do_dust_storms_o_has_carbon_dioxide
+1753. Engine: round-8 catalog export ea1_what_hazard_do_dust_storms_o_has_nitrogen
+1754. Engine: round-8 catalog export ea1_what_hazard_do_dust_storms_o_has_3_to_22_minutes
+1755. Engine: round-8 catalog export ea1_what_hazard_do_dust_storms_o_has_instant
+1756. Engine: round-8 catalog export ea1_what_hazard_do_dust_storms_o_has_2_seconds
+1757. Engine: round-8 catalog export ea1_what_hazard_do_dust_storms_o_has_3_hours
+1758. Engine: round-8 catalog export ea1_what_hazard_do_dust_storms_o_has_earth_s_magnetosphere
+1759. Engine: round-8 catalog export ea1_what_hazard_do_dust_storms_o_has_thick_glass
+1760. Engine: round-8 catalog export ea1_what_hazard_do_dust_storms_o_has_lead_walls
+1761. Engine: round-8 catalog export ea1_what_hazard_do_dust_storms_o_has_the_solar_arrays
+1762. Engine: round-8 catalog export ea1_what_hazard_do_dust_storms_o_has_about_29_5_earth_days
+1763. Engine: round-8 catalog export ea1_what_hazard_do_dust_storms_o_has_24_hours
+1764. Engine: round-8 catalog export ea1_what_hazard_do_dust_storms_o_has_7_days
+1765. Engine: round-8 catalog export ea1_what_hazard_do_dust_storms_o_has_365_days
+1766. Engine: round-8 catalog export ea1_what_hazard_do_dust_storms_o_has_heat_from_decaying_plutonium
+1767. Engine: round-8 catalog export ea1_what_hazard_do_dust_storms_o_has_burning_methane
+1768. Engine: round-8 catalog export ea1_what_hazard_do_dust_storms_o_has_wind_turbines
+1769. Engine: round-8 catalog export ea1_what_hazard_do_dust_storms_o_has_coal_cells
+1770. Engine: round-8 catalog export ea1_what_hazard_do_dust_storms_o_has_resupply_from_earth_is_slow_
+1771. Engine: round-8 catalog export ea1_what_hazard_do_dust_storms_o_has_plants_glow_nicely
+1772. Engine: round-8 catalog export ea1_what_hazard_do_dust_storms_o_has_soil_is_free_in_space
+1773. Engine: round-8 catalog export ea1_what_hazard_do_dust_storms_o_has_it_removes_all_co2
+1774. Engine: round-8 catalog export ea1_what_hazard_do_dust_storms_o_has_dust_blocks_sunlight_and_coa
+1775. Engine: round-8 catalog export ea1_what_hazard_do_dust_storms_o_has_dust_freezes_panels
+1776. Engine: round-8 catalog export ea1_what_hazard_do_dust_storms_o_has_dust_conducts_electricity
+1777. Engine: round-8 catalog export ea1_what_hazard_do_dust_storms_o_has_no_hazard
+1778. Engine: round-8 catalog export ea1_what_hazard_do_dust_storms_o_has_artemis
+1779. Engine: round-8 catalog export ea1_what_hazard_do_dust_storms_o_has_apollo
+1780. Engine: round-8 catalog export ea1_which_program_aims_to_return_has_oxygen
+1781. Engine: round-8 catalog export ea1_which_program_aims_to_return_has_methane
+1782. Engine: round-8 catalog export ea1_which_program_aims_to_return_has_water
+1783. Engine: round-8 catalog export ea1_which_program_aims_to_return_has_hydrogen
+1784. Engine: round-8 catalog export ea1_which_program_aims_to_return_has_permanently_shadowed_craters
+1785. Engine: round-8 catalog export ea1_which_program_aims_to_return_has_it_is_the_warmest_region
+1786. Engine: round-8 catalog export ea1_which_program_aims_to_return_has_it_has_the_strongest_gravity
+1787. Engine: round-8 catalog export ea1_which_program_aims_to_return_has_it_is_closest_to_earth
+1788. Engine: round-8 catalog export ea1_which_program_aims_to_return_has_24_hours_37_minutes
+1789. Engine: round-8 catalog export ea1_which_program_aims_to_return_has_12_hours
+1790. Engine: round-8 catalog export ea1_which_program_aims_to_return_has_48_hours
+1791. Engine: round-8 catalog export ea1_which_program_aims_to_return_has_29_5_days
+1792. Engine: round-8 catalog export ea1_which_program_aims_to_return_has_carbon_dioxide
+1793. Engine: round-8 catalog export ea1_which_program_aims_to_return_has_nitrogen
+1794. Engine: round-8 catalog export ea1_which_program_aims_to_return_has_3_to_22_minutes
+1795. Engine: round-8 catalog export ea1_which_program_aims_to_return_has_instant
+1796. Engine: round-8 catalog export ea1_which_program_aims_to_return_has_2_seconds
+1797. Engine: round-8 catalog export ea1_which_program_aims_to_return_has_3_hours
+1798. Engine: round-8 catalog export ea1_which_program_aims_to_return_has_earth_s_magnetosphere
+1799. Engine: round-8 catalog export ea1_which_program_aims_to_return_has_thick_glass
+1800. Engine: round-8 catalog export ea1_which_program_aims_to_return_has_lead_walls
+1801. Engine: round-8 catalog export ea1_which_program_aims_to_return_has_the_solar_arrays
+1802. Engine: round-8 catalog export ea1_which_program_aims_to_return_has_about_29_5_earth_days
+1803. Engine: round-8 catalog export ea1_which_program_aims_to_return_has_24_hours
+1804. Engine: round-8 catalog export ea1_which_program_aims_to_return_has_7_days
+1805. Engine: round-8 catalog export ea1_which_program_aims_to_return_has_365_days
+1806. Engine: round-8 catalog export ea1_which_program_aims_to_return_has_heat_from_decaying_plutonium
+1807. Engine: round-8 catalog export ea1_which_program_aims_to_return_has_burning_methane
+1808. Engine: round-8 catalog export ea1_which_program_aims_to_return_has_wind_turbines
+1809. Engine: round-8 catalog export ea1_which_program_aims_to_return_has_coal_cells
+1810. Engine: round-8 catalog export ea1_which_program_aims_to_return_has_resupply_from_earth_is_slow_
+1811. Engine: round-8 catalog export ea1_which_program_aims_to_return_has_plants_glow_nicely
+1812. Feature deck button r510a
+1813. Feature deck button r510b
+1814. Feature deck button r510c
+1815. Feature deck button r510d
+1816. Feature deck button r510e
+1817. Feature deck button r510f
+1818. Feature deck button r510g
+1819. Feature deck button r510h
+1820. Feature deck button r510i
+1821. Feature deck button r510j
+1822. Feature deck button r510k
+1823. Feature deck button r510l
+1824. Feature deck button r510m
+1825. Feature deck button r510n
+1826. Feature deck button r510o
+1827. Feature deck button r510p
+1828. Feature deck button r510q
+1829. Feature deck button r510r
+1830. Feature deck button r510s
+1831. Feature deck button r510t
+1832. Feature deck button r510u
+1833. Feature deck button r510v
+1834. Feature deck button r510w
+1835. Feature deck button r510x
+1836. Feature deck button r510y
+1837. Feature deck button r510z
+1838. Feature deck button r510aa
+1839. Feature deck button r510ab
+1840. Feature deck button r510ac
+1841. Feature deck button r510ad
+1842. Feature deck button r510ae
+1843. Feature deck button r510af
+1844. Feature deck button r510ag
+1845. Feature deck button r510ah
+1846. Feature deck button r510ai
+1847. Feature deck button r510aj
+1848. Feature deck button r510ak
+1849. Feature deck button r510al
+1850. Feature deck button r510am
+1851. Feature deck button r510an
+1852. Feature deck button r510ao
+1853. Feature deck button r510ap
+1854. Feature deck button r510aq
+1855. Feature deck button r510ar
+1856. Feature deck button r510as
+1857. Feature deck button r510at
+1858. Feature deck button r510au
+1859. Feature deck button r510av
+1860. Feature deck button r510aw
+1861. Feature deck button r510ax
+1862. Feature deck button r510ay
+1863. Feature deck button r510az
+1864. Feature deck button r510ba
+1865. Feature deck button r510bb
+1866. Feature deck button r510bc
+1867. Feature deck button r510bd
+1868. Feature deck button r510be
+1869. Feature deck button r510bf
+1870. Feature deck button r510bg
+1871. Feature deck button r510bh
+1872. Feature deck button r510bi
+1873. Feature deck button r510bj
+1874. Feature deck button r510bk
+1875. Feature deck button r510bl
+1876. Feature deck button r510bm
+1877. Feature deck button r510bn
+1878. Feature deck button r510bo
+1879. Feature deck button r510bp
+1880. Feature deck button r510bq
+1881. Feature deck button r510br
+1882. Feature deck button r510bs
+1883. Feature deck button r510bt
+1884. Feature deck button r510bu
+1885. Feature deck button r510bv
+1886. Feature deck button r510bw
+1887. Feature deck button r510bx
+1888. Feature deck button r510by
+1889. Feature deck button r510bz
+1890. Feature deck button r510ca
+1891. Feature deck button r510cb
+1892. Feature deck button r510cc
+1893. Feature deck button r510cd
+1894. Feature deck button r510ce
+1895. Feature deck button r510cf
+1896. Feature deck button r510cg
+1897. Feature deck button r510ch
+1898. Feature deck button r510ci
+1899. Feature deck button r510cj
+1900. Feature deck button r510ck
+1901. Feature deck button r510cl
+1902. Feature deck button r510cm
+1903. Feature deck button r510cn
+1904. Feature deck button r510co
+1905. Feature deck button r510cp
+1906. Feature deck button r510cq
+1907. Feature deck button r510cr
+1908. Feature deck button r510cs
+1909. Feature deck button r510ct
+1910. Feature deck button r510cu
+1911. Feature deck button r510cv
 
 ## Data and sources
 
@@ -1457,7 +1957,7 @@ Challenge statement: nasaspaceapps.ae/challenges (Junior Astronaut Mission Train
 
 ## Tested
 
-`node test.js` — 1035 checks (62 original + 102 round-4 + 66 round-5 + 61 round-6 + 124 round-7 + 380 round-8 + 80 round-9 + 160 round-10) covering engine rules, resource math, role effects, tech effects, expeditions, scenarios, sandbox behavior, advisor triggers, forecast correctness and a full playthrough that wins. All pass on Node 22. Round-4 tests cover the new buildings, techs, expeditions, events, ops actions, analytics functions, objective modes, grading and exports. Round-5 tests cover the briefing, runway, plans, advisors, checklists, CSV/JSON/markdown exports, integrity checker and state hash. Round-6 tests cover the new mission-analytics engine functions: resource aggregates, crew metrics, building and tech counters, objective progress, reserve warnings and per-crew ratios.
+`node test.js` — 1435 checks (62 original + 102 round-4 + 66 round-5 + 61 round-6 + 124 round-7 + 380 round-8 + 80 round-9 + 160 round-10 + 400 round-11) covering engine rules, resource math, role effects, tech effects, expeditions, scenarios, sandbox behavior, advisor triggers, forecast correctness and a full playthrough that wins. All pass on Node 22. Round-4 tests cover the new buildings, techs, expeditions, events, ops actions, analytics functions, objective modes, grading and exports. Round-5 tests cover the briefing, runway, plans, advisors, checklists, CSV/JSON/markdown exports, integrity checker and state hash. Round-6 tests cover the new mission-analytics engine functions: resource aggregates, crew metrics, building and tech counters, objective progress, reserve warnings and per-crew ratios.
 
 ## Untested
 
