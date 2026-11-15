@@ -27,19 +27,21 @@ var blob=new Blob([text],{type:type||"text/plain"});
 var a=document.createElement("a");
 a.href=URL.createObjectURL(blob);a.download=name;a.click();URL.revokeObjectURL(a.href)}
 function saveHighScore(){
-if(!s||!s.over){return}
+if(!s||!s.over||s.scoreSaved){return}
+s.scoreSaved=true;
 var raw=localStorage.getItem("jamt_scores");
 var list=raw?JSON.parse(raw):[];
 list.push({name:s.missionName||"Unnamed",site:s.site,diff:s.difficulty,score:TrainerEngine.score(s),won:s.won,sol:s.sol});
 list.sort(function(a,b){return b.score-a.score});
 list=list.slice(0,5);
 localStorage.setItem("jamt_scores",JSON.stringify(list))}
+function esc(t){return String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
 function renderHighScores(){
 var raw=localStorage.getItem("jamt_scores");
 var list=raw?JSON.parse(raw):[];
 if(!list.length){$("highScores").innerHTML="";return}
 var h="<h3>Best missions</h3>";
-list.forEach(function(x,i){h+='<div class="score">'+(i+1)+". "+x.name+" — "+x.score+" pts ("+x.site+", "+x.diff+(x.won?", won":"")+")</div>"});
+list.forEach(function(x,i){h+='<div class="score">'+(i+1)+". "+esc(x.name)+" — "+x.score+" pts ("+x.site+", "+x.diff+(x.won?", won":"")+")</div>"});
 $("highScores").innerHTML=h}
 function render(){
 if(!s){return}
@@ -240,6 +242,7 @@ if(!raw){return}
 s=JSON.parse(raw);
 $("setup").hidden=true;$("game").hidden=false;render();if(window.__tourEvent){window.__tourEvent("launch")}};
 $("contrastBtn").onclick=function(){document.body.classList.toggle("hc")};
+$("recruitBtn").onclick=function(){if(!s)return;TrainerEngine.recruit(s);render()};
 $("sndBtn").onclick=function(){sndOn=!sndOn;try{localStorage.setItem("sndOn",sndOn?"1":"0")}catch(e){};applySnd();if(sndOn){tone(660,.1,"sine",.06)}};
 applySnd();
 $("rationSel").onchange=function(){if(s){TrainerEngine.setRations(s,parseFloat($("rationSel").value));render()}};

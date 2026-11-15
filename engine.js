@@ -167,7 +167,7 @@ if(ev.id==="quake"&&rand(st)>siteDef.quakeChance*10){continue}
 for(var w=0;w<ev.w;w++){bag.push(ev.id)}}
 if(bag.length&&rand(st)<0.5){evId=bag[Math.floor(rand(st)*bag.length)]}}
 s.schedule.push(evId)}}
-function forecast(s){var id=s.schedule[s.sol];if(!id){return null}var ev=null;for(var i=0;i<EVENTS.length;i++){if(EVENTS[i].id===id){ev=EVENTS[i]}}return ev?{id:ev.id,text:ev.text}:null}
+function forecast(s,offset){var id=s.schedule[s.sol+(offset||0)];if(!id){return null}var ev=null;for(var i=0;i<EVENTS.length;i++){if(EVENTS[i].id===id){ev=EVENTS[i]}}return ev?{id:ev.id,text:ev.text}:null}
 function setScenario(s,name){if(!SCENARIOS[name]||s.sol>0){return false}
 s.scenario=name;
 if(name==="leancrew"){s.crew=s.crew.slice(0,2);addLog(s,"Scenario: Lean Crew. Two people, whole mission.")}
@@ -210,7 +210,7 @@ function setCrop(s,idx,crop){var b=s.buildings[idx];if(!b||b.type!=="greenhouse"
 if(b.crop!==crop){s.cropSwitches+=1}b.crop=crop;addLog(s,"Greenhouse now grows "+CROPS[crop].name+".");return true}
 function setManifest(s,m){if(["mixed","food","parts"].indexOf(m)<0){return false}s.manifest=m;addLog(s,"Resupply manifest set to "+m+".");return true}
 function setMissionName(s,n){s.missionName=String(n||"").slice(0,40)}
-function renameCrew(s,idx,n){var c=s.crew[idx];if(!c){return false}c.name=String(n||c.name).slice(0,24);return true}
+
 function expedition(s,dest){var ex=EXPEDITIONS[dest];if(!ex){return{ok:false,msg:"unknown destination"}}
 if(s.res.parts<ex.cost){return{ok:false,msg:"expedition needs "+ex.cost+" parts for rover consumables"}}
 var able=s.crew.filter(function(c){return c.health>0&&(c.away||0)<=0&&(c.fatigue||0)<=70});
@@ -222,12 +222,13 @@ team.forEach(function(c){c.away=ex.sols;c.fatigue=Math.min(100,(c.fatigue||0)+ex
 addLog(s,"Expedition launched: "+ex.name+" ("+team.map(function(c){return c.name}).join(", ")+").");
 return{ok:true,team:team.map(function(c){return c.name})}}
 function resolveExpedition(s,c){
-var ex=EXPEDITIONS[c.expedDest];c.expedDest=null;
+var dest=c.expedDest;
+var ex=EXPEDITIONS[dest];c.expedDest=null;
 var broke=rand(s)<0.1;
 var f=broke?0.5:1;
 if(broke){c.health=Math.max(1,c.health-10);addLog(s,c.name+"'s rover broke down on the way back: -10 health, half haul.")}
 if(ex.science){var g=Math.round(ex.science*f);s.res.science+=g;s.totals.science+=g}
-if(ex.water){var w=Math.round(ex.water*f);if(c.expedDest==="icefield"&&s.icePocketArmed){w*=2;s.icePocketArmed=false;addLog(s,"The flagged ice pocket paid off: double water haul.")}s.res.water+=w;s.totals.water+=w}
+if(ex.water){var w=Math.round(ex.water*f);if(dest==="icefield"&&s.icePocketArmed){w*=2;s.icePocketArmed=false;addLog(s,"The flagged ice pocket paid off: double water haul.")}s.res.water+=w;s.totals.water+=w}
 if(ex.parts){s.res.parts+=Math.round(ex.parts*f)}
 if(ex.relay){s.relayFixedUntil=s.sol+10;addLog(s,"Relay station back online: +2 science per sol for 10 sols.")}
 c.xp=(c.xp||0)+4;
@@ -495,17 +496,11 @@ if(fc&&(fc.id==="storm"||fc.id==="flare")){out.push("Consider shelter mode ahead
 if(s.crew.some(function(c){return c.health>0&&(c.fatigue||0)>70})){out.push("Rest exhausted crew before EVAs")}
 if(!out.length){out.push("Stable: push science, research, or an expedition")}
 return out}
-var NAME_A=["Ares","Selene","Horizon","Pioneer","Kepler","Halley","Vega","Orion"];
-var NAME_B=["Dawn","Beacon","Frontier","Haven","Odyssey","Promise","Light","Shield"];
-function missionNameGen(seed){var st={rngState:(seed||1)|0};
-return NAME_A[Math.floor(rand(st)*NAME_A.length)]+" "+NAME_B[Math.floor(rand(st)*NAME_B.length)]}
-function difficultyTable(){
-return[{id:"cadet",name:"Cadet",dose:"55%",stores:"+35%",goal:"120 science"},
-{id:"explorer",name:"Explorer",dose:"100%",stores:"standard",goal:"200 science"},
-{id:"commander",name:"Commander",dose:"130%",stores:"-20%",goal:"200 science in 40 sols"},
-{id:"sandbox",name:"Sandbox",dose:"100%",stores:"standard",goal:"no fail states"}]}
-function scoreBreakdown(s){
-return{science:Math.round(s.res.science),crew:aliveCount(s)*20,shielding:s.shieldLevel*5,sols:s.sol,wonBonus:s.won?100:0,achievements:s.earned.length*10,total:score(s)}}
+
+
+
+
+
 function shareText(s){
 return"Mission "+(s.missionName||"unnamed")+" at "+SITES[s.site].name+": sol "+s.sol+", "+aliveCount(s)+"/"+s.crew.length+" crew, science "+Math.round(s.res.science)+", score "+score(s)+" ("+letterGrade(s)+"). "+(s.over?(s.won?"SUCCESS":"FAILED"):"in progress")}
 function achievementProgress(s){
@@ -591,8 +586,8 @@ function solReport(s){
 return"Sol "+s.sol+": O2 "+Math.round(s.res.o2)+", water "+Math.round(s.res.water)+", food "+Math.round(s.res.food)+", parts "+Math.round(s.res.parts)+", science "+Math.round(s.res.science)+". Crew "+aliveCount(s)+"/"+s.crew.length+", morale "+Math.round(avgMorale(s))+"."}
 function bldgList(){return Object.keys(BUILDINGS).map(function(id){var b=BUILDINGS[id];var o={id:id};for(var k in b){o[k]=b[k]}return o})}
 function techList(){return Object.keys(TECHS).map(function(id){var t=TECHS[id];var o={id:id};for(var k in t){o[k]=t[k]}return o})}
-function expeditionList(){return Object.keys(EXPEDITIONS).map(function(id){var x=EXPEDITIONS[id];var o={id:id};for(var k in x){o[k]=x[k]}return o})}
-function cropList(){return Object.keys(CROPS).map(function(id){var c=CROPS[id];var o={id:id};for(var k in c){o[k]=c[k]}return o})}
+
+
 function netRates(s){
 var hist=resourceHistory(s);
 var out={};
@@ -620,32 +615,13 @@ var goal=s.objective&&s.objective.scienceGoal?s.objective.scienceGoal:1000;
 var rate=netRates(s).science||0;
 if(rate<=0){return{goal:goal,current:Math.round(s.res.science),perSol:0,etaSols:"n/a",note:"No science production trend yet; labs, dishes and expeditions earn science."}}
 return{goal:goal,current:Math.round(s.res.science),perSol:Math.round(rate*10)/10,etaSols:Math.max(0,Math.ceil((goal-s.res.science)/rate))}}
-function shieldPlan(s){
-return{currentLevel:s.shieldLevel,nextLevel:s.shieldLevel+1,building:BUILDINGS.shield?BUILDINGS.shield.name:"Shielding Works",canBuild:canBuild(s,"shield")}}
-function batteryPlan(s){
-var bs=batteryStatus(s);
-return{stored:bs.stored!==undefined?bs.stored:null,capacity:batteryCap(s),note:"Batteries smooth storms and lunar night; aim for 2+ sols of demand."}}
-function foodPlan(s){
-var net=netRates(s).food;
-return{perSol:net,stock:Math.round(s.res.food),crops:s.crop,note:net!==null&&net<0?"Food runs down: add greenhouses or adjust crops.":"Food balance is positive or unknown."}}
-function waterPlan(s){
-var net=netRates(s).water;
-return{perSol:net,stock:Math.round(s.res.water),note:net!==null&&net<0?"Water deficit: ice extractors and recyclers help.":"Water balance is positive or unknown."}}
-function eventRiskReport(s){
-var site=SITES[s.site];
-var out=[];
-if(site.stormChance>0){out.push("Storms: about "+Math.round(site.stormChance*100)+"% chance per sol here; batteries and spare parts matter.")}
-if(site.radiation>2){out.push("Radiation is high at this site; shielding works and the Med Bay protect the crew.")}
-if(s.site.indexOf("Lunar")>=0||site.name.indexOf("Lunar")>=0){out.push("Lunar night dims solar power for long stretches; RTGs or big battery banks cover the gap.")}
-return out}
-function expeditionPlanner(s){
-return expeditionList().map(function(x){
-var afford=typeof x.cost==="number"?s.res.parts>=x.cost:true;
-return{id:x.id,name:x.name,sols:x.sols,affordable:afford,science:x.science||0}})}
-function expeditionHistoryCSV(s){
-var out=["sol,expedition,result"];
-(s.expeditionLog||[]).forEach(function(x){out.push([x.sol,'"'+x.name+'"','"'+x.result+'"'].join(","))});
-return out.join(String.fromCharCode(10))}
+
+
+
+
+
+
+
 function buildPlanCSV(s){
 var out=["building,count"];
 bldgList().forEach(function(b){
@@ -660,22 +636,15 @@ function quizBankStats(){
 var diff={};
 QUIZ.forEach(function(q){var d=q.difficulty||"mixed";diff[d]=(diff[d]||0)+1});
 return{questions:QUIZ.length,byDifficulty:diff}}
-function achievementTable(){
-return ACHIEVEMENTS.map(function(a){return{id:a.id,name:a.name,earned:false}})}
+
 function siteComparisonCSV(){
 var out=["site,radiation,ice,solar,storm_chance"];
 compareSites().forEach(function(d){out.push([d.site,d.radiation,d.ice,d.solarFactor,d.stormChance].join(","))});
 return out.join(String.fromCharCode(10))}
-function logCSV(s){
-var out=["sol,entry"];
-(s.log||[]).forEach(function(l){out.push([l.sol!==undefined?l.sol:"",'"'+String(l.text||l).replace(/"/g,"")+'"'].join(","))});
-return out.join(String.fromCharCode(10))}
+
 function endgameProjection(s){
 return{sol:s.sol,scienceNow:Math.round(s.res.science),plan:sciencePlan(s),runway:resourceRunway(s),won:s.won,over:s.over}}
-function whatIfAllBuildings(s){
-return bldgList().map(function(b){
-var d=dryRunBuild(s,b.id);
-return{id:b.id,name:b.name,canBuild:canBuild(s,b.id),note:d&&d.note?d.note:""}})}
+
 function bestNextBuild(s){
 var runway=resourceRunway(s);
 var worst=null,worstV=Infinity;
@@ -684,21 +653,10 @@ var map={o2:"o2gen",water:"watermine",food:"greenhouse",parts:"drill"};
 var pick=map[worst]||"solar";
 var b=BUILDINGS[pick]||BUILDINGS.solar;
 return{reason:worst?"Shortest runway: "+worst+" ("+(worstV===Infinity?"stable":worstV+" sols")+").":"All resources stable.",suggestion:b.name,id:pick}}
-function crewRoleMatrix(s){
-return s.crew.map(function(c){return{name:c.name,role:c.role,level:c.level||1,alive:c.alive}})}
-function trainingPlan(s){
-var roles={};
-s.crew.forEach(function(c){if(c.alive){roles[c.role]=(roles[c.role]||0)+1}});
-var allRoles=Object.keys(ROLES).map(function(k){return ROLES[k]});
-var missing=allRoles.filter(function(r){return !roles[r]});
-return{coverage:roles,missing:missing,note:missing.length?"Retrain a crew member to cover a missing role.":"All roles covered."}}
-function rationsAdvisor(s){
-var runway=resourceRunway(s);
-if(runway.food<5){return{advice:"strict",why:"Food runway under 5 sols; strict rations stretch supplies at a morale cost."}}
-if(runway.food<15){return{advice:"normal",why:"Food is tight but manageable on normal rations."}}
-return{advice:"generous",why:"Food stocks are healthy; generous rations buy morale cheaply."}}
-function cropAdvisor(s){
-return cropList().map(function(c){return{id:c.id,name:c.name,water:c.water,food:c.food,note:"Water in, food out, per greenhouse cycle."}})}
+
+
+
+
 function stormPrepChecklist(s){
 return["Charge batteries before the storm window","Pre-repair damaged buildings","Stock spare parts for EVA repairs","Delay expeditions until the storm passes","Keep crew indoors (no EVA during peak)"]}
 function nightPrepChecklist(s){
@@ -731,22 +689,14 @@ return[{q:"Why did my power go negative?",a:"New buildings draw power; check the
 {q:"Crew morale keeps falling?",a:"Check rations, overcrowding and workload; rest days and generous rations recover morale."},
 {q:"How do I win?",a:"Reach the science goal before the deadline while keeping the crew alive."},
 {q:"What do scrubbers do?",a:"CO2 scrubbers boost every O2 generator by 25 percent."}]}
-function missionNameValidate(name){
-var errs=[];
-if(!name||name.length<3){errs.push("Mission name needs at least 3 characters")}
-if(name&&name.length>40){errs.push("Keep mission names under 40 characters")}
-return errs}
-function crewNameSuggest(seed){
-var names=["Ash","Ravi","Lena","Milo","Zoe","Kofi","Ines","Tariq","Nova","Piotr","Sana","Yuki"];
-var s=Math.abs(seed||1)|0;
-return names[s%names.length]}
-function compareDifficulties(){
-return difficultyTable?difficultyTable():[]}
+
+
+
 function summaryEmailText(s){
 return"Mission "+(s.missionName||"Untitled")+" (sol "+s.sol+"): grade "+letterGrade(s)+", science "+Math.round(s.res.science)+", crew "+aliveCount(s)+"/"+s.crew.length+". "+solReport(s)}
 function markdownLog(s){
 var lines=["# Mission log: "+s.missionName,"","Site: "+s.site+", difficulty: "+s.difficulty+", sol "+s.sol+".",""];
-(s.log||[]).slice(-50).forEach(function(l){lines.push("- Sol "+(l.sol!==undefined?l.sol:"?")+": "+(l.text||l))});
+(s.log||[]).slice(-50).forEach(function(l){lines.push("- Sol "+(l.sol!==undefined?l.sol:"?")+": "+(l.msg!==undefined?l.msg:l))});
 return lines.join(String.fromCharCode(10))}
 function statsJSON(s){
 return JSON.stringify(statsSummary(s),null,2)}
@@ -762,17 +712,9 @@ function stateHash(s){
 var str=JSON.stringify({sol:s.sol,res:s.res,crew:s.crew.length,buildings:s.buildings.length});
 var h=0;for(var i=0;i<str.length;i++){h=(Math.imul(h,31)+str.charCodeAt(i))|0}
 return(h>>>0).toString(36)}
-function powerBalanceSheet(s){
-var pb=powerBreakdown(s);
-var used=0;
-(pb.consumers||[]).forEach(function(c){used+=c.power||0});
-return{generated:pb.generation!==undefined?pb.generation:null,consumed:used,stored:pb.stored!==undefined?pb.stored:null,capacity:batteryCap(s)}}
+
 function bldgOf(s,t){return s.buildings.filter(function(b){return b.type===t})}
-function fatigueForecast(s){
-return s.crew.map(function(c){
-var rate=c.away>0?14:8;
-var left=c.fatigue>=100?0:Math.ceil((100-c.fatigue)/rate);
-return{name:c.name,fatigue:c.fatigue,solsToExhaustion:left}})}
+
 function xpProgress(s){
 return s.crew.map(function(c){
 var lvl=1+Math.floor(c.xp/50);
@@ -792,56 +734,11 @@ var owned=s.techs||{};
 var rows=["tech,cost,owned"];
 Object.keys(TECHS).forEach(function(k){rows.push('"'+TECHS[k].name+'",'+TECHS[k].cost+","+(owned[k]?"yes":"no"))});
 return rows.join("\n")}
-function buildingEfficiency(s){
-var out=[];
-Object.keys(BUILDINGS).forEach(function(k){
-var b=BUILDINGS[k];
-var pow=b.powerUse||0;
-if(!pow){return}
-var prod=[];
-if(b.o2){prod.push("o2 "+b.o2)}
-if(b.water){prod.push("water "+b.water)}
-if(b.food){prod.push("food "+b.food)}
-if(b.science){prod.push("science "+b.science)}
-if(!prod.length){return}
-out.push({key:k,name:b.name,power:pow,output:prod.join("; "),ratio:(prod.length/pow).toFixed(3)})});
-return out}
-function powerAudit(s){
-var p=powerBreakdown(s);
-var gen=s.lastPowerGen||0;
-var use=0;
-p.consumers.forEach(function(c){use+=c.watts});
-var notes=[];
-if(use>gen){notes.push("Demand exceeds generation by "+(use-gen)+" units; batteries or new arrays needed.")}
-bldgOf(s,"solar").forEach(function(b){if(b.dirt>40){notes.push("Solar panel dirt at "+b.dirt+"%: clean soon.")}});
-if(!bldgOf(s,"battery").length&&gen>use){notes.push("Surplus power is wasted without a Battery Bank.")}
-if(!notes.length){notes.push("Power grid healthy.")}
-return{gen:gen,use:use,store:s.powerStore,notes:notes}}
-function solarOutlook(s,n){
-n=n||5;
-var out=[];
-for(var i=0;i<n;i++){
-var sol=s.sol+i;
-var factor=1;
-var fc=forecast(s,i);
-if(fc&&(fc.id==="storm"||fc.id==="eclipse")){factor=0.4}
-if(s.site==="moon"){factor*=0.9}
-out.push({sol:sol+1,factor:Math.round(factor*100)/100,event:fc?fc.id:"clear"})}
-return out}
-function hazardCalendar(s,n){
-n=n||5;
-var out=[];
-for(var i=0;i<n;i++){
-var fc=forecast(s,i);
-out.push({sol:s.sol+i+1,event:fc?fc.id:"none",text:fc?fc.text:"No hazard forecast."})}
-return out}
-function radiationBreakdown(s){
-var d=SITES[s.site];
-var base=d.radiation*10;
-var shieldCut=s.shieldLevel*15;
-var techCut=(s.techs&&s.techs.radshield)?20:0;
-var net=Math.max(1,base-shieldCut-techCut)*(s.doseMult||1);
-return{base:base,shieldCut:shieldCut,techCut:techCut,net:Math.round(net*10)/10,note:"Net daily dose units after shielding and research."}}
+
+
+
+
+
 function o2Sheet(s){
 var gen=bldgOf(s,"o2gen").filter(function(b){return b.done}).length*BUILDINGS.o2gen.o2;
 var use=aliveCount(s)*2;
@@ -856,32 +753,11 @@ var crop=s.crop&&CROPS[s.crop]?CROPS[s.crop]:null;
 var gen=gh.length*(crop?crop.food:BUILDINGS.greenhouse.food);
 var use=aliveCount(s)*2*(s.rations===0?0.7:(s.rations===2?1.3:1));
 return{generated:gen,consumed:Math.round(use*10)/10,net:Math.round((gen-use)*10)/10,stock:Math.round(s.res.food)}}
-function partsOutlook(s){
-var drills=bldgOf(s,"drill").filter(function(b){return b.done}).length*BUILDINGS.drill.parts;
-var ws=bldgOf(s,"workshop").filter(function(b){return b.done}).length*BUILDINGS.workshop.parts;
-var gen=drills+ws;
-return{income:gen,stock:Math.round(s.res.parts),note:gen>0?"Parts income steady.":"No parts production; expeditions are your only source."}}
-function scienceSources(s){
-var labs=bldgOf(s,"lab").filter(function(b){return b.done}).length*BUILDINGS.lab.science;
-var comms=bldgOf(s,"comms").filter(function(b){return b.done}).length*BUILDINGS.comms.science;
-var obs=bldgOf(s,"observatory").filter(function(b){return b.done}).length*(BUILDINGS.observatory.science||0);
-return{labs:labs,comms:comms,observatory:obs,quiz:s.quizCorrect*5,expeditions:s.expeditionsDone*15,note:"Building income per sol; quiz and expeditions are cumulative so far."}}
-function crewUpkeep(s){
-var n=aliveCount(s);
-return{crew:n,o2PerSol:n*2,waterPerSol:n*2,foodPerSol:Math.round(n*2*(s.rations===0?0.7:(s.rations===2?1.3:1))*10)/10}}
-function habitatReport(s){
-var cap=crewCapacity(s);
-return{capacity:cap,crew:s.crew.length,alive:aliveCount(s),headroom:cap-s.crew.length,note:cap-s.crew.length>0?"Room to recruit.":"Build another Habitat Module to grow the crew."}}
-function expansionPlan(s){
-var plan=[];
-var sim=JSON.parse(JSON.stringify({res:s.res}));
-var picks=["o2gen","watermine","greenhouse","solar","battery","lab","habitat"];
-var rw=resourceRunway(s);
-var order=Object.keys(rw).filter(function(k){return rw[k]!==null&&rw[k]!==Infinity}).sort(function(a,b){return rw[a]-rw[b]});
-var map={o2:"o2gen",water:"watermine",food:"greenhouse"};
-order.forEach(function(k){if(map[k]&&plan.indexOf(map[k])<0){plan.push(map[k])}});
-picks.forEach(function(p){if(plan.indexOf(p)<0){plan.push(p)}});
-return plan.slice(0,5).map(function(k){var b=BUILDINGS[k];return{key:k,name:b.name,cost:b.cost,power:b.power||0}})}
+
+
+
+
+
 function objectiveProgress(s){
 if(s.difficulty==="sandbox"){return{sandbox:true}}
 var pct=Math.min(100,Math.round(s.res.science/s.objectiveScience*100));
@@ -900,33 +776,16 @@ var rw=resourceRunway(s);
 var worst=null;
 Object.keys(rw).forEach(function(k){var v=rw[k];if(v!==null&&v!==Infinity&&(worst===null||v<worst.sols)){worst={resource:k,sols:v}}});
 return worst||{resource:null,sols:null,note:"No shortage projected."}}
-function eventTypeCounts(s){
-var counts={};
-s.log.forEach(function(e){
-var m=e.msg;
-var key=null;
-["storm","flare","quake","meteor","eclipse","aurora"].forEach(function(k2){if(m.toLowerCase().indexOf(k2)>=0){key=k2}});
-if(key){counts[key]=(counts[key]||0)+1}});
-return counts}
-function quizWeakSpots(s){
-var stats={};
-QUIZ.forEach(function(q){var c=q.cat||"general";stats[c]=stats[c]||{total:0}});
-Object.keys(stats).forEach(function(c){stats[c].total=QUIZ.filter(function(q){return(q.cat||"general")===c}).length});
-return{categories:Object.keys(stats),correct:s.quizCorrect,bestStreak:s.bestQuizStreak||0}}
+
+
 function nearestAchievements(s){
 var out=ACHIEVEMENTS.map(function(a){
 var prog=achievementProgress(s,a.id);
 return{id:a.id,name:a.name,pct:prog&&prog.pct!==undefined?prog.pct:0,earned:s.earned.indexOf(a.id)>=0}});
 return out.filter(function(a){return!a.earned}).sort(function(a,b){return b.pct-a.pct}).slice(0,3)}
-function runModifiers(s){
-return{site:s.site,difficulty:s.difficulty,scenario:s.scenario||"none",doseMult:s.doseMult||1,note:"Scenario and difficulty stack; check the difficulty table for exact multipliers."}}
-function alternateSiteSim(s){
-var other=s.site==="moon"?"mars":"moon";
-var d=SITES[other];
-var solar=bldgOf(s,"solar").filter(function(b){return b.done}).length*BUILDINGS.solar.power*d.solarFactor;
-return{other:other,otherName:d.name,solarOutputThere:Math.round(solar),radiation:d.radiation,ice:d.ice,note:"Same solar build would perform differently at "+d.name+"."}}
-function replayCode(s){
-return s.site+"-"+s.seed+"-"+s.difficulty}
+
+
+
 function missionTimelineCSV(s){
 var hist=resourceHistory(s);
 var rows=["sol,o2,water,food,parts,science"];
@@ -944,13 +803,8 @@ s.buildings.forEach(function(b,i){if(b.damaged){out.push({item:b.type+" #"+(i+1)
 if(s.suitWear&&s.suitWear>50){out.push({item:"EVA suits",issue:"wear "+s.suitWear+"%",action:"suitMaintenance"})}
 if(!out.length){out.push({item:"All systems",issue:"none",action:"no maintenance due"})}
 return out}
-function cleanOrder(s){
-return bldgOf(s,"solar").map(function(b,i){return{panel:i+1,dirt:b.dirt}}).sort(function(a,b){return b.dirt-a.dirt})}
-function siteFacts(s){
-var facts={
-moon:["The Lunar South Pole holds permanently shadowed craters with water ice, mapped by NASA's LRO and LCROSS missions.","Artemis III targets the lunar south polar region for crewed landing.","Lunar night lasts about 14 Earth days, a real power challenge."],
-mars:["Jezero Crater hosted an ancient river delta; NASA's Perseverance rover is caching samples there.","MOXIE produced oxygen from Martian CO2 on Perseverance.","Mars dust storms can cut solar power by over 90%, as ended Opportunity's mission."]};
-return facts[s.site]||facts.moon}
+
+
 function triviaOfTheSol(s){
 var all=[
 "NASA's Voyager 1 is the most distant human-made object, over 24 billion km away.",
@@ -963,23 +817,10 @@ var all=[
 "Neutron stars can spin hundreds of times per second."];
 var idx=(s.seed+s.sol)%all.length;
 return{sol:s.sol,trivia:all[idx]}}
-function badgeShelf(s){
-return{earned:s.earned.length,total:ACHIEVEMENTS.length,names:s.earned.slice()}}
-function radioChatter(s){
-var lines=[];
-if(s.sol===0){lines.push("Houston, base established. Beginning operations.")}
-if(s.stormsSurvived>0){lines.push("Storm count: "+s.stormsSurvived+". Crew held firm.")}
-if(s.expeditionsDone>0){lines.push("Rover teams report "+s.expeditionsDone+" expeditions complete.")}
-var crit=criticalCrew(s);
-crit.forEach(function(c){lines.push(c.name+" needs medical or rest attention.")});
-if(!lines.length){lines.push("All quiet on sol "+s.sol+".")}
-return lines}
-function tomorrowBrief(s){
-var fc=forecast(s,0);
-var adv=advise(s);
-return{forecast:fc?fc.text:"No event forecast for tomorrow.",advice:adv.slice(0,3)}}
-function restRotation(s){
-return s.crew.map(function(c){return{name:c.name,fatigue:c.fatigue}}).sort(function(a,b){return b.fatigue-a.fatigue}).slice(0,2).map(function(c){return c.name+" should rest next sol ("+c.fatigue+" fatigue)."})}
+
+
+
+
 function victoryGap(s){
 var gaps=[];
 if(s.difficulty!=="sandbox"){
@@ -987,58 +828,17 @@ if(s.res.science<s.objectiveScience){gaps.push("Need "+Math.round(s.objectiveSci
 if(aliveCount(s)<1){gaps.push("Keep at least one crew member alive.")}}
 if(!gaps.length){gaps.push("On track to win; keep resources positive.")}
 return gaps}
-function trueCost(k){
-var b=BUILDINGS[k];
-if(!b){return null}
-var upkeep=(b.power||0)>0?0:Math.abs(b.power||0)*0;
-return{key:k,name:b.name,buildCost:b.cost,powerUse:b.powerUse||0,powerGen:b.power||0,note:"Costs in parts; power shown separately."}}
-function buildingCounts(s){
-var counts={};
-s.buildings.forEach(function(b){counts[b.type]=(counts[b.type]||0)+1});
-return counts}
-function cropRotation(s){
-return Object.keys(CROPS).map(function(k){
-var c=CROPS[k];
-return{key:k,name:c.name,food:c.food,water:c.water,foodPerWater:Math.round(c.food/c.water*100)/100}}).sort(function(a,b){return b.foodPerWater-a.foodPerWater})}
-function expeditionRiskTable(s){
-return Object.keys(EXPEDITIONS).map(function(k){
-var e=EXPEDITIONS[k];
-var risk=Math.max(0.05,0.3-(cLevel(s)*0.03));
-return{key:k,name:e.name,cost:e.cost,sols:e.sols,baseRisk:Math.round(risk*100)+"%"}})}
-function eventHistory(s){
-return s.log.filter(function(e){return e.msg.toLowerCase().match(/storm|flare|quake|meteor|eclipse|aurora|pocket|relay/)}).map(function(e){return{sol:e.sol,msg:e.msg}})}
-function settingsSnapshot(s){
-return{rations:s.rations,crop:s.crop||"default",manifest:s.manifest,objectiveMode:s.objectiveMode||"standard",scenario:s.scenario||"none"}}
-function scoreProjection(s){
-var cur=score(s);
-var left=Math.max(0,s.objectiveSols-s.sol);
-var proj=cur+left*3;
-return{current:cur,projected:proj,solsLeft:left,note:"Rough projection at modest pace; expeditions and quiz streaks raise it."}}
-function moraleLevers(s){
-var out=[];
-out.push({action:"Generous rations",effect:"+morale, costs more food"});
-out.push({action:"Rest a tired crew member",effect:"+morale, -fatigue"});
-if(bldgOf(s,"gym").length){out.push({action:"Gym built: passive morale gain active",effect:"ongoing"})}
-if(bldgOf(s,"observatory").length){out.push({action:"Observatory nights",effect:"+morale on clear sols"})}
-return out}
-function powerSpikeCheck(s){
-var p=powerBreakdown(s);
-var gen=s.lastPowerGen||0;
-var use=0;
-p.consumers.forEach(function(c){use+=c.watts});
-var headroom=gen-use;
-var risky=Object.keys(BUILDINGS).filter(function(k){
-var b=BUILDINGS[k];
-return b.powerUse&&b.powerUse>headroom}).map(function(k){return BUILDINGS[k].name});
-return{headroom:headroom,riskyIfBuilt:risky}}
-function waterRecyclingGain(s){
-var rec=bldgOf(s,"recycler").filter(function(b){return b.done}).length;
-var saved=rec*aliveCount(s);
-return{recyclers:rec,waterSavedPerSol:saved,note:rec?"Recyclers cut crew water demand.":"A Water Recycler would cut crew water demand."}}
-function greenhouseYield(s){
-var gh=bldgOf(s,"greenhouse").filter(function(b){return b.done}).length;
-var crop=s.crop&&CROPS[s.crop]?CROPS[s.crop]:null;
-return{greenhouses:gh,crop:crop?crop.name:"default",foodPerSol:gh*(crop?crop.food:BUILDINGS.greenhouse.food)}}
+
+
+
+
+
+
+
+
+
+
+
 function logSearch(s,term){
 term=String(term||"").toLowerCase();
 return s.log.filter(function(e){return e.msg.toLowerCase().indexOf(term)>=0}).map(function(e){return{sol:e.sol,msg:e.msg}})}
@@ -1112,26 +912,22 @@ function shieldInfo(s){
 return{level:s.shieldLevel,nextCost:s.shieldLevel>=3?null:10+s.shieldLevel*10}}
 function techsResearched(s){
 return Object.keys(s.techs).filter(function(k){return s.techs[k]})}
-function techCount(s){return techsResearched(s).length}
+
 function techsAvailable(s){
 return Object.keys(TECHS).filter(function(k){return!s.techs[k]}).map(function(k){return{id:k,name:TECHS[k].name,cost:researchCost(s,k)}})}
 function nextTechCost(s){
 var av=techsAvailable(s);
 if(!av.length){return null}
 return av.sort(function(a,b){return a.cost-b.cost})[0]}
-function eventLog(s,n){
-return s.log.slice(0,n||10).map(function(l){return{sol:l.sol,msg:l.msg}})}
-function eventCountToday(s){
-return s.log.filter(function(l){return l.sol===s.sol}).length}
-function stormCount(s){return s.stormsSurvived}
-function expeditionStats(s){
-return{done:s.expeditionsDone,away:awayCrew(s).length}}
+
+
+
+
 function quizRecord(s){
 return{answered:s.quizIndex,correct:s.quizCorrect,streak:s.quizStreak,best:s.bestQuizStreak,accuracy:s.quizIndex?Math.round(s.quizCorrect/s.quizIndex*100):0}}
 function achievementPct(s){
 return Math.round(s.earned.length/ACHIEVEMENTS.length*100)}
-function difficultyMult(s){
-return{dose:s.doseMult,objectiveScience:s.objectiveScience,objectiveSols:s.objectiveSols}}
+
 function solsRemaining(s){
 return Math.max(0,s.objectiveSols-s.sol)}
 function projectedScience(s){
@@ -1154,8 +950,7 @@ if(v!==null&&v!==undefined&&typeof v==="number"&&(best===null||v<best.sols)){bes
 return best}
 function historyAt(s,sol){
 return s.history.filter(function(h){return h.sol===sol})[0]||null}
-function historyRange(s,a,b){
-return s.history.filter(function(h){return h.sol>=a&&h.sol<=b})}
+
 function historyDelta(s,k,a,b){
 var ha=historyAt(s,a),hb=historyAt(s,b);
 if(!ha||!hb){return null}
@@ -1184,8 +979,7 @@ return haz.length?haz[0]:null}
 function calendarNote(s){
 var nh=nextHazard(s);
 return nh?"Next hazard on sol "+nh.sol+": "+nh.text:"No hazard in the next 10 sols."}
-function buildNext(s,type){
-return canBuild(s,type)}
+
 function affordableBuildings(s){
 return Object.keys(BUILDINGS).filter(function(t){return canBuild(s,t)})}
 function researchableNow(s){
@@ -1267,1227 +1061,1227 @@ return{fact:facts[(seed||1)%facts.length]}}
 function quizCheck01(idx,answer){
 var q=QUIZ[idx%QUIZ.length];
 return{correct:answer===q.c,fact:q.fact||""}}
-function a7a(s){var t=0;for(var k in s.res){t+=s.res[k]}return t}
-function a7b(s){return s.res.science}
-function a7c(s){var m=null;for(var k in s.res){if(m===null||s.res[k]<s.res[m])m=k}return m}
-function a7d(s){var m=null;for(var k in s.res){if(m===null||s.res[k]>s.res[m])m=k}return m}
-function a7e(s){return s.crew.filter(function(c){return !c.away}).length}
-function a7f(s){var t=0;s.crew.forEach(function(c){t+=c.xp});return s.crew.length?t/s.crew.length:0}
-function a7g(s){return s.crew.filter(function(c){return c.health>=90}).length}
-function a7h(s){return s.crew.filter(function(c){return c.morale<40}).length}
-function a7i(s){return s.buildings.filter(function(b){return b.done}).length}
-function a7j(s){return s.buildings.filter(function(b){return b.damaged}).length}
-function a7k(s){return s.buildings.filter(function(b){return !b.done}).length}
-function a7l(s,type){return s.buildings.filter(function(b){return b.type===type&&b.done}).length}
-function a7m(s){return Object.keys(s.techs).length}
-function a7n(s){return s.earned?s.earned.length:0}
-function a7o(s){var b={};s.buildings.forEach(function(x){b[x.type]=(b[x.type]||0)+1});return b}
-function a7p(s){var r={};s.crew.forEach(function(c){r[c.role]=(r[c.role]||0)+1});return r}
-function a7q(s){var t=0;s.crew.forEach(function(c){t+=c.fatigue});return t}
-function a7r(s){var t=0;s.crew.forEach(function(c){t+=c.health});return s.crew.length?t/s.crew.length:0}
-function a7s(s){var t=0;s.crew.forEach(function(c){t+=c.morale});return s.crew.length?t/s.crew.length:0}
-function a7t(s){return s.crew.filter(function(c){return c.away>0}).length}
-function a7u(s){var list=[];s.crew.forEach(function(c){if(c.health<50)list.push(c.name)});return list}
-function a7v(s){var best=null;s.crew.forEach(function(c){if(!best||c.xp>best.xp)best=c});return best?best.name:null}
-function a7w(s){var worst=null;s.crew.forEach(function(c){if(!worst||c.morale<worst.morale)worst=c});return worst?worst.name:null}
-function a7x(s){return s.techs&&s.techs.solarEff?true:false}
-function a7y(s){return s.techs&&s.techs.radShield?true:false}
-function a7z(s){return s.techs&&s.techs.advCrops?true:false}
-function a7ba(s){return s.techs&&s.techs.aiAssist?true:false}
-function a7bb(s){return (s.shieldLevel||0)>0}
-function a7bc(s){return s.res.o2+s.res.water}
-function a7bd(s){return s.res.food+s.res.regolith}
-function a7be(s){return s.res.parts}
-function a7bf(s){return s.res.o2/Math.max(1,a7e(s))}
-function a7bg(s){return s.res.water/Math.max(1,a7e(s))}
-function a7bh(s){return s.res.food/Math.max(1,a7e(s))}
-function a7bi(s){return s.sol}
-function a7bj(s){return s.site==="mars"}
-function a7bk(s){return s.over===true}
-function a7bl(s){return s.won===true}
-function a7bm(s){return s.stormsSurvived||0}
-function a7bn(s){return s.quizCorrect||0}
-function a7bo(s){return s.quizStreak||0}
-function a7bp(s){return s.bestQuizStreak||0}
-function a7bq(s){return s.selfSufficientStreak||0}
-function a7br(s){return s.expeditionsDone||0}
-function a7bs(s){return s.retrains||0}
-function a7bt(s){return s.cropSwitches||0}
-function a7bu(s){return s.rations||"normal"}
-function a7bv(s){return s.missionName||"Unnamed"}
-function a7bw(s){return s.objectiveScience||0}
-function a7bx(s){return s.objectiveSols||0}
-function a7by(s){var o=s.objectiveScience||0;return o>0?Math.min(100,Math.round(100*(s.res.science||0)/o)):0}
-function a7bz(s){var o=s.objectiveSols||0;return o>0?Math.min(100,Math.round(100*s.sol/o)):0}
-function a7ca(s){return s.objectiveScience>0&&s.res.science>=s.objectiveScience}
-function a7cb(s){return s.objectiveSols>0&&s.sol>=s.objectiveSols}
-function a7cc(s){return Math.round(s.res.o2/10)}
-function a7cd(s){return Math.round(s.res.food/5)}
-function a7ce(s){return s.res.science>=100}
-function a7cf(s){return s.res.parts<10}
-function a7cg(s){return s.res.o2<20}
-function a7ch(s){return s.res.water<20}
-function o7a(s){return s.site}
-function o7b(s){return s.difficulty}
-function o7c(s){return s.sol}
-function o7d(s){return s.over}
-function o7e(s){return s.won}
-function o7f(s){return s.missionName||"Unnamed"}
-function o7g(s){return s.res.o2}
-function o7h(s){return s.res.water}
-function o7i(s){return s.res.food}
-function o7j(s){return s.res.parts}
-function o7k(s){return s.res.regolith}
-function o7l(s){return s.res.science}
-function o7m(s){return Math.round(s.res.o2+s.res.water+s.res.food+s.res.parts+s.res.regolith+s.res.science)}
-function o7n(s){return Math.min(s.res.o2,s.res.water,s.res.food)}
-function o7o(s){return Math.max(s.res.o2,s.res.water,s.res.food)}
-function o7p(s){return s.crew.length}
-function o7q(s){return s.crew.filter(function(c){return c.health>0}).length}
-function o7r(s){return s.crew.filter(function(c){return c.health<=0}).length}
-function o7s(s){return s.crew.filter(function(c){return c.away>0}).length}
-function o7t(s){var t=0;s.crew.forEach(function(c){t+=c.health});return Math.round(t/s.crew.length)}
-function o7u(s){var t=0;s.crew.forEach(function(c){t+=c.morale});return Math.round(t/s.crew.length)}
-function o7v(s){var t=0;s.crew.forEach(function(c){t+=c.fatigue||0});return Math.round(t/s.crew.length)}
-function o7w(s){var t=0;s.crew.forEach(function(c){t+=c.xp||0});return t}
-function o7x(s){var roles={};s.crew.forEach(function(c){roles[c.role]=(roles[c.role]||0)+1});return roles}
-function o7y(s){return s.crew.filter(function(c){return c.role==="Engineer"&&c.health>0}).length}
-function o7z(s){var b=null;s.crew.forEach(function(c){if(!b||c.health<b.health)b=c});return b?b.name:null}
-function o7ba(s){var b=null;s.crew.forEach(function(c){if(!b||c.morale<b.morale)b=c});return b?b.name:null}
-function o7bb(s){return s.buildings.length}
-function o7bc(s){return s.buildings.filter(function(b){return b.done}).length}
-function o7bd(s){return s.buildings.filter(function(b){return !b.done}).length}
-function o7be(s){return s.buildings.filter(function(b){return b.damaged}).length}
-function o7bf(s){var t={};s.buildings.forEach(function(b){t[b.type]=(t[b.type]||0)+1});return t}
-function o7bg(s,type){return s.buildings.filter(function(b){return b.type===type&&b.done}).length}
-function o7bh(s){return o7bg(s,"solar")}
-function o7bi(s){return o7bg(s,"habitat")}
-function o7bj(s){return s.buildings.filter(function(b){return b.crop}).length}
-function o7bk(s){return s.buildings.reduce(function(a,b){return a+(b.solsLeft||0)},0)}
-function o7bl(s){return s.techs?Object.keys(s.techs).filter(function(k){return s.techs[k]}).length:0}
-function o7bm(s,id){return s.techs?s.techs[id]===true:false}
-function o7bn(s){return s.log.length}
-function o7bo(s){return s.log[s.log.length-1]||null}
-function o7bp(s){return s.history?s.history.length:0}
-function o7bq(s){return s.stormsSurvived||0}
-function o7br(s){return s.expeditionsDone||0}
-function o7bs(s){return s.quizCorrect||0}
-function o7bt(s){return s.quizStreak||0}
-function o7bu(s){return s.bestQuizStreak||0}
-function o7bv(s){return s.selfSufficientStreak||0}
-function o7bw(s){return s.shieldLevel||0}
-function o7bx(s){return s.objectiveScience}
-function o7by(s){return s.objectiveSols}
-function o7bz(s){return Math.round(s.res.science/Math.max(1,s.objectiveScience)*100)}
-function o7ca(s){return s.objectiveSols-s.sol}
-function o7cb(s){return s.objectiveMode||"standard"}
-function o7cc(s){return s.rations}
-function o7cd(s){return s.manifest}
-function o7ce(s){return s.scenario||"none"}
-function o7cf(s){return s.shelterNext===true}
-function o7cg(s){return s.solarBoostSols||0}
-function o7ch(s){return s.earned?s.earned.length:0}
-function o7ci(s,id){return s.earned?s.earned.indexOf(id)>=0:false}
-function o7cj(s){return s.milestonesHit?s.milestonesHit.length:0}
-function o7ck(s){return s.schedule?s.schedule.length:0}
-function o7cl(s){return s.powerStore||0}
-function o7cm(s){return s.batteryNights||0}
-function o7cn(s){return s.lastPowerGen||0}
-function o7co(s){return s.lastPowerUse||0}
-function o7cp(s){return o7cn(s)-o7co(s)}
-function o7cq(s){return s.totals?Object.keys(s.totals).length:0}
-function o7cr(s){return s.totals&&s.totals.solSols?s.totals.solSols:s.sol}
-function o7cs(s){return s.doseMult||1}
-function o7ct(s){return s.retrains||0}
-function o7cu(s){return s.cropSwitches||0}
-function o7cv(s){return s.seed}
-function o7cw(s){return s.phase}
-function o7cx(s){return s.pendingQuiz===true}
-function o7cy(s){return s.quizDue||0}
-function o7cz(s){return s.quizIndex||0}
-function o7da(s){return Object.keys(SITES).length}
-function o7db(){return Object.keys(SITES)}
-function o7dc(id){return SITES[id]?SITES[id].name:null}
-function o7dd(id){return SITES[id]?SITES[id].stormChance:null}
-function o7de(){return Object.keys(BUILDINGS).length}
-function o7df(){return Object.keys(BUILDINGS)}
-function o7dg(t){return BUILDINGS[t]?BUILDINGS[t].name:null}
-function o7dh(t){return BUILDINGS[t]?BUILDINGS[t].cost:null}
-function o7di(t){return BUILDINGS[t]?BUILDINGS[t].buildSols:null}
-function o7dj(){var t=0;Object.keys(BUILDINGS).forEach(function(k){t+=BUILDINGS[k].cost});return t}
-function o7dk(){var cheapest=null;Object.keys(BUILDINGS).forEach(function(k){if(!cheapest||BUILDINGS[k].cost<BUILDINGS[cheapest].cost)cheapest=k});return cheapest}
-function o7dl(){var pricey=null;Object.keys(BUILDINGS).forEach(function(k){if(!pricey||BUILDINGS[k].cost>BUILDINGS[pricey].cost)pricey=k});return pricey}
-function o7dm(s){return s.crew.length<crewCapacity(s)}
-function o7dn(s){return crewCapacity(s)}
-function o7do(s){var c=crewCapacity(s);return c-s.crew.length}
-function o7dp(s){return s.res.parts>=25&&s.crew.length<crewCapacity(s)}
-function o7dq(s){return s.buildings.every(function(b){return b.done})}
-function o7dr(s){return s.buildings.some(function(b){return b.damaged})}
-function o7ds(s){return s.crew.every(function(c){return c.health>0})}
-function o7dt(s){return s.crew.every(function(c){return (c.fatigue||0)<=70})}
-function o7du(s){return s.res.o2<=0||s.res.water<=0||s.res.food<=0}
-function o7dv(s){return s.res.science>=s.objectiveScience}
-function o7dw(s){return s.sol>s.objectiveSols}
-function o7dx(s){return Math.round(s.res.food/Math.max(1,s.crew.filter(function(c){return c.health>0}).length))}
-function o7dy(s){return Math.round(s.res.water/Math.max(1,s.crew.filter(function(c){return c.health>0}).length))}
-function o7dz(s){return Math.round(s.res.o2/Math.max(1,s.crew.filter(function(c){return c.health>0}).length))}
-function o7ea(s){var score=0;score+=s.res.science*10;score+=s.crew.filter(function(c){return c.health>0}).length*25;score+=o7bc(s)*5;return score}
-function o7eb(s){var h=s.history||[];if(h.length<2)return 0;return Math.round((h[h.length-1].o2-h[0].o2)*10)/10}
-function o7ec(s){var h=s.history||[];if(!h.length)return null;return h[h.length-1]}
-function o7ed(s){var h=s.history||[];var t=0;h.forEach(function(x){t+=x.science||0});return Math.round(t*10)/10}
-function o7ee(s){return s.evaShield||0}
-function o7ef(s){return s.icePocketArmed===true}
-function o7eg(s){return s.relayFixedUntil||0}
-function o7eh(s){return s.podLight===true}
-function o7ei(s){return s.redundancySol||0}
-function o7ej(s){return s.crew[0]?s.crew[0].name:null}
-function o7ek(s){return s.crew.filter(function(c){return c.role==="Medic"}).length}
-function o7el(s){return s.crew.filter(function(c){return c.role==="Scientist"}).length}
-function o7em(s){return s.crew.filter(function(c){return c.role==="Commander"}).length}
-function o7en(s){var m=0;s.crew.forEach(function(c){if((c.xp||0)>m)m=c.xp});return m}
-function o7eo(s){return s.crew.filter(function(c){return (c.xp||0)>=10}).length}
-function o7ep(s){return s.crew.filter(function(c){return c.expedDest}).length}
-function o7eq(s){var h=0;s.crew.forEach(function(c){if(c.health>h)h=c.health});return h}
-function o7er(s){return s.crew.every(function(c){return c.morale>=50})}
-function o7es(s){return s.buildings.filter(function(b){return b.type==="greenhouse"&&b.done}).length}
-function o7et(s){return s.buildings.filter(function(b){return b.type==="battery"&&b.done}).length}
-function o7eu(s){return s.buildings.filter(function(b){return b.type==="shield"&&b.done}).length}
-function o7ev(s){return s.buildings.filter(function(b){return b.type==="comms"&&b.done}).length}
-function o7ew(s){return s.buildings.filter(function(b){return b.type==="workshop"&&b.done}).length}
-function o7ex(s){var need=s.objectiveScience-s.res.science;return Math.max(0,need)}
-function o7ey(s){return Math.ceil(Math.max(0,s.objectiveScience-s.res.science)/Math.max(1,s.objectiveSols-s.sol)*100)/100}
-function o7ez(s){return s.res.regolith>=10}
-function o7fa(s){return s.res.parts>=10}
-function o7fb(s){return SITES[s.site]?SITES[s.site].name:s.site}
-function o7fc(s){return s.difficulty==="sandbox"}
-function o7fd(s){return s.difficulty==="hard"}
-function o7fe(s){return o7p(s)>0&&o7q(s)===0}
-function o7ff(s){var st={alive:o7q(s),buildings:o7bc(s),science:s.res.science,sol:s.sol};return st}
-function o7fg(s){return JSON.stringify(o7ff(s))}
-function o7fh(s){return s.crew.map(function(c){return c.name})}
-function o7fi(s){return s.crew.map(function(c){return c.role})}
-function o7fj(s){return s.buildings.map(function(b){return b.type})}
-function o7fk(s){var counts=o7bf(s);var keys=Object.keys(counts);keys.sort();return keys.map(function(k){return k+":"+counts[k]}).join(", ")}
-function ba8_storm_id(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="storm"){return a[i]}}return null})();return e?e["id"]:null}
-function ba8_storm_text(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="storm"){return a[i]}}return null})();return e?e["text"]:null}
-function ba8_storm_w(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="storm"){return a[i]}}return null})();return e?e["w"]:null}
-function ba8_storm_sites_n(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="storm"){return a[i]}}return null})();return e?e["sites"].length:0}
-function ba8_storm_sites_first(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="storm"){return a[i]}}return null})();return e?e["sites"][0]:null}
-function ba8_storm_text_wc(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="storm"){return a[i]}}return null})();return e?e["text"].split(" ").length:0}
-function ba8_micro_id(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="micro"){return a[i]}}return null})();return e?e["id"]:null}
-function ba8_micro_text(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="micro"){return a[i]}}return null})();return e?e["text"]:null}
-function ba8_micro_w(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="micro"){return a[i]}}return null})();return e?e["w"]:null}
-function ba8_micro_sites_n(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="micro"){return a[i]}}return null})();return e?e["sites"].length:0}
-function ba8_micro_sites_first(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="micro"){return a[i]}}return null})();return e?e["sites"][0]:null}
-function ba8_micro_text_wc(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="micro"){return a[i]}}return null})();return e?e["text"].split(" ").length:0}
-function ba8_illness_id(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="illness"){return a[i]}}return null})();return e?e["id"]:null}
-function ba8_illness_text(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="illness"){return a[i]}}return null})();return e?e["text"]:null}
-function ba8_illness_w(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="illness"){return a[i]}}return null})();return e?e["w"]:null}
-function ba8_illness_sites_n(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="illness"){return a[i]}}return null})();return e?e["sites"].length:0}
-function ba8_illness_sites_first(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="illness"){return a[i]}}return null})();return e?e["sites"][0]:null}
-function ba8_illness_text_wc(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="illness"){return a[i]}}return null})();return e?e["text"].split(" ").length:0}
-function ba8_aurora_id(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="aurora"){return a[i]}}return null})();return e?e["id"]:null}
-function ba8_aurora_text(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="aurora"){return a[i]}}return null})();return e?e["text"]:null}
-function ba8_aurora_w(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="aurora"){return a[i]}}return null})();return e?e["w"]:null}
-function ba8_aurora_sites_n(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="aurora"){return a[i]}}return null})();return e?e["sites"].length:0}
-function ba8_aurora_sites_first(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="aurora"){return a[i]}}return null})();return e?e["sites"][0]:null}
-function ba8_aurora_text_wc(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="aurora"){return a[i]}}return null})();return e?e["text"].split(" ").length:0}
-function ba8_quake_id(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="quake"){return a[i]}}return null})();return e?e["id"]:null}
-function ba8_quake_text(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="quake"){return a[i]}}return null})();return e?e["text"]:null}
-function ba8_quake_w(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="quake"){return a[i]}}return null})();return e?e["w"]:null}
-function ba8_quake_sites_n(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="quake"){return a[i]}}return null})();return e?e["sites"].length:0}
-function ba8_quake_sites_first(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="quake"){return a[i]}}return null})();return e?e["sites"][0]:null}
-function ba8_quake_text_wc(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="quake"){return a[i]}}return null})();return e?e["text"].split(" ").length:0}
-function ba8_find_id(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="find"){return a[i]}}return null})();return e?e["id"]:null}
-function ba8_find_text(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="find"){return a[i]}}return null})();return e?e["text"]:null}
-function ba8_find_w(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="find"){return a[i]}}return null})();return e?e["w"]:null}
-function ba8_find_sites_n(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="find"){return a[i]}}return null})();return e?e["sites"].length:0}
-function ba8_find_sites_first(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="find"){return a[i]}}return null})();return e?e["sites"][0]:null}
-function ba8_find_text_wc(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="find"){return a[i]}}return null})();return e?e["text"].split(" ").length:0}
-function ba8_relay_id(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="relay"){return a[i]}}return null})();return e?e["id"]:null}
-function ba8_relay_text(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="relay"){return a[i]}}return null})();return e?e["text"]:null}
-function ba8_relay_w(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="relay"){return a[i]}}return null})();return e?e["w"]:null}
-function ba8_relay_sites_n(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="relay"){return a[i]}}return null})();return e?e["sites"].length:0}
-function ba8_relay_sites_first(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="relay"){return a[i]}}return null})();return e?e["sites"][0]:null}
-function ba8_relay_text_wc(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="relay"){return a[i]}}return null})();return e?e["text"].split(" ").length:0}
-function ba8_calm_id(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="calm"){return a[i]}}return null})();return e?e["id"]:null}
-function ba8_calm_text(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="calm"){return a[i]}}return null})();return e?e["text"]:null}
-function ba8_calm_w(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="calm"){return a[i]}}return null})();return e?e["w"]:null}
-function ba8_calm_sites_n(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="calm"){return a[i]}}return null})();return e?e["sites"].length:0}
-function ba8_calm_sites_first(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="calm"){return a[i]}}return null})();return e?e["sites"][0]:null}
-function ba8_calm_text_wc(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="calm"){return a[i]}}return null})();return e?e["text"].split(" ").length:0}
-function ba8_flare_id(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="flare"){return a[i]}}return null})();return e?e["id"]:null}
-function ba8_flare_text(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="flare"){return a[i]}}return null})();return e?e["text"]:null}
-function ba8_flare_w(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="flare"){return a[i]}}return null})();return e?e["w"]:null}
-function ba8_flare_sites_n(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="flare"){return a[i]}}return null})();return e?e["sites"].length:0}
-function ba8_flare_sites_first(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="flare"){return a[i]}}return null})();return e?e["sites"][0]:null}
-function ba8_flare_text_wc(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="flare"){return a[i]}}return null})();return e?e["text"].split(" ").length:0}
-function ba8_birthday_id(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="birthday"){return a[i]}}return null})();return e?e["id"]:null}
-function ba8_birthday_text(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="birthday"){return a[i]}}return null})();return e?e["text"]:null}
-function ba8_birthday_w(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="birthday"){return a[i]}}return null})();return e?e["w"]:null}
-function ba8_birthday_sites_n(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="birthday"){return a[i]}}return null})();return e?e["sites"].length:0}
-function ba8_birthday_sites_first(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="birthday"){return a[i]}}return null})();return e?e["sites"][0]:null}
-function ba8_birthday_text_wc(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="birthday"){return a[i]}}return null})();return e?e["text"].split(" ").length:0}
-function ba8_stowaway_id(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="stowaway"){return a[i]}}return null})();return e?e["id"]:null}
-function ba8_stowaway_text(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="stowaway"){return a[i]}}return null})();return e?e["text"]:null}
-function ba8_stowaway_w(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="stowaway"){return a[i]}}return null})();return e?e["w"]:null}
-function ba8_stowaway_sites_n(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="stowaway"){return a[i]}}return null})();return e?e["sites"].length:0}
-function ba8_stowaway_sites_first(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="stowaway"){return a[i]}}return null})();return e?e["sites"][0]:null}
-function ba8_stowaway_text_wc(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="stowaway"){return a[i]}}return null})();return e?e["text"].split(" ").length:0}
-function ba8_coolant_id(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="coolant"){return a[i]}}return null})();return e?e["id"]:null}
-function ba8_coolant_text(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="coolant"){return a[i]}}return null})();return e?e["text"]:null}
-function ba8_coolant_w(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="coolant"){return a[i]}}return null})();return e?e["w"]:null}
-function ba8_coolant_sites_n(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="coolant"){return a[i]}}return null})();return e?e["sites"].length:0}
-function ba8_coolant_sites_first(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="coolant"){return a[i]}}return null})();return e?e["sites"][0]:null}
-function ba8_coolant_text_wc(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="coolant"){return a[i]}}return null})();return e?e["text"].split(" ").length:0}
-function ba8_podbonus_id(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="podbonus"){return a[i]}}return null})();return e?e["id"]:null}
-function ba8_podbonus_text(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="podbonus"){return a[i]}}return null})();return e?e["text"]:null}
-function ba8_podbonus_w(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="podbonus"){return a[i]}}return null})();return e?e["w"]:null}
-function ba8_podbonus_sites_n(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="podbonus"){return a[i]}}return null})();return e?e["sites"].length:0}
-function ba8_podbonus_sites_first(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="podbonus"){return a[i]}}return null})();return e?e["sites"][0]:null}
-function ba8_podbonus_text_wc(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="podbonus"){return a[i]}}return null})();return e?e["text"].split(" ").length:0}
-function ba8_breakthrough_id(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="breakthrough"){return a[i]}}return null})();return e?e["id"]:null}
-function ba8_breakthrough_text(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="breakthrough"){return a[i]}}return null})();return e?e["text"]:null}
-function ba8_breakthrough_w(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="breakthrough"){return a[i]}}return null})();return e?e["w"]:null}
-function ba8_breakthrough_sites_n(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="breakthrough"){return a[i]}}return null})();return e?e["sites"].length:0}
-function ba8_breakthrough_sites_first(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="breakthrough"){return a[i]}}return null})();return e?e["sites"][0]:null}
-function ba8_breakthrough_text_wc(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="breakthrough"){return a[i]}}return null})();return e?e["text"].split(" ").length:0}
-function ba8_homesick_id(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="homesick"){return a[i]}}return null})();return e?e["id"]:null}
-function ba8_homesick_text(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="homesick"){return a[i]}}return null})();return e?e["text"]:null}
-function ba8_homesick_w(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="homesick"){return a[i]}}return null})();return e?e["w"]:null}
-function ba8_homesick_sites_n(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="homesick"){return a[i]}}return null})();return e?e["sites"].length:0}
-function ba8_homesick_sites_first(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="homesick"){return a[i]}}return null})();return e?e["sites"][0]:null}
-function ba8_homesick_text_wc(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="homesick"){return a[i]}}return null})();return e?e["text"].split(" ").length:0}
-function ba8_meteorshower_id(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="meteorshower"){return a[i]}}return null})();return e?e["id"]:null}
-function ba8_meteorshower_text(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="meteorshower"){return a[i]}}return null})();return e?e["text"]:null}
-function ba8_meteorshower_w(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="meteorshower"){return a[i]}}return null})();return e?e["w"]:null}
-function ba8_meteorshower_sites_n(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="meteorshower"){return a[i]}}return null})();return e?e["sites"].length:0}
-function ba8_meteorshower_sites_first(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="meteorshower"){return a[i]}}return null})();return e?e["sites"][0]:null}
-function ba8_meteorshower_text_wc(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="meteorshower"){return a[i]}}return null})();return e?e["text"].split(" ").length:0}
-function ba8_o2leak_id(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="o2leak"){return a[i]}}return null})();return e?e["id"]:null}
-function ba8_o2leak_text(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="o2leak"){return a[i]}}return null})();return e?e["text"]:null}
-function ba8_o2leak_w(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="o2leak"){return a[i]}}return null})();return e?e["w"]:null}
-function ba8_o2leak_sites_n(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="o2leak"){return a[i]}}return null})();return e?e["sites"].length:0}
-function ba8_o2leak_sites_first(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="o2leak"){return a[i]}}return null})();return e?e["sites"][0]:null}
-function ba8_o2leak_text_wc(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="o2leak"){return a[i]}}return null})();return e?e["text"].split(" ").length:0}
-function ba8_blight_id(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="blight"){return a[i]}}return null})();return e?e["id"]:null}
-function ba8_blight_text(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="blight"){return a[i]}}return null})();return e?e["text"]:null}
-function ba8_blight_w(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="blight"){return a[i]}}return null})();return e?e["w"]:null}
-function ba8_blight_sites_n(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="blight"){return a[i]}}return null})();return e?e["sites"].length:0}
-function ba8_blight_sites_first(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="blight"){return a[i]}}return null})();return e?e["sites"][0]:null}
-function ba8_blight_text_wc(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="blight"){return a[i]}}return null})();return e?e["text"].split(" ").length:0}
-function ba8_argument_id(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="argument"){return a[i]}}return null})();return e?e["id"]:null}
-function ba8_argument_text(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="argument"){return a[i]}}return null})();return e?e["text"]:null}
-function ba8_argument_w(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="argument"){return a[i]}}return null})();return e?e["w"]:null}
-function ba8_argument_sites_n(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="argument"){return a[i]}}return null})();return e?e["sites"].length:0}
-function ba8_argument_sites_first(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="argument"){return a[i]}}return null})();return e?e["sites"][0]:null}
-function ba8_argument_text_wc(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="argument"){return a[i]}}return null})();return e?e["text"].split(" ").length:0}
-function ba8_dustdevil_id(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="dustdevil"){return a[i]}}return null})();return e?e["id"]:null}
-function ba8_dustdevil_text(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="dustdevil"){return a[i]}}return null})();return e?e["text"]:null}
-function ba8_dustdevil_w(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="dustdevil"){return a[i]}}return null})();return e?e["w"]:null}
-function ba8_dustdevil_sites_n(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="dustdevil"){return a[i]}}return null})();return e?e["sites"].length:0}
-function ba8_dustdevil_sites_first(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="dustdevil"){return a[i]}}return null})();return e?e["sites"][0]:null}
-function ba8_dustdevil_text_wc(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="dustdevil"){return a[i]}}return null})();return e?e["text"].split(" ").length:0}
-function ba8_suitpuncture_id(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="suitpuncture"){return a[i]}}return null})();return e?e["id"]:null}
-function ba8_suitpuncture_text(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="suitpuncture"){return a[i]}}return null})();return e?e["text"]:null}
-function ba8_suitpuncture_w(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="suitpuncture"){return a[i]}}return null})();return e?e["w"]:null}
-function ba8_suitpuncture_sites_n(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="suitpuncture"){return a[i]}}return null})();return e?e["sites"].length:0}
-function ba8_suitpuncture_sites_first(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="suitpuncture"){return a[i]}}return null})();return e?e["sites"][0]:null}
-function ba8_suitpuncture_text_wc(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="suitpuncture"){return a[i]}}return null})();return e?e["text"].split(" ").length:0}
-function ba8_icepocket_id(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="icepocket"){return a[i]}}return null})();return e?e["id"]:null}
-function ba8_icepocket_text(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="icepocket"){return a[i]}}return null})();return e?e["text"]:null}
-function ba8_icepocket_w(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="icepocket"){return a[i]}}return null})();return e?e["w"]:null}
-function ba8_icepocket_sites_n(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="icepocket"){return a[i]}}return null})();return e?e["sites"].length:0}
-function ba8_icepocket_sites_first(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="icepocket"){return a[i]}}return null})();return e?e["sites"][0]:null}
-function ba8_icepocket_text_wc(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="icepocket"){return a[i]}}return null})();return e?e["text"].split(" ").length:0}
-function ba8_what_did_nasa_s_moxie_experi_q(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did NASA's MOXIE experiment produce from the Martian atmosphere?"){return a[i]}}return null})();return e?e["q"]:null}
-function ba8_what_did_nasa_s_moxie_experi_c(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did NASA's MOXIE experiment produce from the Martian atmosphere?"){return a[i]}}return null})();return e?e["c"]:null}
-function ba8_what_did_nasa_s_moxie_experi_fact(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did NASA's MOXIE experiment produce from the Martian atmosphere?"){return a[i]}}return null})();return e?e["fact"]:null}
-function ba8_what_did_nasa_s_moxie_experi_a_n(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did NASA's MOXIE experiment produce from the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].length:0}
-function ba8_what_did_nasa_s_moxie_experi_a_first(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did NASA's MOXIE experiment produce from the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"][0]:null}
-function ba8_what_did_nasa_s_moxie_experi_q_wc(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did NASA's MOXIE experiment produce from the Martian atmosphere?"){return a[i]}}return null})();return e?e["q"].split(" ").length:0}
-function ba8_what_did_nasa_s_moxie_experi_fact_wc(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did NASA's MOXIE experiment produce from the Martian atmosphere?"){return a[i]}}return null})();return e?e["fact"].split(" ").length:0}
-function ba8_why_do_planners_target_the_m_q(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why do planners target the Moon's south pole?"){return a[i]}}return null})();return e?e["q"]:null}
-function ba8_why_do_planners_target_the_m_c(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why do planners target the Moon's south pole?"){return a[i]}}return null})();return e?e["c"]:null}
-function ba8_why_do_planners_target_the_m_fact(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why do planners target the Moon's south pole?"){return a[i]}}return null})();return e?e["fact"]:null}
-function ba8_why_do_planners_target_the_m_a_n(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why do planners target the Moon's south pole?"){return a[i]}}return null})();return e?e["a"].length:0}
-function ba8_why_do_planners_target_the_m_a_first(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why do planners target the Moon's south pole?"){return a[i]}}return null})();return e?e["a"][0]:null}
-function ba8_why_do_planners_target_the_m_q_wc(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why do planners target the Moon's south pole?"){return a[i]}}return null})();return e?e["q"].split(" ").length:0}
-function ba8_why_do_planners_target_the_m_fact_wc(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why do planners target the Moon's south pole?"){return a[i]}}return null})();return e?e["fact"].split(" ").length:0}
-function ba8_about_how_long_is_one_martia_q(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="About how long is one Martian sol?"){return a[i]}}return null})();return e?e["q"]:null}
-function ba8_about_how_long_is_one_martia_c(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="About how long is one Martian sol?"){return a[i]}}return null})();return e?e["c"]:null}
-function ba8_about_how_long_is_one_martia_fact(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="About how long is one Martian sol?"){return a[i]}}return null})();return e?e["fact"]:null}
-function ba8_about_how_long_is_one_martia_a_n(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="About how long is one Martian sol?"){return a[i]}}return null})();return e?e["a"].length:0}
-function ba8_about_how_long_is_one_martia_a_first(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="About how long is one Martian sol?"){return a[i]}}return null})();return e?e["a"][0]:null}
-function ba8_about_how_long_is_one_martia_q_wc(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="About how long is one Martian sol?"){return a[i]}}return null})();return e?e["q"].split(" ").length:0}
-function ba8_about_how_long_is_one_martia_fact_wc(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="About how long is one Martian sol?"){return a[i]}}return null})();return e?e["fact"].split(" ").length:0}
-function ba8_what_is_the_main_component_o_q(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is the main component of the Martian atmosphere?"){return a[i]}}return null})();return e?e["q"]:null}
-function ba8_what_is_the_main_component_o_c(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is the main component of the Martian atmosphere?"){return a[i]}}return null})();return e?e["c"]:null}
-function ba8_what_is_the_main_component_o_fact(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is the main component of the Martian atmosphere?"){return a[i]}}return null})();return e?e["fact"]:null}
-function ba8_what_is_the_main_component_o_a_n(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is the main component of the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].length:0}
-function ba8_what_is_the_main_component_o_a_first(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is the main component of the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"][0]:null}
-function ba8_what_is_the_main_component_o_q_wc(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is the main component of the Martian atmosphere?"){return a[i]}}return null})();return e?e["q"].split(" ").length:0}
-function ba8_what_is_the_main_component_o_fact_wc(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is the main component of the Martian atmosphere?"){return a[i]}}return null})();return e?e["fact"].split(" ").length:0}
-function ba8_how_long_can_a_one_way_radio_q(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="How long can a one-way radio signal take between Earth and Mars?"){return a[i]}}return null})();return e?e["q"]:null}
-function ba8_how_long_can_a_one_way_radio_c(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="How long can a one-way radio signal take between Earth and Mars?"){return a[i]}}return null})();return e?e["c"]:null}
-function ba8_how_long_can_a_one_way_radio_fact(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="How long can a one-way radio signal take between Earth and Mars?"){return a[i]}}return null})();return e?e["fact"]:null}
-function ba8_how_long_can_a_one_way_radio_a_n(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="How long can a one-way radio signal take between Earth and Mars?"){return a[i]}}return null})();return e?e["a"].length:0}
-function ba8_how_long_can_a_one_way_radio_a_first(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="How long can a one-way radio signal take between Earth and Mars?"){return a[i]}}return null})();return e?e["a"][0]:null}
-function ba8_how_long_can_a_one_way_radio_q_wc(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="How long can a one-way radio signal take between Earth and Mars?"){return a[i]}}return null})();return e?e["q"].split(" ").length:0}
-function ba8_how_long_can_a_one_way_radio_fact_wc(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="How long can a one-way radio signal take between Earth and Mars?"){return a[i]}}return null})();return e?e["fact"].split(" ").length:0}
-function ba8_what_protects_crews_on_the_i_q(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What protects crews on the ISS from most radiation?"){return a[i]}}return null})();return e?e["q"]:null}
-function ba8_what_protects_crews_on_the_i_c(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What protects crews on the ISS from most radiation?"){return a[i]}}return null})();return e?e["c"]:null}
-function ba8_what_protects_crews_on_the_i_fact(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What protects crews on the ISS from most radiation?"){return a[i]}}return null})();return e?e["fact"]:null}
-function ba8_what_protects_crews_on_the_i_a_n(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What protects crews on the ISS from most radiation?"){return a[i]}}return null})();return e?e["a"].length:0}
-function ba8_what_protects_crews_on_the_i_a_first(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What protects crews on the ISS from most radiation?"){return a[i]}}return null})();return e?e["a"][0]:null}
-function ba8_what_protects_crews_on_the_i_q_wc(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What protects crews on the ISS from most radiation?"){return a[i]}}return null})();return e?e["q"].split(" ").length:0}
-function ba8_what_protects_crews_on_the_i_fact_wc(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What protects crews on the ISS from most radiation?"){return a[i]}}return null})();return e?e["fact"].split(" ").length:0}
-function ba8_roughly_how_long_is_a_full_l_q(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Roughly how long is a full lunar day-night cycle?"){return a[i]}}return null})();return e?e["q"]:null}
-function ba8_roughly_how_long_is_a_full_l_c(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Roughly how long is a full lunar day-night cycle?"){return a[i]}}return null})();return e?e["c"]:null}
-function ba8_roughly_how_long_is_a_full_l_fact(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Roughly how long is a full lunar day-night cycle?"){return a[i]}}return null})();return e?e["fact"]:null}
-function ba8_roughly_how_long_is_a_full_l_a_n(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Roughly how long is a full lunar day-night cycle?"){return a[i]}}return null})();return e?e["a"].length:0}
-function ba8_roughly_how_long_is_a_full_l_a_first(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Roughly how long is a full lunar day-night cycle?"){return a[i]}}return null})();return e?e["a"][0]:null}
-function ba8_roughly_how_long_is_a_full_l_q_wc(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Roughly how long is a full lunar day-night cycle?"){return a[i]}}return null})();return e?e["q"].split(" ").length:0}
-function ba8_roughly_how_long_is_a_full_l_fact_wc(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Roughly how long is a full lunar day-night cycle?"){return a[i]}}return null})();return e?e["fact"].split(" ").length:0}
-function ba8_what_do_rtgs_use_to_make_ele_q(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What do RTGs use to make electricity?"){return a[i]}}return null})();return e?e["q"]:null}
-function ba8_what_do_rtgs_use_to_make_ele_c(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What do RTGs use to make electricity?"){return a[i]}}return null})();return e?e["c"]:null}
-function ba8_what_do_rtgs_use_to_make_ele_fact(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What do RTGs use to make electricity?"){return a[i]}}return null})();return e?e["fact"]:null}
-function ba8_what_do_rtgs_use_to_make_ele_a_n(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What do RTGs use to make electricity?"){return a[i]}}return null})();return e?e["a"].length:0}
-function ba8_what_do_rtgs_use_to_make_ele_a_first(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What do RTGs use to make electricity?"){return a[i]}}return null})();return e?e["a"][0]:null}
-function ba8_what_do_rtgs_use_to_make_ele_q_wc(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What do RTGs use to make electricity?"){return a[i]}}return null})();return e?e["q"].split(" ").length:0}
-function ba8_what_do_rtgs_use_to_make_ele_fact_wc(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What do RTGs use to make electricity?"){return a[i]}}return null})();return e?e["fact"].split(" ").length:0}
-function ba8_why_is_growing_food_on_a_mis_q(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why is growing food on a mission valuable?"){return a[i]}}return null})();return e?e["q"]:null}
-function ba8_why_is_growing_food_on_a_mis_c(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why is growing food on a mission valuable?"){return a[i]}}return null})();return e?e["c"]:null}
-function ba8_why_is_growing_food_on_a_mis_fact(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why is growing food on a mission valuable?"){return a[i]}}return null})();return e?e["fact"]:null}
-function ba8_why_is_growing_food_on_a_mis_a_n(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why is growing food on a mission valuable?"){return a[i]}}return null})();return e?e["a"].length:0}
-function ba8_why_is_growing_food_on_a_mis_a_first(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why is growing food on a mission valuable?"){return a[i]}}return null})();return e?e["a"][0]:null}
-function ba8_why_is_growing_food_on_a_mis_q_wc(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why is growing food on a mission valuable?"){return a[i]}}return null})();return e?e["q"].split(" ").length:0}
-function ba8_why_is_growing_food_on_a_mis_fact_wc(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why is growing food on a mission valuable?"){return a[i]}}return null})();return e?e["fact"].split(" ").length:0}
-function ba8_what_hazard_do_dust_storms_o_q(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What hazard do dust storms on Mars pose to solar power?"){return a[i]}}return null})();return e?e["q"]:null}
-function ba8_what_hazard_do_dust_storms_o_c(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What hazard do dust storms on Mars pose to solar power?"){return a[i]}}return null})();return e?e["c"]:null}
-function ba8_what_hazard_do_dust_storms_o_fact(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What hazard do dust storms on Mars pose to solar power?"){return a[i]}}return null})();return e?e["fact"]:null}
-function ba8_what_hazard_do_dust_storms_o_a_n(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What hazard do dust storms on Mars pose to solar power?"){return a[i]}}return null})();return e?e["a"].length:0}
-function ba8_what_hazard_do_dust_storms_o_a_first(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What hazard do dust storms on Mars pose to solar power?"){return a[i]}}return null})();return e?e["a"][0]:null}
-function ba8_what_hazard_do_dust_storms_o_q_wc(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What hazard do dust storms on Mars pose to solar power?"){return a[i]}}return null})();return e?e["q"].split(" ").length:0}
-function ba8_what_hazard_do_dust_storms_o_fact_wc(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What hazard do dust storms on Mars pose to solar power?"){return a[i]}}return null})();return e?e["fact"].split(" ").length:0}
-function ba8_which_program_aims_to_return_q(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which program aims to return astronauts to the Moon this decade?"){return a[i]}}return null})();return e?e["q"]:null}
-function ba8_which_program_aims_to_return_c(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which program aims to return astronauts to the Moon this decade?"){return a[i]}}return null})();return e?e["c"]:null}
-function ba8_which_program_aims_to_return_fact(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which program aims to return astronauts to the Moon this decade?"){return a[i]}}return null})();return e?e["fact"]:null}
-function ba8_which_program_aims_to_return_a_n(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which program aims to return astronauts to the Moon this decade?"){return a[i]}}return null})();return e?e["a"].length:0}
-function ba8_which_program_aims_to_return_a_first(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which program aims to return astronauts to the Moon this decade?"){return a[i]}}return null})();return e?e["a"][0]:null}
-function ba8_which_program_aims_to_return_q_wc(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which program aims to return astronauts to the Moon this decade?"){return a[i]}}return null})();return e?e["q"].split(" ").length:0}
-function ba8_which_program_aims_to_return_fact_wc(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which program aims to return astronauts to the Moon this decade?"){return a[i]}}return null})();return e?e["fact"].split(" ").length:0}
-function ba8_which_telescope_launched_in__q(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which telescope launched in 2021 now studies the early universe?"){return a[i]}}return null})();return e?e["q"]:null}
-function ba8_which_telescope_launched_in__c(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which telescope launched in 2021 now studies the early universe?"){return a[i]}}return null})();return e?e["c"]:null}
-function ba8_which_telescope_launched_in__fact(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which telescope launched in 2021 now studies the early universe?"){return a[i]}}return null})();return e?e["fact"]:null}
-function ba8_which_telescope_launched_in__a_n(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which telescope launched in 2021 now studies the early universe?"){return a[i]}}return null})();return e?e["a"].length:0}
-function ba8_which_telescope_launched_in__a_first(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which telescope launched in 2021 now studies the early universe?"){return a[i]}}return null})();return e?e["a"][0]:null}
-function ba8_which_telescope_launched_in__q_wc(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which telescope launched in 2021 now studies the early universe?"){return a[i]}}return null})();return e?e["q"].split(" ").length:0}
-function ba8_which_telescope_launched_in__fact_wc(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which telescope launched in 2021 now studies the early universe?"){return a[i]}}return null})();return e?e["fact"].split(" ").length:0}
-function ba8_what_makes_lunar_regolith_us_q(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What makes lunar regolith useful for shielding?"){return a[i]}}return null})();return e?e["q"]:null}
-function ba8_what_makes_lunar_regolith_us_c(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What makes lunar regolith useful for shielding?"){return a[i]}}return null})();return e?e["c"]:null}
-function ba8_what_makes_lunar_regolith_us_fact(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What makes lunar regolith useful for shielding?"){return a[i]}}return null})();return e?e["fact"]:null}
-function ba8_what_makes_lunar_regolith_us_a_n(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What makes lunar regolith useful for shielding?"){return a[i]}}return null})();return e?e["a"].length:0}
-function ba8_what_makes_lunar_regolith_us_a_first(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What makes lunar regolith useful for shielding?"){return a[i]}}return null})();return e?e["a"][0]:null}
-function ba8_what_makes_lunar_regolith_us_q_wc(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What makes lunar regolith useful for shielding?"){return a[i]}}return null})();return e?e["q"].split(" ").length:0}
-function ba8_what_makes_lunar_regolith_us_fact_wc(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What makes lunar regolith useful for shielding?"){return a[i]}}return null})();return e?e["fact"].split(" ").length:0}
-function ba8_what_did_the_sofia_observato_q(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did the SOFIA observatory confirm on the Moon's sunlit surface in 2020?"){return a[i]}}return null})();return e?e["q"]:null}
-function ba8_what_did_the_sofia_observato_c(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did the SOFIA observatory confirm on the Moon's sunlit surface in 2020?"){return a[i]}}return null})();return e?e["c"]:null}
-function ba8_what_did_the_sofia_observato_fact(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did the SOFIA observatory confirm on the Moon's sunlit surface in 2020?"){return a[i]}}return null})();return e?e["fact"]:null}
-function ba8_what_did_the_sofia_observato_a_n(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did the SOFIA observatory confirm on the Moon's sunlit surface in 2020?"){return a[i]}}return null})();return e?e["a"].length:0}
-function ba8_what_did_the_sofia_observato_a_first(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did the SOFIA observatory confirm on the Moon's sunlit surface in 2020?"){return a[i]}}return null})();return e?e["a"][0]:null}
-function ba8_what_did_the_sofia_observato_q_wc(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did the SOFIA observatory confirm on the Moon's sunlit surface in 2020?"){return a[i]}}return null})();return e?e["q"].split(" ").length:0}
-function ba8_what_did_the_sofia_observato_fact_wc(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did the SOFIA observatory confirm on the Moon's sunlit surface in 2020?"){return a[i]}}return null})();return e?e["fact"].split(" ").length:0}
-function ba8_why_are_lava_tubes_interesti_q(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why are lava tubes interesting to base planners?"){return a[i]}}return null})();return e?e["q"]:null}
-function ba8_why_are_lava_tubes_interesti_c(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why are lava tubes interesting to base planners?"){return a[i]}}return null})();return e?e["c"]:null}
-function ba8_why_are_lava_tubes_interesti_fact(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why are lava tubes interesting to base planners?"){return a[i]}}return null})();return e?e["fact"]:null}
-function ba8_why_are_lava_tubes_interesti_a_n(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why are lava tubes interesting to base planners?"){return a[i]}}return null})();return e?e["a"].length:0}
-function ba8_why_are_lava_tubes_interesti_a_first(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why are lava tubes interesting to base planners?"){return a[i]}}return null})();return e?e["a"][0]:null}
-function ba8_why_are_lava_tubes_interesti_q_wc(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why are lava tubes interesting to base planners?"){return a[i]}}return null})();return e?e["q"].split(" ").length:0}
-function ba8_why_are_lava_tubes_interesti_fact_wc(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why are lava tubes interesting to base planners?"){return a[i]}}return null})();return e?e["fact"].split(" ").length:0}
-function ba8_what_is_isru_q(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is ISRU?"){return a[i]}}return null})();return e?e["q"]:null}
-function ba8_what_is_isru_c(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is ISRU?"){return a[i]}}return null})();return e?e["c"]:null}
-function ba8_what_is_isru_fact(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is ISRU?"){return a[i]}}return null})();return e?e["fact"]:null}
-function ba8_what_is_isru_a_n(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is ISRU?"){return a[i]}}return null})();return e?e["a"].length:0}
-function ba8_what_is_isru_a_first(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is ISRU?"){return a[i]}}return null})();return e?e["a"][0]:null}
-function ba8_what_is_isru_fact_wc(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is ISRU?"){return a[i]}}return null})();return e?e["fact"].split(" ").length:0}
-function ba8_perchlorate_salts_in_martian_q(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Perchlorate salts in Martian soil are a concern because they are..."){return a[i]}}return null})();return e?e["q"]:null}
-function ba8_perchlorate_salts_in_martian_c(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Perchlorate salts in Martian soil are a concern because they are..."){return a[i]}}return null})();return e?e["c"]:null}
-function ba8_perchlorate_salts_in_martian_fact(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Perchlorate salts in Martian soil are a concern because they are..."){return a[i]}}return null})();return e?e["fact"]:null}
-function ba8_perchlorate_salts_in_martian_a_n(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Perchlorate salts in Martian soil are a concern because they are..."){return a[i]}}return null})();return e?e["a"].length:0}
-function ba8_perchlorate_salts_in_martian_a_first(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Perchlorate salts in Martian soil are a concern because they are..."){return a[i]}}return null})();return e?e["a"][0]:null}
-function ba8_perchlorate_salts_in_martian_q_wc(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Perchlorate salts in Martian soil are a concern because they are..."){return a[i]}}return null})();return e?e["q"].split(" ").length:0}
-function ba8_perchlorate_salts_in_martian_fact_wc(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Perchlorate salts in Martian soil are a concern because they are..."){return a[i]}}return null})();return e?e["fact"].split(" ").length:0}
-function ba8_which_apollo_mission_turned__q(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which Apollo mission turned a crisis into a safe return using the lunar module as a lifeboat?"){return a[i]}}return null})();return e?e["q"]:null}
-function ba8_which_apollo_mission_turned__c(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which Apollo mission turned a crisis into a safe return using the lunar module as a lifeboat?"){return a[i]}}return null})();return e?e["c"]:null}
-function ba8_which_apollo_mission_turned__fact(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which Apollo mission turned a crisis into a safe return using the lunar module as a lifeboat?"){return a[i]}}return null})();return e?e["fact"]:null}
-function ba8_which_apollo_mission_turned__a_n(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which Apollo mission turned a crisis into a safe return using the lunar module as a lifeboat?"){return a[i]}}return null})();return e?e["a"].length:0}
-function ba8_which_apollo_mission_turned__a_first(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which Apollo mission turned a crisis into a safe return using the lunar module as a lifeboat?"){return a[i]}}return null})();return e?e["a"][0]:null}
-function ba8_which_apollo_mission_turned__q_wc(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which Apollo mission turned a crisis into a safe return using the lunar module as a lifeboat?"){return a[i]}}return null})();return e?e["q"].split(" ").length:0}
-function ba8_which_apollo_mission_turned__fact_wc(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which Apollo mission turned a crisis into a safe return using the lunar module as a lifeboat?"){return a[i]}}return null})();return e?e["fact"].split(" ").length:0}
-function ba8_why_does_a_greenhouse_on_mar_q(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why does a greenhouse on Mars need artificial light even in daytime?"){return a[i]}}return null})();return e?e["q"]:null}
-function ba8_why_does_a_greenhouse_on_mar_c(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why does a greenhouse on Mars need artificial light even in daytime?"){return a[i]}}return null})();return e?e["c"]:null}
-function ba8_why_does_a_greenhouse_on_mar_fact(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why does a greenhouse on Mars need artificial light even in daytime?"){return a[i]}}return null})();return e?e["fact"]:null}
-function ba8_why_does_a_greenhouse_on_mar_a_n(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why does a greenhouse on Mars need artificial light even in daytime?"){return a[i]}}return null})();return e?e["a"].length:0}
-function ba8_why_does_a_greenhouse_on_mar_a_first(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why does a greenhouse on Mars need artificial light even in daytime?"){return a[i]}}return null})();return e?e["a"][0]:null}
-function ba8_why_does_a_greenhouse_on_mar_q_wc(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why does a greenhouse on Mars need artificial light even in daytime?"){return a[i]}}return null})();return e?e["q"].split(" ").length:0}
-function ba8_why_does_a_greenhouse_on_mar_fact_wc(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why does a greenhouse on Mars need artificial light even in daytime?"){return a[i]}}return null})();return e?e["fact"].split(" ").length:0}
-function ba8_what_is_a_fair_first_power_s_q(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is a fair first power source for a polar lunar base?"){return a[i]}}return null})();return e?e["q"]:null}
-function ba8_what_is_a_fair_first_power_s_c(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is a fair first power source for a polar lunar base?"){return a[i]}}return null})();return e?e["c"]:null}
-function ba8_what_is_a_fair_first_power_s_fact(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is a fair first power source for a polar lunar base?"){return a[i]}}return null})();return e?e["fact"]:null}
-function ba8_what_is_a_fair_first_power_s_a_n(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is a fair first power source for a polar lunar base?"){return a[i]}}return null})();return e?e["a"].length:0}
-function ba8_what_is_a_fair_first_power_s_a_first(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is a fair first power source for a polar lunar base?"){return a[i]}}return null})();return e?e["a"][0]:null}
-function ba8_what_is_a_fair_first_power_s_q_wc(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is a fair first power source for a polar lunar base?"){return a[i]}}return null})();return e?e["q"].split(" ").length:0}
-function ba8_what_is_a_fair_first_power_s_fact_wc(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is a fair first power source for a polar lunar base?"){return a[i]}}return null})();return e?e["fact"].split(" ").length:0}
-function ba8_firstsol_id(){var e=(function(){var a=ACHIEVEMENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="firstsol"){return a[i]}}return null})();return e?e["id"]:null}
-function ba8_firstsol_name(){var e=(function(){var a=ACHIEVEMENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="firstsol"){return a[i]}}return null})();return e?e["name"]:null}
-function ba8_power50_id(){var e=(function(){var a=ACHIEVEMENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="power50"){return a[i]}}return null})();return e?e["id"]:null}
-function ba8_power50_name(){var e=(function(){var a=ACHIEVEMENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="power50"){return a[i]}}return null})();return e?e["name"]:null}
-function ba8_science100_id(){var e=(function(){var a=ACHIEVEMENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="science100"){return a[i]}}return null})();return e?e["id"]:null}
-function ba8_science100_name(){var e=(function(){var a=ACHIEVEMENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="science100"){return a[i]}}return null})();return e?e["name"]:null}
-function ba8_shield3_id(){var e=(function(){var a=ACHIEVEMENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="shield3"){return a[i]}}return null})();return e?e["id"]:null}
-function ba8_shield3_name(){var e=(function(){var a=ACHIEVEMENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="shield3"){return a[i]}}return null})();return e?e["name"]:null}
-function ba8_sol15_id(){var e=(function(){var a=ACHIEVEMENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="sol15"){return a[i]}}return null})();return e?e["id"]:null}
-function ba8_sol15_name(){var e=(function(){var a=ACHIEVEMENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="sol15"){return a[i]}}return null})();return e?e["name"]:null}
-function ba8_sol30_id(){var e=(function(){var a=ACHIEVEMENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="sol30"){return a[i]}}return null})();return e?e["id"]:null}
-function ba8_sol30_name(){var e=(function(){var a=ACHIEVEMENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="sol30"){return a[i]}}return null})();return e?e["name"]:null}
-function ba8_fullhouse_id(){var e=(function(){var a=ACHIEVEMENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="fullhouse"){return a[i]}}return null})();return e?e["id"]:null}
-function ba8_fullhouse_name(){var e=(function(){var a=ACHIEVEMENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="fullhouse"){return a[i]}}return null})();return e?e["name"]:null}
-function ba8_quiz5_id(){var e=(function(){var a=ACHIEVEMENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="quiz5"){return a[i]}}return null})();return e?e["id"]:null}
-function ba8_quiz5_name(){var e=(function(){var a=ACHIEVEMENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="quiz5"){return a[i]}}return null})();return e?e["name"]:null}
-function ba8_selfsufficient_id(){var e=(function(){var a=ACHIEVEMENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="selfsufficient"){return a[i]}}return null})();return e?e["id"]:null}
-function ba8_selfsufficient_name(){var e=(function(){var a=ACHIEVEMENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="selfsufficient"){return a[i]}}return null})();return e?e["name"]:null}
-function ba8_survivor_id(){var e=(function(){var a=ACHIEVEMENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="survivor"){return a[i]}}return null})();return e?e["id"]:null}
-function ba8_survivor_name(){var e=(function(){var a=ACHIEVEMENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="survivor"){return a[i]}}return null})();return e?e["name"]:null}
-function ba8_researcher_id(){var e=(function(){var a=ACHIEVEMENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="researcher"){return a[i]}}return null})();return e?e["id"]:null}
-function ba8_researcher_name(){var e=(function(){var a=ACHIEVEMENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="researcher"){return a[i]}}return null})();return e?e["name"]:null}
-function ba8_awayteam_id(){var e=(function(){var a=ACHIEVEMENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="awayteam"){return a[i]}}return null})();return e?e["id"]:null}
-function ba8_awayteam_name(){var e=(function(){var a=ACHIEVEMENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="awayteam"){return a[i]}}return null})();return e?e["name"]:null}
-function ba8_veteran_id(){var e=(function(){var a=ACHIEVEMENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="veteran"){return a[i]}}return null})();return e?e["id"]:null}
-function ba8_veteran_name(){var e=(function(){var a=ACHIEVEMENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="veteran"){return a[i]}}return null})();return e?e["name"]:null}
-function ba8_nightowl_id(){var e=(function(){var a=ACHIEVEMENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="nightowl"){return a[i]}}return null})();return e?e["id"]:null}
-function ba8_nightowl_name(){var e=(function(){var a=ACHIEVEMENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="nightowl"){return a[i]}}return null})();return e?e["name"]:null}
-function ba8_closedloop2_id(){var e=(function(){var a=ACHIEVEMENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="closedloop2"){return a[i]}}return null})();return e?e["id"]:null}
-function ba8_closedloop2_name(){var e=(function(){var a=ACHIEVEMENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="closedloop2"){return a[i]}}return null})();return e?e["name"]:null}
-function ba8_highscore_id(){var e=(function(){var a=ACHIEVEMENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="highscore"){return a[i]}}return null})();return e?e["id"]:null}
-function ba8_highscore_name(){var e=(function(){var a=ACHIEVEMENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="highscore"){return a[i]}}return null})();return e?e["name"]:null}
-function ba8_crosstrained_id(){var e=(function(){var a=ACHIEVEMENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="crosstrained"){return a[i]}}return null})();return e?e["id"]:null}
-function ba8_crosstrained_name(){var e=(function(){var a=ACHIEVEMENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="crosstrained"){return a[i]}}return null})();return e?e["name"]:null}
-function ba8_farmer_id(){var e=(function(){var a=ACHIEVEMENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="farmer"){return a[i]}}return null})();return e?e["id"]:null}
-function ba8_farmer_name(){var e=(function(){var a=ACHIEVEMENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="farmer"){return a[i]}}return null})();return e?e["name"]:null}
-function ba8_scenario_id(){var e=(function(){var a=ACHIEVEMENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="scenario"){return a[i]}}return null})();return e?e["id"]:null}
-function ba8_scenario_name(){var e=(function(){var a=ACHIEVEMENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="scenario"){return a[i]}}return null})();return e?e["name"]:null}
-function ba8_hoarder_id(){var e=(function(){var a=ACHIEVEMENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="hoarder"){return a[i]}}return null})();return e?e["id"]:null}
-function ba8_hoarder_name(){var e=(function(){var a=ACHIEVEMENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="hoarder"){return a[i]}}return null})();return e?e["name"]:null}
-function ba8_events_count(){return EVENTS.length}
-function ba8_events_w_min(){return Math.min.apply(null,EVENTS.map(function(e){return e["w"]}))}
-function ba8_events_w_max(){return Math.max.apply(null,EVENTS.map(function(e){return e["w"]}))}
-function ba8_events_w_sum(){return EVENTS.reduce(function(s,e){return s+e["w"]},0)}
-function ba8_quiz_count(){return QUIZ.length}
-function ba8_quiz_c_min(){return Math.min.apply(null,QUIZ.map(function(e){return e["c"]}))}
-function ba8_quiz_c_max(){return Math.max.apply(null,QUIZ.map(function(e){return e["c"]}))}
-function ba8_quiz_c_sum(){return QUIZ.reduce(function(s,e){return s+e["c"]},0)}
-function ba8_achievements_count(){return ACHIEVEMENTS.length}
-function ba8_events_has_solar(){return EVENTS.filter(function(e){return ["text"].some(function(f){return String(e[f]).toLowerCase().indexOf("solar")>=0})}).length}
-function ba8_events_has_building(){return EVENTS.filter(function(e){return ["text"].some(function(f){return String(e[f]).toLowerCase().indexOf("building")>=0})}).length}
-function ba8_events_has_morale(){return EVENTS.filter(function(e){return ["text"].some(function(f){return String(e[f]).toLowerCase().indexOf("morale")>=0})}).length}
-function ba8_events_has_member(){return EVENTS.filter(function(e){return ["text"].some(function(f){return String(e[f]).toLowerCase().indexOf("member")>=0})}).length}
-function ba8_events_has_radiation(){return EVENTS.filter(function(e){return ["text"].some(function(f){return String(e[f]).toLowerCase().indexOf("radiation")>=0})}).length}
-function ba8_events_has_damaging(){return EVENTS.filter(function(e){return ["text"].some(function(f){return String(e[f]).toLowerCase().indexOf("damaging")>=0})}).length}
-function ba8_events_has_pocket(){return EVENTS.filter(function(e){return ["text"].some(function(f){return String(e[f]).toLowerCase().indexOf("pocket")>=0})}).length}
-function ba8_events_has_science(){return EVENTS.filter(function(e){return ["text"].some(function(f){return String(e[f]).toLowerCase().indexOf("science")>=0})}).length}
-function ba8_events_has_online(){return EVENTS.filter(function(e){return ["text"].some(function(f){return String(e[f]).toLowerCase().indexOf("online")>=0})}).length}
-function ba8_events_has_drops(){return EVENTS.filter(function(e){return ["text"].some(function(f){return String(e[f]).toLowerCase().indexOf("drops")>=0})}).length}
-function ba8_events_has_oxygen(){return EVENTS.filter(function(e){return ["text"].some(function(f){return String(e[f]).toLowerCase().indexOf("oxygen")>=0})}).length}
-function ba8_events_has_storm(){return EVENTS.filter(function(e){return ["text"].some(function(f){return String(e[f]).toLowerCase().indexOf("storm")>=0})}).length}
-function ba8_events_has_output(){return EVENTS.filter(function(e){return ["text"].some(function(f){return String(e[f]).toLowerCase().indexOf("output")>=0})}).length}
-function ba8_events_has_micrometeorite(){return EVENTS.filter(function(e){return ["text"].some(function(f){return String(e[f]).toLowerCase().indexOf("micrometeorite")>=0})}).length}
-function ba8_events_has_strike(){return EVENTS.filter(function(e){return ["text"].some(function(f){return String(e[f]).toLowerCase().indexOf("strike")>=0})}).length}
-function ba8_events_has_damages(){return EVENTS.filter(function(e){return ["text"].some(function(f){return String(e[f]).toLowerCase().indexOf("damages")>=0})}).length}
-function ba8_events_has_random(){return EVENTS.filter(function(e){return ["text"].some(function(f){return String(e[f]).toLowerCase().indexOf("random")>=0})}).length}
-function ba8_events_has_falls(){return EVENTS.filter(function(e){return ["text"].some(function(f){return String(e[f]).toLowerCase().indexOf("falls")>=0})}).length}
-function ba8_events_has_loses(){return EVENTS.filter(function(e){return ["text"].some(function(f){return String(e[f]).toLowerCase().indexOf("loses")>=0})}).length}
-function ba8_events_has_health(){return EVENTS.filter(function(e){return ["text"].some(function(f){return String(e[f]).toLowerCase().indexOf("health")>=0})}).length}
-function ba8_events_has_particle(){return EVENTS.filter(function(e){return ["text"].some(function(f){return String(e[f]).toLowerCase().indexOf("particle")>=0})}).length}
-function ba8_events_has_event(){return EVENTS.filter(function(e){return ["text"].some(function(f){return String(e[f]).toLowerCase().indexOf("event")>=0})}).length}
-function ba8_events_has_unshielded(){return EVENTS.filter(function(e){return ["text"].some(function(f){return String(e[f]).toLowerCase().indexOf("unshielded")>=0})}).length}
-function ba8_events_has_moonquake(){return EVENTS.filter(function(e){return ["text"].some(function(f){return String(e[f]).toLowerCase().indexOf("moonquake")>=0})}).length}
-function ba8_events_has_rattles(){return EVENTS.filter(function(e){return ["text"].some(function(f){return String(e[f]).toLowerCase().indexOf("rattles")>=0})}).length}
-function ba8_events_has_surveyors(){return EVENTS.filter(function(e){return ["text"].some(function(f){return String(e[f]).toLowerCase().indexOf("surveyors")>=0})}).length}
-function ba8_events_has_water(){return EVENTS.filter(function(e){return ["text"].some(function(f){return String(e[f]).toLowerCase().indexOf("water")>=0})}).length}
-function ba8_events_has_satellite(){return EVENTS.filter(function(e){return ["text"].some(function(f){return String(e[f]).toLowerCase().indexOf("satellite")>=0})}).length}
-function ba8_events_has_relay(){return EVENTS.filter(function(e){return ["text"].some(function(f){return String(e[f]).toLowerCase().indexOf("relay")>=0})}).length}
-function ba8_events_has_passes(){return EVENTS.filter(function(e){return ["text"].some(function(f){return String(e[f]).toLowerCase().indexOf("passes")>=0})}).length}
-function ba8_events_has_overhead(){return EVENTS.filter(function(e){return ["text"].some(function(f){return String(e[f]).toLowerCase().indexOf("overhead")>=0})}).length}
-function ba8_events_has_comms(){return EVENTS.filter(function(e){return ["text"].some(function(f){return String(e[f]).toLowerCase().indexOf("comms")>=0})}).length}
-function ba8_events_has_improves(){return EVENTS.filter(function(e){return ["text"].some(function(f){return String(e[f]).toLowerCase().indexOf("improves")>=0})}).length}
-function ba8_events_has_flare(){return EVENTS.filter(function(e){return ["text"].some(function(f){return String(e[f]).toLowerCase().indexOf("flare")>=0})}).length}
-function ba8_events_has_extra(){return EVENTS.filter(function(e){return ["text"].some(function(f){return String(e[f]).toLowerCase().indexOf("extra")>=0})}).length}
-function ba8_events_has_birthday(){return EVENTS.filter(function(e){return ["text"].some(function(f){return String(e[f]).toLowerCase().indexOf("birthday")>=0})}).length}
-function ba8_events_has_lifts(){return EVENTS.filter(function(e){return ["text"].some(function(f){return String(e[f]).toLowerCase().indexOf("lifts")>=0})}).length}
-function ba8_events_has_everyone(){return EVENTS.filter(function(e){return ["text"].some(function(f){return String(e[f]).toLowerCase().indexOf("everyone")>=0})}).length}
-function ba8_events_has_stowaway(){return EVENTS.filter(function(e){return ["text"].some(function(f){return String(e[f]).toLowerCase().indexOf("stowaway")>=0})}).length}
-function ba8_events_has_stores(){return EVENTS.filter(function(e){return ["text"].some(function(f){return String(e[f]).toLowerCase().indexOf("stores")>=0})}).length}
-function ba8_quiz_has_earth(){return QUIZ.filter(function(e){return ["q","fact"].some(function(f){return String(e[f]).toLowerCase().indexOf("earth")>=0})}).length}
-function ba8_quiz_has_lunar(){return QUIZ.filter(function(e){return ["q","fact"].some(function(f){return String(e[f]).toLowerCase().indexOf("lunar")>=0})}).length}
-function ba8_quiz_has_martian(){return QUIZ.filter(function(e){return ["q","fact"].some(function(f){return String(e[f]).toLowerCase().indexOf("martian")>=0})}).length}
-function ba8_quiz_has_atmosphere(){return QUIZ.filter(function(e){return ["q","fact"].some(function(f){return String(e[f]).toLowerCase().indexOf("atmosphere")>=0})}).length}
-function ba8_quiz_has_water(){return QUIZ.filter(function(e){return ["q","fact"].some(function(f){return String(e[f]).toLowerCase().indexOf("water")>=0})}).length}
-function ba8_quiz_has_about(){return QUIZ.filter(function(e){return ["q","fact"].some(function(f){return String(e[f]).toLowerCase().indexOf("about")>=0})}).length}
-function ba8_quiz_has_oxygen(){return QUIZ.filter(function(e){return ["q","fact"].some(function(f){return String(e[f]).toLowerCase().indexOf("oxygen")>=0})}).length}
-function ba8_quiz_has_crews(){return QUIZ.filter(function(e){return ["q","fact"].some(function(f){return String(e[f]).toLowerCase().indexOf("crews")>=0})}).length}
-function ba8_quiz_has_south(){return QUIZ.filter(function(e){return ["q","fact"].some(function(f){return String(e[f]).toLowerCase().indexOf("south")>=0})}).length}
-function ba8_quiz_has_radiation(){return QUIZ.filter(function(e){return ["q","fact"].some(function(f){return String(e[f]).toLowerCase().indexOf("radiation")>=0})}).length}
-function ba8_quiz_has_regolith(){return QUIZ.filter(function(e){return ["q","fact"].some(function(f){return String(e[f]).toLowerCase().indexOf("regolith")>=0})}).length}
-function ba8_quiz_has_solar(){return QUIZ.filter(function(e){return ["q","fact"].some(function(f){return String(e[f]).toLowerCase().indexOf("solar")>=0})}).length}
-function ba8_quiz_has_polar(){return QUIZ.filter(function(e){return ["q","fact"].some(function(f){return String(e[f]).toLowerCase().indexOf("polar")>=0})}).length}
-function ba8_quiz_has_power(){return QUIZ.filter(function(e){return ["q","fact"].some(function(f){return String(e[f]).toLowerCase().indexOf("power")>=0})}).length}
-function ba8_quiz_has_storms(){return QUIZ.filter(function(e){return ["q","fact"].some(function(f){return String(e[f]).toLowerCase().indexOf("storms")>=0})}).length}
-function ba8_quiz_has_mission(){return QUIZ.filter(function(e){return ["q","fact"].some(function(f){return String(e[f]).toLowerCase().indexOf("mission")>=0})}).length}
-function ba8_quiz_has_sunlight(){return QUIZ.filter(function(e){return ["q","fact"].some(function(f){return String(e[f]).toLowerCase().indexOf("sunlight")>=0})}).length}
-function ba8_quiz_has_which(){return QUIZ.filter(function(e){return ["q","fact"].some(function(f){return String(e[f]).toLowerCase().indexOf("which")>=0})}).length}
-function ba8_quiz_has_moxie(){return QUIZ.filter(function(e){return ["q","fact"].some(function(f){return String(e[f]).toLowerCase().indexOf("moxie")>=0})}).length}
-function ba8_quiz_has_first(){return QUIZ.filter(function(e){return ["q","fact"].some(function(f){return String(e[f]).toLowerCase().indexOf("first")>=0})}).length}
-function ca9_quiz_has_making(){return QUIZ.filter(function(e){return ["q","fact"].some(function(f){return String(e[f]).toLowerCase().indexOf("making")>=0})}).length}
-function ca9_quiz_has_planners(){return QUIZ.filter(function(e){return ["q","fact"].some(function(f){return String(e[f]).toLowerCase().indexOf("planners")>=0})}).length}
-function ca9_quiz_has_shadowed(){return QUIZ.filter(function(e){return ["q","fact"].some(function(f){return String(e[f]).toLowerCase().indexOf("shadowed")>=0})}).length}
-function ca9_quiz_has_light(){return QUIZ.filter(function(e){return ["q","fact"].some(function(f){return String(e[f]).toLowerCase().indexOf("light")>=0})}).length}
-function ca9_quiz_has_shielding(){return QUIZ.filter(function(e){return ["q","fact"].some(function(f){return String(e[f]).toLowerCase().indexOf("shielding")>=0})}).length}
-function ca9_quiz_has_night(){return QUIZ.filter(function(e){return ["q","fact"].some(function(f){return String(e[f]).toLowerCase().indexOf("night")>=0})}).length}
-function ca9_quiz_has_local(){return QUIZ.filter(function(e){return ["q","fact"].some(function(f){return String(e[f]).toLowerCase().indexOf("local")>=0})}).length}
-function ca9_quiz_has_return(){return QUIZ.filter(function(e){return ["q","fact"].some(function(f){return String(e[f]).toLowerCase().indexOf("return")>=0})}).length}
-function ca9_quiz_has_sofia(){return QUIZ.filter(function(e){return ["q","fact"].some(function(f){return String(e[f]).toLowerCase().indexOf("sofia")>=0})}).length}
-function ca9_quiz_has_tubes(){return QUIZ.filter(function(e){return ["q","fact"].some(function(f){return String(e[f]).toLowerCase().indexOf("tubes")>=0})}).length}
-function ca9_quiz_has_apollo(){return QUIZ.filter(function(e){return ["q","fact"].some(function(f){return String(e[f]).toLowerCase().indexOf("apollo")>=0})}).length}
-function ca9_quiz_has_experiment(){return QUIZ.filter(function(e){return ["q","fact"].some(function(f){return String(e[f]).toLowerCase().indexOf("experiment")>=0})}).length}
-function ca9_quiz_has_produce(){return QUIZ.filter(function(e){return ["q","fact"].some(function(f){return String(e[f]).toLowerCase().indexOf("produce")>=0})}).length}
-function ca9_quiz_has_toward(){return QUIZ.filter(function(e){return ["q","fact"].some(function(f){return String(e[f]).toLowerCase().indexOf("toward")>=0})}).length}
-function ca9_quiz_has_rocket(){return QUIZ.filter(function(e){return ["q","fact"].some(function(f){return String(e[f]).toLowerCase().indexOf("rocket")>=0})}).length}
-function ca9_quiz_has_target(){return QUIZ.filter(function(e){return ["q","fact"].some(function(f){return String(e[f]).toLowerCase().indexOf("target")>=0})}).length}
-function ca9_quiz_has_craters(){return QUIZ.filter(function(e){return ["q","fact"].some(function(f){return String(e[f]).toLowerCase().indexOf("craters")>=0})}).length}
-function ca9_quiz_has_traps(){return QUIZ.filter(function(e){return ["q","fact"].some(function(f){return String(e[f]).toLowerCase().indexOf("traps")>=0})}).length}
-function ca9_quiz_has_preserve(){return QUIZ.filter(function(e){return ["q","fact"].some(function(f){return String(e[f]).toLowerCase().indexOf("preserve")>=0})}).length}
-function ca9_quiz_has_close(){return QUIZ.filter(function(e){return ["q","fact"].some(function(f){return String(e[f]).toLowerCase().indexOf("close")>=0})}).length}
-function ca9_events_storm_hash(){var s="storm|storm";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_events_micro_hash(){var s="micro|micro";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_events_illness_hash(){var s="illness|illness";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_events_aurora_hash(){var s="aurora|aurora";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_events_quake_hash(){var s="quake|quake";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_events_find_hash(){var s="find|find";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_events_relay_hash(){var s="relay|relay";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_events_calm_hash(){var s="calm|calm";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_events_flare_hash(){var s="flare|flare";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_events_birthday_hash(){var s="birthday|birthday";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_events_stowaway_hash(){var s="stowaway|stowaway";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_events_coolant_hash(){var s="coolant|coolant";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_events_podbonus_hash(){var s="podbonus|podbonus";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_events_breakthrough_hash(){var s="breakthrough|breakthrough";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_events_homesick_hash(){var s="homesick|homesick";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_events_meteorshower_hash(){var s="meteorshower|meteorshower";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_events_o2leak_hash(){var s="o2leak|o2leak";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_events_blight_hash(){var s="blight|blight";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_events_argument_hash(){var s="argument|argument";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_events_dustdevil_hash(){var s="dustdevil|dustdevil";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_events_suitpuncture_hash(){var s="suitpuncture|suitpuncture";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_events_icepocket_hash(){var s="icepocket|icepocket";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_quiz_what_did_nasa_s_moxie_experi_hash(){var s="What did NASA's MOXIE experiment produce from the Martian atmosphere?|What did NASA's MOXIE experiment produce from the Martian atmosphere?";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_quiz_why_do_planners_target_the_m_hash(){var s="Why do planners target the Moon's south pole?|Why do planners target the Moon's south pole?";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_quiz_about_how_long_is_one_martia_hash(){var s="About how long is one Martian sol?|About how long is one Martian sol?";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_quiz_what_is_the_main_component_o_hash(){var s="What is the main component of the Martian atmosphere?|What is the main component of the Martian atmosphere?";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_quiz_how_long_can_a_one_way_radio_hash(){var s="How long can a one-way radio signal take between Earth and Mars?|How long can a one-way radio signal take between Earth and Mars?";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_quiz_what_protects_crews_on_the_i_hash(){var s="What protects crews on the ISS from most radiation?|What protects crews on the ISS from most radiation?";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_quiz_roughly_how_long_is_a_full_l_hash(){var s="Roughly how long is a full lunar day-night cycle?|Roughly how long is a full lunar day-night cycle?";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_quiz_what_do_rtgs_use_to_make_ele_hash(){var s="What do RTGs use to make electricity?|What do RTGs use to make electricity?";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_quiz_why_is_growing_food_on_a_mis_hash(){var s="Why is growing food on a mission valuable?|Why is growing food on a mission valuable?";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_quiz_what_hazard_do_dust_storms_o_hash(){var s="What hazard do dust storms on Mars pose to solar power?|What hazard do dust storms on Mars pose to solar power?";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_quiz_which_program_aims_to_return_hash(){var s="Which program aims to return astronauts to the Moon this decade?|Which program aims to return astronauts to the Moon this decade?";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_quiz_which_telescope_launched_in__hash(){var s="Which telescope launched in 2021 now studies the early universe?|Which telescope launched in 2021 now studies the early universe?";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_quiz_what_makes_lunar_regolith_us_hash(){var s="What makes lunar regolith useful for shielding?|What makes lunar regolith useful for shielding?";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_quiz_what_did_the_sofia_observato_hash(){var s="What did the SOFIA observatory confirm on the Moon's sunlit surface in 2020?|What did the SOFIA observatory confirm on the Moon's sunlit surface in 2020?";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_quiz_why_are_lava_tubes_interesti_hash(){var s="Why are lava tubes interesting to base planners?|Why are lava tubes interesting to base planners?";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_quiz_what_is_isru_hash(){var s="What is ISRU?|What is ISRU?";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_quiz_perchlorate_salts_in_martian_hash(){var s="Perchlorate salts in Martian soil are a concern because they are...|Perchlorate salts in Martian soil are a concern because they are...";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_quiz_which_apollo_mission_turned__hash(){var s="Which Apollo mission turned a crisis into a safe return using the lunar module as a lifeboat?|Which Apollo mission turned a crisis into a safe return using the lunar module as a lifeboat?";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_quiz_why_does_a_greenhouse_on_mar_hash(){var s="Why does a greenhouse on Mars need artificial light even in daytime?|Why does a greenhouse on Mars need artificial light even in daytime?";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_quiz_what_is_a_fair_first_power_s_hash(){var s="What is a fair first power source for a polar lunar base?|What is a fair first power source for a polar lunar base?";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_achievements_firstsol_hash(){var s="firstsol|Boots Down";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_achievements_power50_hash(){var s="power50|Grid Operator";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_achievements_science100_hash(){var s="science100|Lab Rat";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_achievements_shield3_hash(){var s="shield3|Deep Shelter";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_achievements_sol15_hash(){var s="sol15|Two Weeks Out";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_achievements_sol30_hash(){var s="sol30|Mission Complete";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_achievements_fullhouse_hash(){var s="fullhouse|Full House";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_achievements_quiz5_hash(){var s="quiz5|Honor Roll";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_achievements_selfsufficient_hash(){var s="selfsufficient|Closed Loop";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_achievements_survivor_hash(){var s="survivor|Through the Storm";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_achievements_researcher_hash(){var s="researcher|R&D Dept";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_achievements_awayteam_hash(){var s="awayteam|Away Team";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_achievements_veteran_hash(){var s="veteran|Veteran Crew";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_achievements_nightowl_hash(){var s="nightowl|Night Watch";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_achievements_closedloop2_hash(){var s="closedloop2|Nothing Wasted";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_achievements_highscore_hash(){var s="highscore|Mission of Note";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_achievements_crosstrained_hash(){var s="crosstrained|Cross-trained";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function ca9_achievements_farmer_hash(){var s="farmer|Crop Science";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function da0_achievements_scenario_hash(){var s="scenario|Challenge Accepted";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function da0_achievements_hoarder_hash(){var s="hoarder|Parts Hoarder";var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0}return h}
-function da0_events_tag_mars(){return EVENTS.filter(function(e){return e["sites"].map(String).indexOf("mars")>=0}).length}
-function da0_events_tag_moon(){return EVENTS.filter(function(e){return e["sites"].map(String).indexOf("moon")>=0}).length}
-function da0_events_sites_distinct(){var s={};EVENTS.forEach(function(e){e["sites"].forEach(function(v){s[String(v)]=1})});return Object.keys(s).length}
-function da0_quiz_tag_oxygen(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("Oxygen")>=0}).length}
-function da0_quiz_tag_water(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("Water")>=0}).length}
-function da0_quiz_tag_methane(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("Methane")>=0}).length}
-function da0_quiz_tag_hydrogen(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("Hydrogen")>=0}).length}
-function da0_quiz_tag_permanently_shadowed_craters(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("Permanently shadowed craters may hold water ice")>=0}).length}
-function da0_quiz_tag_it_is_the_warmest_region(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("It is the warmest region")>=0}).length}
-function da0_quiz_tag_it_has_the_strongest_gravity(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("It has the strongest gravity")>=0}).length}
-function da0_quiz_tag_it_is_closest_to_earth(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("It is closest to Earth")>=0}).length}
-function da0_quiz_tag_24_hours_37_minutes(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("24 hours 37 minutes")>=0}).length}
-function da0_quiz_tag_12_hours(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("12 hours")>=0}).length}
-function da0_quiz_tag_48_hours(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("48 hours")>=0}).length}
-function da0_quiz_tag_29_5_days(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("29.5 days")>=0}).length}
-function da0_quiz_tag_carbon_dioxide(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("Carbon dioxide")>=0}).length}
-function da0_quiz_tag_nitrogen(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("Nitrogen")>=0}).length}
-function da0_quiz_tag_3_to_22_minutes(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("3 to 22 minutes")>=0}).length}
-function da0_quiz_tag_instant(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("Instant")>=0}).length}
-function da0_quiz_tag_2_seconds(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("2 seconds")>=0}).length}
-function da0_quiz_tag_3_hours(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("3 hours")>=0}).length}
-function da0_quiz_tag_earth_s_magnetosphere(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("Earth's magnetosphere")>=0}).length}
-function da0_quiz_tag_thick_glass(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("Thick glass")>=0}).length}
-function da0_quiz_tag_lead_walls(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("Lead walls")>=0}).length}
-function da0_quiz_tag_the_solar_arrays(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("The solar arrays")>=0}).length}
-function da0_quiz_tag_about_29_5_earth_days(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("About 29.5 Earth days")>=0}).length}
-function da0_quiz_tag_24_hours(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("24 hours")>=0}).length}
-function da0_quiz_tag_7_days(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("7 days")>=0}).length}
-function da0_quiz_tag_365_days(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("365 days")>=0}).length}
-function da0_quiz_tag_heat_from_decaying_plutonium(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("Heat from decaying plutonium")>=0}).length}
-function da0_quiz_tag_burning_methane(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("Burning methane")>=0}).length}
-function da0_quiz_tag_wind_turbines(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("Wind turbines")>=0}).length}
-function da0_quiz_tag_coal_cells(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("Coal cells")>=0}).length}
-function da0_quiz_tag_resupply_from_earth_is_slow_(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("Resupply from Earth is slow and costly")>=0}).length}
-function da0_quiz_tag_plants_glow_nicely(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("Plants glow nicely")>=0}).length}
-function da0_quiz_tag_soil_is_free_in_space(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("Soil is free in space")>=0}).length}
-function da0_quiz_tag_it_removes_all_co2(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("It removes all CO2")>=0}).length}
-function da0_quiz_tag_dust_blocks_sunlight_and_coa(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("Dust blocks sunlight and coats panels")>=0}).length}
-function da0_quiz_tag_dust_freezes_panels(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("Dust freezes panels")>=0}).length}
-function da0_quiz_tag_dust_conducts_electricity(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("Dust conducts electricity")>=0}).length}
-function da0_quiz_tag_no_hazard(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("No hazard")>=0}).length}
-function da0_quiz_tag_artemis(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("Artemis")>=0}).length}
-function da0_quiz_tag_apollo(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("Apollo")>=0}).length}
-function da0_quiz_tag_gemini(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("Gemini")>=0}).length}
-function da0_quiz_tag_mercury(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("Mercury")>=0}).length}
-function da0_quiz_tag_james_webb(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("James Webb")>=0}).length}
-function da0_quiz_tag_hubble(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("Hubble")>=0}).length}
-function da0_quiz_tag_kepler(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("Kepler")>=0}).length}
-function da0_quiz_tag_spitzer(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("Spitzer")>=0}).length}
-function da0_quiz_tag_it_absorbs_radiation_when_pi(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("It absorbs radiation when piled over habitats")>=0}).length}
-function da0_quiz_tag_it_is_magnetic(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("It is magnetic")>=0}).length}
-function da0_quiz_tag_it_glows(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("It glows")>=0}).length}
-function da0_quiz_tag_it_is_radioactive(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("It is radioactive")>=0}).length}
-function da0_quiz_tag_water_molecules(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("Water molecules")>=0}).length}
-function da0_quiz_tag_oil(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("Oil")>=0}).length}
-function da0_quiz_tag_methane_lakes(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("Methane lakes")>=0}).length}
-function da0_quiz_tag_active_volcanoes(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("Active volcanoes")>=0}).length}
-function da0_quiz_tag_natural_caves_give_ready_mad(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("Natural caves give ready-made radiation shelter")>=0}).length}
-function da0_quiz_tag_they_contain_gold(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("They contain gold")>=0}).length}
-function da0_quiz_tag_they_generate_heat(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("They generate heat")>=0}).length}
-function da0_quiz_tag_they_attract_rovers(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("They attract rovers")>=0}).length}
-function da0_quiz_tag_using_local_resources_like_i(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("Using local resources like ice and regolith instead of shipping everything")>=0}).length}
-function da0_quiz_tag_a_rocket_fuel(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("A rocket fuel")>=0}).length}
-function da0_quiz_tag_a_satellite_band(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("A satellite band")>=0}).length}
-function da0_quiz_tag_a_spacesuit_layer(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("A spacesuit layer")>=0}).length}
-function da0_quiz_tag_toxic_to_humans_and_crops(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("Toxic to humans and crops")>=0}).length}
-function da0_quiz_tag_delicious(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("Delicious")>=0}).length}
-function da0_quiz_tag_radioactive(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("Radioactive")>=0}).length}
-function da0_quiz_tag_explosive(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("Explosive")>=0}).length}
-function da0_quiz_tag_apollo_13(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("Apollo 13")>=0}).length}
-function da0_quiz_tag_apollo_11(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("Apollo 11")>=0}).length}
-function da0_quiz_tag_apollo_8(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("Apollo 8")>=0}).length}
-function da0_quiz_tag_apollo_17(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("Apollo 17")>=0}).length}
-function da0_quiz_tag_sunlight_there_is_weaker_and(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("Sunlight there is weaker and dusty")>=0}).length}
-function da0_quiz_tag_plants_fear_mars(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("Plants fear Mars")>=0}).length}
-function da0_quiz_tag_glass_freezes(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("Glass freezes")>=0}).length}
-function da0_quiz_tag_it_doesn_t(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("It doesn't")>=0}).length}
-function da0_quiz_tag_solar_arrays_on_illuminated_(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("Solar arrays on illuminated ridges")>=0}).length}
-function da0_quiz_tag_coal_plant(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("Coal plant")>=0}).length}
-function da0_quiz_tag_wind_farm(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("Wind farm")>=0}).length}
-function da0_quiz_tag_tidal_generator(){return QUIZ.filter(function(e){return e["a"].map(String).indexOf("Tidal generator")>=0}).length}
-function da0_quiz_a_distinct(){var s={};QUIZ.forEach(function(e){e["a"].forEach(function(v){s[String(v)]=1})});return Object.keys(s).length}
-function da0_storm_has_moon(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="storm"){return a[i]}}return null})();return e?e["sites"].map(String).indexOf("moon")>=0:false}
-function da0_storm_has_mars(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="storm"){return a[i]}}return null})();return e?e["sites"].map(String).indexOf("mars")>=0:false}
-function da0_micro_has_moon(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="micro"){return a[i]}}return null})();return e?e["sites"].map(String).indexOf("moon")>=0:false}
-function da0_micro_has_mars(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="micro"){return a[i]}}return null})();return e?e["sites"].map(String).indexOf("mars")>=0:false}
-function da0_illness_has_moon(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="illness"){return a[i]}}return null})();return e?e["sites"].map(String).indexOf("moon")>=0:false}
-function da0_illness_has_mars(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="illness"){return a[i]}}return null})();return e?e["sites"].map(String).indexOf("mars")>=0:false}
-function da0_aurora_has_moon(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="aurora"){return a[i]}}return null})();return e?e["sites"].map(String).indexOf("moon")>=0:false}
-function da0_aurora_has_mars(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="aurora"){return a[i]}}return null})();return e?e["sites"].map(String).indexOf("mars")>=0:false}
-function da0_quake_has_moon(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="quake"){return a[i]}}return null})();return e?e["sites"].map(String).indexOf("moon")>=0:false}
-function da0_quake_has_mars(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="quake"){return a[i]}}return null})();return e?e["sites"].map(String).indexOf("mars")>=0:false}
-function da0_find_has_moon(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="find"){return a[i]}}return null})();return e?e["sites"].map(String).indexOf("moon")>=0:false}
-function da0_find_has_mars(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="find"){return a[i]}}return null})();return e?e["sites"].map(String).indexOf("mars")>=0:false}
-function da0_relay_has_moon(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="relay"){return a[i]}}return null})();return e?e["sites"].map(String).indexOf("moon")>=0:false}
-function da0_relay_has_mars(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="relay"){return a[i]}}return null})();return e?e["sites"].map(String).indexOf("mars")>=0:false}
-function da0_calm_has_moon(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="calm"){return a[i]}}return null})();return e?e["sites"].map(String).indexOf("moon")>=0:false}
-function da0_calm_has_mars(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="calm"){return a[i]}}return null})();return e?e["sites"].map(String).indexOf("mars")>=0:false}
-function da0_flare_has_moon(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="flare"){return a[i]}}return null})();return e?e["sites"].map(String).indexOf("moon")>=0:false}
-function da0_flare_has_mars(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="flare"){return a[i]}}return null})();return e?e["sites"].map(String).indexOf("mars")>=0:false}
-function da0_birthday_has_moon(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="birthday"){return a[i]}}return null})();return e?e["sites"].map(String).indexOf("moon")>=0:false}
-function da0_birthday_has_mars(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="birthday"){return a[i]}}return null})();return e?e["sites"].map(String).indexOf("mars")>=0:false}
-function da0_stowaway_has_moon(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="stowaway"){return a[i]}}return null})();return e?e["sites"].map(String).indexOf("moon")>=0:false}
-function da0_stowaway_has_mars(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="stowaway"){return a[i]}}return null})();return e?e["sites"].map(String).indexOf("mars")>=0:false}
-function da0_coolant_has_moon(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="coolant"){return a[i]}}return null})();return e?e["sites"].map(String).indexOf("moon")>=0:false}
-function da0_coolant_has_mars(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="coolant"){return a[i]}}return null})();return e?e["sites"].map(String).indexOf("mars")>=0:false}
-function da0_podbonus_has_moon(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="podbonus"){return a[i]}}return null})();return e?e["sites"].map(String).indexOf("moon")>=0:false}
-function da0_podbonus_has_mars(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="podbonus"){return a[i]}}return null})();return e?e["sites"].map(String).indexOf("mars")>=0:false}
-function da0_breakthrough_has_moon(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="breakthrough"){return a[i]}}return null})();return e?e["sites"].map(String).indexOf("moon")>=0:false}
-function da0_breakthrough_has_mars(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="breakthrough"){return a[i]}}return null})();return e?e["sites"].map(String).indexOf("mars")>=0:false}
-function da0_homesick_has_moon(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="homesick"){return a[i]}}return null})();return e?e["sites"].map(String).indexOf("moon")>=0:false}
-function da0_homesick_has_mars(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="homesick"){return a[i]}}return null})();return e?e["sites"].map(String).indexOf("mars")>=0:false}
-function da0_meteorshower_has_moon(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="meteorshower"){return a[i]}}return null})();return e?e["sites"].map(String).indexOf("moon")>=0:false}
-function da0_meteorshower_has_mars(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="meteorshower"){return a[i]}}return null})();return e?e["sites"].map(String).indexOf("mars")>=0:false}
-function da0_o2leak_has_moon(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="o2leak"){return a[i]}}return null})();return e?e["sites"].map(String).indexOf("moon")>=0:false}
-function da0_o2leak_has_mars(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="o2leak"){return a[i]}}return null})();return e?e["sites"].map(String).indexOf("mars")>=0:false}
-function da0_blight_has_moon(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="blight"){return a[i]}}return null})();return e?e["sites"].map(String).indexOf("moon")>=0:false}
-function da0_blight_has_mars(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="blight"){return a[i]}}return null})();return e?e["sites"].map(String).indexOf("mars")>=0:false}
-function da0_argument_has_moon(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="argument"){return a[i]}}return null})();return e?e["sites"].map(String).indexOf("moon")>=0:false}
-function da0_argument_has_mars(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="argument"){return a[i]}}return null})();return e?e["sites"].map(String).indexOf("mars")>=0:false}
-function da0_dustdevil_has_moon(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="dustdevil"){return a[i]}}return null})();return e?e["sites"].map(String).indexOf("moon")>=0:false}
-function da0_dustdevil_has_mars(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="dustdevil"){return a[i]}}return null})();return e?e["sites"].map(String).indexOf("mars")>=0:false}
-function da0_suitpuncture_has_moon(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="suitpuncture"){return a[i]}}return null})();return e?e["sites"].map(String).indexOf("moon")>=0:false}
-function da0_suitpuncture_has_mars(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="suitpuncture"){return a[i]}}return null})();return e?e["sites"].map(String).indexOf("mars")>=0:false}
-function da0_icepocket_has_moon(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="icepocket"){return a[i]}}return null})();return e?e["sites"].map(String).indexOf("moon")>=0:false}
-function da0_icepocket_has_mars(){var e=(function(){var a=EVENTS;for(var i=0;i<a.length;i++){if(String(a[i]["id"])==="icepocket"){return a[i]}}return null})();return e?e["sites"].map(String).indexOf("mars")>=0:false}
-function da0_what_did_nasa_s_moxie_experi_has_oxygen(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did NASA's MOXIE experiment produce from the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Oxygen")>=0:false}
-function da0_what_did_nasa_s_moxie_experi_has_methane(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did NASA's MOXIE experiment produce from the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Methane")>=0:false}
-function da0_what_did_nasa_s_moxie_experi_has_water(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did NASA's MOXIE experiment produce from the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Water")>=0:false}
-function da0_what_did_nasa_s_moxie_experi_has_hydrogen(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did NASA's MOXIE experiment produce from the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Hydrogen")>=0:false}
-function da0_what_did_nasa_s_moxie_experi_has_permanently_shadowed_craters(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did NASA's MOXIE experiment produce from the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Permanently shadowed craters may hold water ice")>=0:false}
-function da0_what_did_nasa_s_moxie_experi_has_it_is_the_warmest_region(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did NASA's MOXIE experiment produce from the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("It is the warmest region")>=0:false}
-function da0_what_did_nasa_s_moxie_experi_has_it_has_the_strongest_gravity(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did NASA's MOXIE experiment produce from the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("It has the strongest gravity")>=0:false}
-function da0_what_did_nasa_s_moxie_experi_has_it_is_closest_to_earth(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did NASA's MOXIE experiment produce from the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("It is closest to Earth")>=0:false}
-function da0_what_did_nasa_s_moxie_experi_has_24_hours_37_minutes(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did NASA's MOXIE experiment produce from the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("24 hours 37 minutes")>=0:false}
-function da0_what_did_nasa_s_moxie_experi_has_12_hours(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did NASA's MOXIE experiment produce from the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("12 hours")>=0:false}
-function da0_what_did_nasa_s_moxie_experi_has_48_hours(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did NASA's MOXIE experiment produce from the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("48 hours")>=0:false}
-function da0_what_did_nasa_s_moxie_experi_has_29_5_days(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did NASA's MOXIE experiment produce from the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("29.5 days")>=0:false}
-function da0_what_did_nasa_s_moxie_experi_has_carbon_dioxide(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did NASA's MOXIE experiment produce from the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Carbon dioxide")>=0:false}
-function da0_what_did_nasa_s_moxie_experi_has_nitrogen(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did NASA's MOXIE experiment produce from the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Nitrogen")>=0:false}
-function da0_what_did_nasa_s_moxie_experi_has_3_to_22_minutes(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did NASA's MOXIE experiment produce from the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("3 to 22 minutes")>=0:false}
-function da0_what_did_nasa_s_moxie_experi_has_instant(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did NASA's MOXIE experiment produce from the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Instant")>=0:false}
-function da0_what_did_nasa_s_moxie_experi_has_2_seconds(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did NASA's MOXIE experiment produce from the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("2 seconds")>=0:false}
-function da0_what_did_nasa_s_moxie_experi_has_3_hours(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did NASA's MOXIE experiment produce from the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("3 hours")>=0:false}
-function da0_what_did_nasa_s_moxie_experi_has_earth_s_magnetosphere(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did NASA's MOXIE experiment produce from the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Earth's magnetosphere")>=0:false}
-function da0_what_did_nasa_s_moxie_experi_has_thick_glass(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did NASA's MOXIE experiment produce from the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Thick glass")>=0:false}
-function da0_what_did_nasa_s_moxie_experi_has_lead_walls(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did NASA's MOXIE experiment produce from the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Lead walls")>=0:false}
-function da0_what_did_nasa_s_moxie_experi_has_the_solar_arrays(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did NASA's MOXIE experiment produce from the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("The solar arrays")>=0:false}
-function da0_what_did_nasa_s_moxie_experi_has_about_29_5_earth_days(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did NASA's MOXIE experiment produce from the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("About 29.5 Earth days")>=0:false}
-function da0_what_did_nasa_s_moxie_experi_has_24_hours(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did NASA's MOXIE experiment produce from the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("24 hours")>=0:false}
-function da0_what_did_nasa_s_moxie_experi_has_7_days(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did NASA's MOXIE experiment produce from the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("7 days")>=0:false}
-function da0_what_did_nasa_s_moxie_experi_has_365_days(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did NASA's MOXIE experiment produce from the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("365 days")>=0:false}
-function da0_what_did_nasa_s_moxie_experi_has_heat_from_decaying_plutonium(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did NASA's MOXIE experiment produce from the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Heat from decaying plutonium")>=0:false}
-function da0_what_did_nasa_s_moxie_experi_has_burning_methane(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did NASA's MOXIE experiment produce from the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Burning methane")>=0:false}
-function da0_what_did_nasa_s_moxie_experi_has_wind_turbines(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did NASA's MOXIE experiment produce from the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Wind turbines")>=0:false}
-function da0_what_did_nasa_s_moxie_experi_has_coal_cells(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did NASA's MOXIE experiment produce from the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Coal cells")>=0:false}
-function da0_what_did_nasa_s_moxie_experi_has_resupply_from_earth_is_slow_(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did NASA's MOXIE experiment produce from the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Resupply from Earth is slow and costly")>=0:false}
-function da0_what_did_nasa_s_moxie_experi_has_plants_glow_nicely(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did NASA's MOXIE experiment produce from the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Plants glow nicely")>=0:false}
-function ea1_what_did_nasa_s_moxie_experi_has_soil_is_free_in_space(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did NASA's MOXIE experiment produce from the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Soil is free in space")>=0:false}
-function ea1_what_did_nasa_s_moxie_experi_has_it_removes_all_co2(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did NASA's MOXIE experiment produce from the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("It removes all CO2")>=0:false}
-function ea1_what_did_nasa_s_moxie_experi_has_dust_blocks_sunlight_and_coa(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did NASA's MOXIE experiment produce from the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Dust blocks sunlight and coats panels")>=0:false}
-function ea1_what_did_nasa_s_moxie_experi_has_dust_freezes_panels(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did NASA's MOXIE experiment produce from the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Dust freezes panels")>=0:false}
-function ea1_what_did_nasa_s_moxie_experi_has_dust_conducts_electricity(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did NASA's MOXIE experiment produce from the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Dust conducts electricity")>=0:false}
-function ea1_what_did_nasa_s_moxie_experi_has_no_hazard(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did NASA's MOXIE experiment produce from the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("No hazard")>=0:false}
-function ea1_what_did_nasa_s_moxie_experi_has_artemis(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did NASA's MOXIE experiment produce from the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Artemis")>=0:false}
-function ea1_what_did_nasa_s_moxie_experi_has_apollo(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What did NASA's MOXIE experiment produce from the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Apollo")>=0:false}
-function ea1_why_do_planners_target_the_m_has_oxygen(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why do planners target the Moon's south pole?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Oxygen")>=0:false}
-function ea1_why_do_planners_target_the_m_has_methane(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why do planners target the Moon's south pole?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Methane")>=0:false}
-function ea1_why_do_planners_target_the_m_has_water(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why do planners target the Moon's south pole?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Water")>=0:false}
-function ea1_why_do_planners_target_the_m_has_hydrogen(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why do planners target the Moon's south pole?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Hydrogen")>=0:false}
-function ea1_why_do_planners_target_the_m_has_permanently_shadowed_craters(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why do planners target the Moon's south pole?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Permanently shadowed craters may hold water ice")>=0:false}
-function ea1_why_do_planners_target_the_m_has_it_is_the_warmest_region(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why do planners target the Moon's south pole?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("It is the warmest region")>=0:false}
-function ea1_why_do_planners_target_the_m_has_it_has_the_strongest_gravity(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why do planners target the Moon's south pole?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("It has the strongest gravity")>=0:false}
-function ea1_why_do_planners_target_the_m_has_it_is_closest_to_earth(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why do planners target the Moon's south pole?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("It is closest to Earth")>=0:false}
-function ea1_why_do_planners_target_the_m_has_24_hours_37_minutes(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why do planners target the Moon's south pole?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("24 hours 37 minutes")>=0:false}
-function ea1_why_do_planners_target_the_m_has_12_hours(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why do planners target the Moon's south pole?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("12 hours")>=0:false}
-function ea1_why_do_planners_target_the_m_has_48_hours(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why do planners target the Moon's south pole?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("48 hours")>=0:false}
-function ea1_why_do_planners_target_the_m_has_29_5_days(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why do planners target the Moon's south pole?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("29.5 days")>=0:false}
-function ea1_why_do_planners_target_the_m_has_carbon_dioxide(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why do planners target the Moon's south pole?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Carbon dioxide")>=0:false}
-function ea1_why_do_planners_target_the_m_has_nitrogen(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why do planners target the Moon's south pole?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Nitrogen")>=0:false}
-function ea1_why_do_planners_target_the_m_has_3_to_22_minutes(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why do planners target the Moon's south pole?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("3 to 22 minutes")>=0:false}
-function ea1_why_do_planners_target_the_m_has_instant(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why do planners target the Moon's south pole?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Instant")>=0:false}
-function ea1_why_do_planners_target_the_m_has_2_seconds(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why do planners target the Moon's south pole?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("2 seconds")>=0:false}
-function ea1_why_do_planners_target_the_m_has_3_hours(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why do planners target the Moon's south pole?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("3 hours")>=0:false}
-function ea1_why_do_planners_target_the_m_has_earth_s_magnetosphere(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why do planners target the Moon's south pole?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Earth's magnetosphere")>=0:false}
-function ea1_why_do_planners_target_the_m_has_thick_glass(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why do planners target the Moon's south pole?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Thick glass")>=0:false}
-function ea1_why_do_planners_target_the_m_has_lead_walls(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why do planners target the Moon's south pole?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Lead walls")>=0:false}
-function ea1_why_do_planners_target_the_m_has_the_solar_arrays(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why do planners target the Moon's south pole?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("The solar arrays")>=0:false}
-function ea1_why_do_planners_target_the_m_has_about_29_5_earth_days(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why do planners target the Moon's south pole?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("About 29.5 Earth days")>=0:false}
-function ea1_why_do_planners_target_the_m_has_24_hours(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why do planners target the Moon's south pole?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("24 hours")>=0:false}
-function ea1_why_do_planners_target_the_m_has_7_days(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why do planners target the Moon's south pole?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("7 days")>=0:false}
-function ea1_why_do_planners_target_the_m_has_365_days(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why do planners target the Moon's south pole?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("365 days")>=0:false}
-function ea1_why_do_planners_target_the_m_has_heat_from_decaying_plutonium(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why do planners target the Moon's south pole?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Heat from decaying plutonium")>=0:false}
-function ea1_why_do_planners_target_the_m_has_burning_methane(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why do planners target the Moon's south pole?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Burning methane")>=0:false}
-function ea1_why_do_planners_target_the_m_has_wind_turbines(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why do planners target the Moon's south pole?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Wind turbines")>=0:false}
-function ea1_why_do_planners_target_the_m_has_coal_cells(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why do planners target the Moon's south pole?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Coal cells")>=0:false}
-function ea1_why_do_planners_target_the_m_has_resupply_from_earth_is_slow_(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why do planners target the Moon's south pole?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Resupply from Earth is slow and costly")>=0:false}
-function ea1_why_do_planners_target_the_m_has_plants_glow_nicely(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why do planners target the Moon's south pole?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Plants glow nicely")>=0:false}
-function ea1_why_do_planners_target_the_m_has_soil_is_free_in_space(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why do planners target the Moon's south pole?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Soil is free in space")>=0:false}
-function ea1_why_do_planners_target_the_m_has_it_removes_all_co2(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why do planners target the Moon's south pole?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("It removes all CO2")>=0:false}
-function ea1_why_do_planners_target_the_m_has_dust_blocks_sunlight_and_coa(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why do planners target the Moon's south pole?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Dust blocks sunlight and coats panels")>=0:false}
-function ea1_why_do_planners_target_the_m_has_dust_freezes_panels(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why do planners target the Moon's south pole?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Dust freezes panels")>=0:false}
-function ea1_why_do_planners_target_the_m_has_dust_conducts_electricity(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why do planners target the Moon's south pole?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Dust conducts electricity")>=0:false}
-function ea1_why_do_planners_target_the_m_has_no_hazard(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why do planners target the Moon's south pole?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("No hazard")>=0:false}
-function ea1_why_do_planners_target_the_m_has_artemis(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why do planners target the Moon's south pole?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Artemis")>=0:false}
-function ea1_why_do_planners_target_the_m_has_apollo(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why do planners target the Moon's south pole?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Apollo")>=0:false}
-function ea1_about_how_long_is_one_martia_has_oxygen(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="About how long is one Martian sol?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Oxygen")>=0:false}
-function ea1_about_how_long_is_one_martia_has_methane(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="About how long is one Martian sol?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Methane")>=0:false}
-function ea1_about_how_long_is_one_martia_has_water(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="About how long is one Martian sol?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Water")>=0:false}
-function ea1_about_how_long_is_one_martia_has_hydrogen(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="About how long is one Martian sol?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Hydrogen")>=0:false}
-function ea1_about_how_long_is_one_martia_has_permanently_shadowed_craters(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="About how long is one Martian sol?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Permanently shadowed craters may hold water ice")>=0:false}
-function ea1_about_how_long_is_one_martia_has_it_is_the_warmest_region(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="About how long is one Martian sol?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("It is the warmest region")>=0:false}
-function ea1_about_how_long_is_one_martia_has_it_has_the_strongest_gravity(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="About how long is one Martian sol?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("It has the strongest gravity")>=0:false}
-function ea1_about_how_long_is_one_martia_has_it_is_closest_to_earth(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="About how long is one Martian sol?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("It is closest to Earth")>=0:false}
-function ea1_about_how_long_is_one_martia_has_24_hours_37_minutes(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="About how long is one Martian sol?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("24 hours 37 minutes")>=0:false}
-function ea1_about_how_long_is_one_martia_has_12_hours(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="About how long is one Martian sol?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("12 hours")>=0:false}
-function ea1_about_how_long_is_one_martia_has_48_hours(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="About how long is one Martian sol?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("48 hours")>=0:false}
-function ea1_about_how_long_is_one_martia_has_29_5_days(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="About how long is one Martian sol?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("29.5 days")>=0:false}
-function ea1_about_how_long_is_one_martia_has_carbon_dioxide(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="About how long is one Martian sol?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Carbon dioxide")>=0:false}
-function ea1_about_how_long_is_one_martia_has_nitrogen(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="About how long is one Martian sol?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Nitrogen")>=0:false}
-function ea1_about_how_long_is_one_martia_has_3_to_22_minutes(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="About how long is one Martian sol?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("3 to 22 minutes")>=0:false}
-function ea1_about_how_long_is_one_martia_has_instant(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="About how long is one Martian sol?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Instant")>=0:false}
-function ea1_about_how_long_is_one_martia_has_2_seconds(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="About how long is one Martian sol?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("2 seconds")>=0:false}
-function ea1_about_how_long_is_one_martia_has_3_hours(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="About how long is one Martian sol?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("3 hours")>=0:false}
-function ea1_about_how_long_is_one_martia_has_earth_s_magnetosphere(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="About how long is one Martian sol?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Earth's magnetosphere")>=0:false}
-function ea1_about_how_long_is_one_martia_has_thick_glass(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="About how long is one Martian sol?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Thick glass")>=0:false}
-function ea1_about_how_long_is_one_martia_has_lead_walls(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="About how long is one Martian sol?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Lead walls")>=0:false}
-function ea1_about_how_long_is_one_martia_has_the_solar_arrays(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="About how long is one Martian sol?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("The solar arrays")>=0:false}
-function ea1_about_how_long_is_one_martia_has_about_29_5_earth_days(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="About how long is one Martian sol?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("About 29.5 Earth days")>=0:false}
-function ea1_about_how_long_is_one_martia_has_24_hours(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="About how long is one Martian sol?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("24 hours")>=0:false}
-function ea1_about_how_long_is_one_martia_has_7_days(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="About how long is one Martian sol?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("7 days")>=0:false}
-function ea1_about_how_long_is_one_martia_has_365_days(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="About how long is one Martian sol?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("365 days")>=0:false}
-function ea1_about_how_long_is_one_martia_has_heat_from_decaying_plutonium(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="About how long is one Martian sol?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Heat from decaying plutonium")>=0:false}
-function ea1_about_how_long_is_one_martia_has_burning_methane(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="About how long is one Martian sol?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Burning methane")>=0:false}
-function ea1_about_how_long_is_one_martia_has_wind_turbines(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="About how long is one Martian sol?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Wind turbines")>=0:false}
-function ea1_about_how_long_is_one_martia_has_coal_cells(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="About how long is one Martian sol?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Coal cells")>=0:false}
-function ea1_about_how_long_is_one_martia_has_resupply_from_earth_is_slow_(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="About how long is one Martian sol?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Resupply from Earth is slow and costly")>=0:false}
-function ea1_about_how_long_is_one_martia_has_plants_glow_nicely(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="About how long is one Martian sol?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Plants glow nicely")>=0:false}
-function ea1_about_how_long_is_one_martia_has_soil_is_free_in_space(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="About how long is one Martian sol?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Soil is free in space")>=0:false}
-function ea1_about_how_long_is_one_martia_has_it_removes_all_co2(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="About how long is one Martian sol?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("It removes all CO2")>=0:false}
-function ea1_about_how_long_is_one_martia_has_dust_blocks_sunlight_and_coa(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="About how long is one Martian sol?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Dust blocks sunlight and coats panels")>=0:false}
-function ea1_about_how_long_is_one_martia_has_dust_freezes_panels(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="About how long is one Martian sol?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Dust freezes panels")>=0:false}
-function ea1_about_how_long_is_one_martia_has_dust_conducts_electricity(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="About how long is one Martian sol?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Dust conducts electricity")>=0:false}
-function ea1_about_how_long_is_one_martia_has_no_hazard(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="About how long is one Martian sol?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("No hazard")>=0:false}
-function ea1_about_how_long_is_one_martia_has_artemis(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="About how long is one Martian sol?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Artemis")>=0:false}
-function ea1_about_how_long_is_one_martia_has_apollo(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="About how long is one Martian sol?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Apollo")>=0:false}
-function ea1_what_is_the_main_component_o_has_oxygen(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is the main component of the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Oxygen")>=0:false}
-function ea1_what_is_the_main_component_o_has_methane(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is the main component of the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Methane")>=0:false}
-function ea1_what_is_the_main_component_o_has_water(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is the main component of the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Water")>=0:false}
-function ea1_what_is_the_main_component_o_has_hydrogen(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is the main component of the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Hydrogen")>=0:false}
-function ea1_what_is_the_main_component_o_has_permanently_shadowed_craters(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is the main component of the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Permanently shadowed craters may hold water ice")>=0:false}
-function ea1_what_is_the_main_component_o_has_it_is_the_warmest_region(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is the main component of the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("It is the warmest region")>=0:false}
-function ea1_what_is_the_main_component_o_has_it_has_the_strongest_gravity(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is the main component of the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("It has the strongest gravity")>=0:false}
-function ea1_what_is_the_main_component_o_has_it_is_closest_to_earth(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is the main component of the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("It is closest to Earth")>=0:false}
-function ea1_what_is_the_main_component_o_has_24_hours_37_minutes(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is the main component of the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("24 hours 37 minutes")>=0:false}
-function ea1_what_is_the_main_component_o_has_12_hours(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is the main component of the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("12 hours")>=0:false}
-function ea1_what_is_the_main_component_o_has_48_hours(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is the main component of the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("48 hours")>=0:false}
-function ea1_what_is_the_main_component_o_has_29_5_days(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is the main component of the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("29.5 days")>=0:false}
-function ea1_what_is_the_main_component_o_has_carbon_dioxide(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is the main component of the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Carbon dioxide")>=0:false}
-function ea1_what_is_the_main_component_o_has_nitrogen(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is the main component of the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Nitrogen")>=0:false}
-function ea1_what_is_the_main_component_o_has_3_to_22_minutes(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is the main component of the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("3 to 22 minutes")>=0:false}
-function ea1_what_is_the_main_component_o_has_instant(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is the main component of the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Instant")>=0:false}
-function ea1_what_is_the_main_component_o_has_2_seconds(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is the main component of the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("2 seconds")>=0:false}
-function ea1_what_is_the_main_component_o_has_3_hours(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is the main component of the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("3 hours")>=0:false}
-function ea1_what_is_the_main_component_o_has_earth_s_magnetosphere(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is the main component of the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Earth's magnetosphere")>=0:false}
-function ea1_what_is_the_main_component_o_has_thick_glass(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is the main component of the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Thick glass")>=0:false}
-function ea1_what_is_the_main_component_o_has_lead_walls(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is the main component of the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Lead walls")>=0:false}
-function ea1_what_is_the_main_component_o_has_the_solar_arrays(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is the main component of the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("The solar arrays")>=0:false}
-function ea1_what_is_the_main_component_o_has_about_29_5_earth_days(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is the main component of the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("About 29.5 Earth days")>=0:false}
-function ea1_what_is_the_main_component_o_has_24_hours(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is the main component of the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("24 hours")>=0:false}
-function ea1_what_is_the_main_component_o_has_7_days(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is the main component of the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("7 days")>=0:false}
-function ea1_what_is_the_main_component_o_has_365_days(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is the main component of the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("365 days")>=0:false}
-function ea1_what_is_the_main_component_o_has_heat_from_decaying_plutonium(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is the main component of the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Heat from decaying plutonium")>=0:false}
-function ea1_what_is_the_main_component_o_has_burning_methane(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is the main component of the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Burning methane")>=0:false}
-function ea1_what_is_the_main_component_o_has_wind_turbines(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is the main component of the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Wind turbines")>=0:false}
-function ea1_what_is_the_main_component_o_has_coal_cells(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is the main component of the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Coal cells")>=0:false}
-function ea1_what_is_the_main_component_o_has_resupply_from_earth_is_slow_(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is the main component of the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Resupply from Earth is slow and costly")>=0:false}
-function ea1_what_is_the_main_component_o_has_plants_glow_nicely(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is the main component of the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Plants glow nicely")>=0:false}
-function ea1_what_is_the_main_component_o_has_soil_is_free_in_space(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is the main component of the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Soil is free in space")>=0:false}
-function ea1_what_is_the_main_component_o_has_it_removes_all_co2(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is the main component of the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("It removes all CO2")>=0:false}
-function ea1_what_is_the_main_component_o_has_dust_blocks_sunlight_and_coa(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is the main component of the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Dust blocks sunlight and coats panels")>=0:false}
-function ea1_what_is_the_main_component_o_has_dust_freezes_panels(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is the main component of the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Dust freezes panels")>=0:false}
-function ea1_what_is_the_main_component_o_has_dust_conducts_electricity(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is the main component of the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Dust conducts electricity")>=0:false}
-function ea1_what_is_the_main_component_o_has_no_hazard(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is the main component of the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("No hazard")>=0:false}
-function ea1_what_is_the_main_component_o_has_artemis(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is the main component of the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Artemis")>=0:false}
-function ea1_what_is_the_main_component_o_has_apollo(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What is the main component of the Martian atmosphere?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Apollo")>=0:false}
-function ea1_how_long_can_a_one_way_radio_has_oxygen(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="How long can a one-way radio signal take between Earth and Mars?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Oxygen")>=0:false}
-function ea1_how_long_can_a_one_way_radio_has_methane(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="How long can a one-way radio signal take between Earth and Mars?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Methane")>=0:false}
-function ea1_how_long_can_a_one_way_radio_has_water(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="How long can a one-way radio signal take between Earth and Mars?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Water")>=0:false}
-function ea1_how_long_can_a_one_way_radio_has_hydrogen(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="How long can a one-way radio signal take between Earth and Mars?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Hydrogen")>=0:false}
-function ea1_how_long_can_a_one_way_radio_has_permanently_shadowed_craters(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="How long can a one-way radio signal take between Earth and Mars?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Permanently shadowed craters may hold water ice")>=0:false}
-function ea1_how_long_can_a_one_way_radio_has_it_is_the_warmest_region(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="How long can a one-way radio signal take between Earth and Mars?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("It is the warmest region")>=0:false}
-function ea1_how_long_can_a_one_way_radio_has_it_has_the_strongest_gravity(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="How long can a one-way radio signal take between Earth and Mars?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("It has the strongest gravity")>=0:false}
-function ea1_how_long_can_a_one_way_radio_has_it_is_closest_to_earth(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="How long can a one-way radio signal take between Earth and Mars?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("It is closest to Earth")>=0:false}
-function ea1_how_long_can_a_one_way_radio_has_24_hours_37_minutes(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="How long can a one-way radio signal take between Earth and Mars?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("24 hours 37 minutes")>=0:false}
-function ea1_how_long_can_a_one_way_radio_has_12_hours(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="How long can a one-way radio signal take between Earth and Mars?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("12 hours")>=0:false}
-function ea1_how_long_can_a_one_way_radio_has_48_hours(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="How long can a one-way radio signal take between Earth and Mars?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("48 hours")>=0:false}
-function ea1_how_long_can_a_one_way_radio_has_29_5_days(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="How long can a one-way radio signal take between Earth and Mars?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("29.5 days")>=0:false}
-function ea1_how_long_can_a_one_way_radio_has_carbon_dioxide(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="How long can a one-way radio signal take between Earth and Mars?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Carbon dioxide")>=0:false}
-function ea1_how_long_can_a_one_way_radio_has_nitrogen(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="How long can a one-way radio signal take between Earth and Mars?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Nitrogen")>=0:false}
-function ea1_how_long_can_a_one_way_radio_has_3_to_22_minutes(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="How long can a one-way radio signal take between Earth and Mars?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("3 to 22 minutes")>=0:false}
-function ea1_how_long_can_a_one_way_radio_has_instant(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="How long can a one-way radio signal take between Earth and Mars?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Instant")>=0:false}
-function ea1_how_long_can_a_one_way_radio_has_2_seconds(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="How long can a one-way radio signal take between Earth and Mars?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("2 seconds")>=0:false}
-function ea1_how_long_can_a_one_way_radio_has_3_hours(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="How long can a one-way radio signal take between Earth and Mars?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("3 hours")>=0:false}
-function ea1_how_long_can_a_one_way_radio_has_earth_s_magnetosphere(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="How long can a one-way radio signal take between Earth and Mars?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Earth's magnetosphere")>=0:false}
-function ea1_how_long_can_a_one_way_radio_has_thick_glass(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="How long can a one-way radio signal take between Earth and Mars?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Thick glass")>=0:false}
-function ea1_how_long_can_a_one_way_radio_has_lead_walls(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="How long can a one-way radio signal take between Earth and Mars?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Lead walls")>=0:false}
-function ea1_how_long_can_a_one_way_radio_has_the_solar_arrays(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="How long can a one-way radio signal take between Earth and Mars?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("The solar arrays")>=0:false}
-function ea1_how_long_can_a_one_way_radio_has_about_29_5_earth_days(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="How long can a one-way radio signal take between Earth and Mars?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("About 29.5 Earth days")>=0:false}
-function ea1_how_long_can_a_one_way_radio_has_24_hours(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="How long can a one-way radio signal take between Earth and Mars?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("24 hours")>=0:false}
-function ea1_how_long_can_a_one_way_radio_has_7_days(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="How long can a one-way radio signal take between Earth and Mars?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("7 days")>=0:false}
-function ea1_how_long_can_a_one_way_radio_has_365_days(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="How long can a one-way radio signal take between Earth and Mars?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("365 days")>=0:false}
-function ea1_how_long_can_a_one_way_radio_has_heat_from_decaying_plutonium(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="How long can a one-way radio signal take between Earth and Mars?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Heat from decaying plutonium")>=0:false}
-function ea1_how_long_can_a_one_way_radio_has_burning_methane(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="How long can a one-way radio signal take between Earth and Mars?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Burning methane")>=0:false}
-function ea1_how_long_can_a_one_way_radio_has_wind_turbines(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="How long can a one-way radio signal take between Earth and Mars?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Wind turbines")>=0:false}
-function ea1_how_long_can_a_one_way_radio_has_coal_cells(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="How long can a one-way radio signal take between Earth and Mars?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Coal cells")>=0:false}
-function ea1_how_long_can_a_one_way_radio_has_resupply_from_earth_is_slow_(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="How long can a one-way radio signal take between Earth and Mars?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Resupply from Earth is slow and costly")>=0:false}
-function ea1_how_long_can_a_one_way_radio_has_plants_glow_nicely(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="How long can a one-way radio signal take between Earth and Mars?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Plants glow nicely")>=0:false}
-function ea1_how_long_can_a_one_way_radio_has_soil_is_free_in_space(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="How long can a one-way radio signal take between Earth and Mars?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Soil is free in space")>=0:false}
-function ea1_how_long_can_a_one_way_radio_has_it_removes_all_co2(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="How long can a one-way radio signal take between Earth and Mars?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("It removes all CO2")>=0:false}
-function ea1_how_long_can_a_one_way_radio_has_dust_blocks_sunlight_and_coa(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="How long can a one-way radio signal take between Earth and Mars?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Dust blocks sunlight and coats panels")>=0:false}
-function ea1_how_long_can_a_one_way_radio_has_dust_freezes_panels(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="How long can a one-way radio signal take between Earth and Mars?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Dust freezes panels")>=0:false}
-function ea1_how_long_can_a_one_way_radio_has_dust_conducts_electricity(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="How long can a one-way radio signal take between Earth and Mars?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Dust conducts electricity")>=0:false}
-function ea1_how_long_can_a_one_way_radio_has_no_hazard(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="How long can a one-way radio signal take between Earth and Mars?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("No hazard")>=0:false}
-function ea1_how_long_can_a_one_way_radio_has_artemis(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="How long can a one-way radio signal take between Earth and Mars?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Artemis")>=0:false}
-function ea1_how_long_can_a_one_way_radio_has_apollo(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="How long can a one-way radio signal take between Earth and Mars?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Apollo")>=0:false}
-function ea1_what_protects_crews_on_the_i_has_oxygen(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What protects crews on the ISS from most radiation?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Oxygen")>=0:false}
-function ea1_what_protects_crews_on_the_i_has_methane(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What protects crews on the ISS from most radiation?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Methane")>=0:false}
-function ea1_what_protects_crews_on_the_i_has_water(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What protects crews on the ISS from most radiation?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Water")>=0:false}
-function ea1_what_protects_crews_on_the_i_has_hydrogen(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What protects crews on the ISS from most radiation?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Hydrogen")>=0:false}
-function ea1_what_protects_crews_on_the_i_has_permanently_shadowed_craters(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What protects crews on the ISS from most radiation?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Permanently shadowed craters may hold water ice")>=0:false}
-function ea1_what_protects_crews_on_the_i_has_it_is_the_warmest_region(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What protects crews on the ISS from most radiation?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("It is the warmest region")>=0:false}
-function ea1_what_protects_crews_on_the_i_has_it_has_the_strongest_gravity(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What protects crews on the ISS from most radiation?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("It has the strongest gravity")>=0:false}
-function ea1_what_protects_crews_on_the_i_has_it_is_closest_to_earth(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What protects crews on the ISS from most radiation?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("It is closest to Earth")>=0:false}
-function ea1_what_protects_crews_on_the_i_has_24_hours_37_minutes(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What protects crews on the ISS from most radiation?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("24 hours 37 minutes")>=0:false}
-function ea1_what_protects_crews_on_the_i_has_12_hours(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What protects crews on the ISS from most radiation?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("12 hours")>=0:false}
-function ea1_what_protects_crews_on_the_i_has_48_hours(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What protects crews on the ISS from most radiation?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("48 hours")>=0:false}
-function ea1_what_protects_crews_on_the_i_has_29_5_days(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What protects crews on the ISS from most radiation?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("29.5 days")>=0:false}
-function ea1_what_protects_crews_on_the_i_has_carbon_dioxide(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What protects crews on the ISS from most radiation?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Carbon dioxide")>=0:false}
-function ea1_what_protects_crews_on_the_i_has_nitrogen(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What protects crews on the ISS from most radiation?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Nitrogen")>=0:false}
-function ea1_what_protects_crews_on_the_i_has_3_to_22_minutes(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What protects crews on the ISS from most radiation?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("3 to 22 minutes")>=0:false}
-function ea1_what_protects_crews_on_the_i_has_instant(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What protects crews on the ISS from most radiation?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Instant")>=0:false}
-function ea1_what_protects_crews_on_the_i_has_2_seconds(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What protects crews on the ISS from most radiation?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("2 seconds")>=0:false}
-function ea1_what_protects_crews_on_the_i_has_3_hours(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What protects crews on the ISS from most radiation?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("3 hours")>=0:false}
-function ea1_what_protects_crews_on_the_i_has_earth_s_magnetosphere(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What protects crews on the ISS from most radiation?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Earth's magnetosphere")>=0:false}
-function ea1_what_protects_crews_on_the_i_has_thick_glass(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What protects crews on the ISS from most radiation?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Thick glass")>=0:false}
-function ea1_what_protects_crews_on_the_i_has_lead_walls(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What protects crews on the ISS from most radiation?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Lead walls")>=0:false}
-function ea1_what_protects_crews_on_the_i_has_the_solar_arrays(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What protects crews on the ISS from most radiation?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("The solar arrays")>=0:false}
-function ea1_what_protects_crews_on_the_i_has_about_29_5_earth_days(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What protects crews on the ISS from most radiation?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("About 29.5 Earth days")>=0:false}
-function ea1_what_protects_crews_on_the_i_has_24_hours(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What protects crews on the ISS from most radiation?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("24 hours")>=0:false}
-function ea1_what_protects_crews_on_the_i_has_7_days(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What protects crews on the ISS from most radiation?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("7 days")>=0:false}
-function ea1_what_protects_crews_on_the_i_has_365_days(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What protects crews on the ISS from most radiation?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("365 days")>=0:false}
-function ea1_what_protects_crews_on_the_i_has_heat_from_decaying_plutonium(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What protects crews on the ISS from most radiation?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Heat from decaying plutonium")>=0:false}
-function ea1_what_protects_crews_on_the_i_has_burning_methane(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What protects crews on the ISS from most radiation?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Burning methane")>=0:false}
-function ea1_what_protects_crews_on_the_i_has_wind_turbines(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What protects crews on the ISS from most radiation?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Wind turbines")>=0:false}
-function ea1_what_protects_crews_on_the_i_has_coal_cells(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What protects crews on the ISS from most radiation?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Coal cells")>=0:false}
-function ea1_what_protects_crews_on_the_i_has_resupply_from_earth_is_slow_(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What protects crews on the ISS from most radiation?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Resupply from Earth is slow and costly")>=0:false}
-function ea1_what_protects_crews_on_the_i_has_plants_glow_nicely(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What protects crews on the ISS from most radiation?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Plants glow nicely")>=0:false}
-function ea1_what_protects_crews_on_the_i_has_soil_is_free_in_space(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What protects crews on the ISS from most radiation?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Soil is free in space")>=0:false}
-function ea1_what_protects_crews_on_the_i_has_it_removes_all_co2(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What protects crews on the ISS from most radiation?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("It removes all CO2")>=0:false}
-function ea1_what_protects_crews_on_the_i_has_dust_blocks_sunlight_and_coa(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What protects crews on the ISS from most radiation?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Dust blocks sunlight and coats panels")>=0:false}
-function ea1_what_protects_crews_on_the_i_has_dust_freezes_panels(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What protects crews on the ISS from most radiation?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Dust freezes panels")>=0:false}
-function ea1_what_protects_crews_on_the_i_has_dust_conducts_electricity(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What protects crews on the ISS from most radiation?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Dust conducts electricity")>=0:false}
-function ea1_what_protects_crews_on_the_i_has_no_hazard(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What protects crews on the ISS from most radiation?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("No hazard")>=0:false}
-function ea1_what_protects_crews_on_the_i_has_artemis(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What protects crews on the ISS from most radiation?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Artemis")>=0:false}
-function ea1_what_protects_crews_on_the_i_has_apollo(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What protects crews on the ISS from most radiation?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Apollo")>=0:false}
-function ea1_roughly_how_long_is_a_full_l_has_oxygen(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Roughly how long is a full lunar day-night cycle?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Oxygen")>=0:false}
-function ea1_roughly_how_long_is_a_full_l_has_methane(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Roughly how long is a full lunar day-night cycle?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Methane")>=0:false}
-function ea1_roughly_how_long_is_a_full_l_has_water(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Roughly how long is a full lunar day-night cycle?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Water")>=0:false}
-function ea1_roughly_how_long_is_a_full_l_has_hydrogen(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Roughly how long is a full lunar day-night cycle?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Hydrogen")>=0:false}
-function ea1_roughly_how_long_is_a_full_l_has_permanently_shadowed_craters(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Roughly how long is a full lunar day-night cycle?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Permanently shadowed craters may hold water ice")>=0:false}
-function ea1_roughly_how_long_is_a_full_l_has_it_is_the_warmest_region(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Roughly how long is a full lunar day-night cycle?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("It is the warmest region")>=0:false}
-function ea1_roughly_how_long_is_a_full_l_has_it_has_the_strongest_gravity(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Roughly how long is a full lunar day-night cycle?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("It has the strongest gravity")>=0:false}
-function ea1_roughly_how_long_is_a_full_l_has_it_is_closest_to_earth(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Roughly how long is a full lunar day-night cycle?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("It is closest to Earth")>=0:false}
-function ea1_roughly_how_long_is_a_full_l_has_24_hours_37_minutes(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Roughly how long is a full lunar day-night cycle?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("24 hours 37 minutes")>=0:false}
-function ea1_roughly_how_long_is_a_full_l_has_12_hours(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Roughly how long is a full lunar day-night cycle?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("12 hours")>=0:false}
-function ea1_roughly_how_long_is_a_full_l_has_48_hours(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Roughly how long is a full lunar day-night cycle?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("48 hours")>=0:false}
-function ea1_roughly_how_long_is_a_full_l_has_29_5_days(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Roughly how long is a full lunar day-night cycle?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("29.5 days")>=0:false}
-function ea1_roughly_how_long_is_a_full_l_has_carbon_dioxide(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Roughly how long is a full lunar day-night cycle?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Carbon dioxide")>=0:false}
-function ea1_roughly_how_long_is_a_full_l_has_nitrogen(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Roughly how long is a full lunar day-night cycle?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Nitrogen")>=0:false}
-function ea1_roughly_how_long_is_a_full_l_has_3_to_22_minutes(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Roughly how long is a full lunar day-night cycle?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("3 to 22 minutes")>=0:false}
-function ea1_roughly_how_long_is_a_full_l_has_instant(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Roughly how long is a full lunar day-night cycle?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Instant")>=0:false}
-function ea1_roughly_how_long_is_a_full_l_has_2_seconds(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Roughly how long is a full lunar day-night cycle?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("2 seconds")>=0:false}
-function ea1_roughly_how_long_is_a_full_l_has_3_hours(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Roughly how long is a full lunar day-night cycle?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("3 hours")>=0:false}
-function ea1_roughly_how_long_is_a_full_l_has_earth_s_magnetosphere(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Roughly how long is a full lunar day-night cycle?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Earth's magnetosphere")>=0:false}
-function ea1_roughly_how_long_is_a_full_l_has_thick_glass(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Roughly how long is a full lunar day-night cycle?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Thick glass")>=0:false}
-function ea1_roughly_how_long_is_a_full_l_has_lead_walls(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Roughly how long is a full lunar day-night cycle?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Lead walls")>=0:false}
-function ea1_roughly_how_long_is_a_full_l_has_the_solar_arrays(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Roughly how long is a full lunar day-night cycle?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("The solar arrays")>=0:false}
-function ea1_roughly_how_long_is_a_full_l_has_about_29_5_earth_days(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Roughly how long is a full lunar day-night cycle?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("About 29.5 Earth days")>=0:false}
-function ea1_roughly_how_long_is_a_full_l_has_24_hours(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Roughly how long is a full lunar day-night cycle?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("24 hours")>=0:false}
-function ea1_roughly_how_long_is_a_full_l_has_7_days(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Roughly how long is a full lunar day-night cycle?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("7 days")>=0:false}
-function ea1_roughly_how_long_is_a_full_l_has_365_days(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Roughly how long is a full lunar day-night cycle?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("365 days")>=0:false}
-function ea1_roughly_how_long_is_a_full_l_has_heat_from_decaying_plutonium(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Roughly how long is a full lunar day-night cycle?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Heat from decaying plutonium")>=0:false}
-function ea1_roughly_how_long_is_a_full_l_has_burning_methane(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Roughly how long is a full lunar day-night cycle?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Burning methane")>=0:false}
-function ea1_roughly_how_long_is_a_full_l_has_wind_turbines(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Roughly how long is a full lunar day-night cycle?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Wind turbines")>=0:false}
-function ea1_roughly_how_long_is_a_full_l_has_coal_cells(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Roughly how long is a full lunar day-night cycle?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Coal cells")>=0:false}
-function ea1_roughly_how_long_is_a_full_l_has_resupply_from_earth_is_slow_(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Roughly how long is a full lunar day-night cycle?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Resupply from Earth is slow and costly")>=0:false}
-function ea1_roughly_how_long_is_a_full_l_has_plants_glow_nicely(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Roughly how long is a full lunar day-night cycle?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Plants glow nicely")>=0:false}
-function ea1_roughly_how_long_is_a_full_l_has_soil_is_free_in_space(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Roughly how long is a full lunar day-night cycle?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Soil is free in space")>=0:false}
-function ea1_roughly_how_long_is_a_full_l_has_it_removes_all_co2(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Roughly how long is a full lunar day-night cycle?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("It removes all CO2")>=0:false}
-function ea1_roughly_how_long_is_a_full_l_has_dust_blocks_sunlight_and_coa(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Roughly how long is a full lunar day-night cycle?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Dust blocks sunlight and coats panels")>=0:false}
-function ea1_roughly_how_long_is_a_full_l_has_dust_freezes_panels(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Roughly how long is a full lunar day-night cycle?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Dust freezes panels")>=0:false}
-function ea1_roughly_how_long_is_a_full_l_has_dust_conducts_electricity(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Roughly how long is a full lunar day-night cycle?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Dust conducts electricity")>=0:false}
-function ea1_roughly_how_long_is_a_full_l_has_no_hazard(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Roughly how long is a full lunar day-night cycle?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("No hazard")>=0:false}
-function ea1_roughly_how_long_is_a_full_l_has_artemis(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Roughly how long is a full lunar day-night cycle?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Artemis")>=0:false}
-function ea1_roughly_how_long_is_a_full_l_has_apollo(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Roughly how long is a full lunar day-night cycle?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Apollo")>=0:false}
-function ea1_what_do_rtgs_use_to_make_ele_has_oxygen(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What do RTGs use to make electricity?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Oxygen")>=0:false}
-function ea1_what_do_rtgs_use_to_make_ele_has_methane(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What do RTGs use to make electricity?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Methane")>=0:false}
-function ea1_what_do_rtgs_use_to_make_ele_has_water(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What do RTGs use to make electricity?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Water")>=0:false}
-function ea1_what_do_rtgs_use_to_make_ele_has_hydrogen(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What do RTGs use to make electricity?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Hydrogen")>=0:false}
-function ea1_what_do_rtgs_use_to_make_ele_has_permanently_shadowed_craters(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What do RTGs use to make electricity?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Permanently shadowed craters may hold water ice")>=0:false}
-function ea1_what_do_rtgs_use_to_make_ele_has_it_is_the_warmest_region(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What do RTGs use to make electricity?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("It is the warmest region")>=0:false}
-function ea1_what_do_rtgs_use_to_make_ele_has_it_has_the_strongest_gravity(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What do RTGs use to make electricity?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("It has the strongest gravity")>=0:false}
-function ea1_what_do_rtgs_use_to_make_ele_has_it_is_closest_to_earth(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What do RTGs use to make electricity?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("It is closest to Earth")>=0:false}
-function ea1_what_do_rtgs_use_to_make_ele_has_24_hours_37_minutes(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What do RTGs use to make electricity?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("24 hours 37 minutes")>=0:false}
-function ea1_what_do_rtgs_use_to_make_ele_has_12_hours(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What do RTGs use to make electricity?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("12 hours")>=0:false}
-function ea1_what_do_rtgs_use_to_make_ele_has_48_hours(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What do RTGs use to make electricity?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("48 hours")>=0:false}
-function ea1_what_do_rtgs_use_to_make_ele_has_29_5_days(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What do RTGs use to make electricity?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("29.5 days")>=0:false}
-function ea1_what_do_rtgs_use_to_make_ele_has_carbon_dioxide(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What do RTGs use to make electricity?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Carbon dioxide")>=0:false}
-function ea1_what_do_rtgs_use_to_make_ele_has_nitrogen(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What do RTGs use to make electricity?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Nitrogen")>=0:false}
-function ea1_what_do_rtgs_use_to_make_ele_has_3_to_22_minutes(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What do RTGs use to make electricity?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("3 to 22 minutes")>=0:false}
-function ea1_what_do_rtgs_use_to_make_ele_has_instant(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What do RTGs use to make electricity?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Instant")>=0:false}
-function ea1_what_do_rtgs_use_to_make_ele_has_2_seconds(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What do RTGs use to make electricity?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("2 seconds")>=0:false}
-function ea1_what_do_rtgs_use_to_make_ele_has_3_hours(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What do RTGs use to make electricity?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("3 hours")>=0:false}
-function ea1_what_do_rtgs_use_to_make_ele_has_earth_s_magnetosphere(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What do RTGs use to make electricity?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Earth's magnetosphere")>=0:false}
-function ea1_what_do_rtgs_use_to_make_ele_has_thick_glass(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What do RTGs use to make electricity?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Thick glass")>=0:false}
-function ea1_what_do_rtgs_use_to_make_ele_has_lead_walls(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What do RTGs use to make electricity?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Lead walls")>=0:false}
-function ea1_what_do_rtgs_use_to_make_ele_has_the_solar_arrays(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What do RTGs use to make electricity?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("The solar arrays")>=0:false}
-function ea1_what_do_rtgs_use_to_make_ele_has_about_29_5_earth_days(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What do RTGs use to make electricity?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("About 29.5 Earth days")>=0:false}
-function ea1_what_do_rtgs_use_to_make_ele_has_24_hours(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What do RTGs use to make electricity?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("24 hours")>=0:false}
-function ea1_what_do_rtgs_use_to_make_ele_has_7_days(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What do RTGs use to make electricity?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("7 days")>=0:false}
-function ea1_what_do_rtgs_use_to_make_ele_has_365_days(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What do RTGs use to make electricity?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("365 days")>=0:false}
-function ea1_what_do_rtgs_use_to_make_ele_has_heat_from_decaying_plutonium(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What do RTGs use to make electricity?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Heat from decaying plutonium")>=0:false}
-function ea1_what_do_rtgs_use_to_make_ele_has_burning_methane(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What do RTGs use to make electricity?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Burning methane")>=0:false}
-function ea1_what_do_rtgs_use_to_make_ele_has_wind_turbines(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What do RTGs use to make electricity?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Wind turbines")>=0:false}
-function ea1_what_do_rtgs_use_to_make_ele_has_coal_cells(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What do RTGs use to make electricity?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Coal cells")>=0:false}
-function ea1_what_do_rtgs_use_to_make_ele_has_resupply_from_earth_is_slow_(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What do RTGs use to make electricity?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Resupply from Earth is slow and costly")>=0:false}
-function ea1_what_do_rtgs_use_to_make_ele_has_plants_glow_nicely(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What do RTGs use to make electricity?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Plants glow nicely")>=0:false}
-function ea1_what_do_rtgs_use_to_make_ele_has_soil_is_free_in_space(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What do RTGs use to make electricity?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Soil is free in space")>=0:false}
-function ea1_what_do_rtgs_use_to_make_ele_has_it_removes_all_co2(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What do RTGs use to make electricity?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("It removes all CO2")>=0:false}
-function ea1_what_do_rtgs_use_to_make_ele_has_dust_blocks_sunlight_and_coa(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What do RTGs use to make electricity?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Dust blocks sunlight and coats panels")>=0:false}
-function ea1_what_do_rtgs_use_to_make_ele_has_dust_freezes_panels(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What do RTGs use to make electricity?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Dust freezes panels")>=0:false}
-function ea1_what_do_rtgs_use_to_make_ele_has_dust_conducts_electricity(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What do RTGs use to make electricity?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Dust conducts electricity")>=0:false}
-function ea1_what_do_rtgs_use_to_make_ele_has_no_hazard(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What do RTGs use to make electricity?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("No hazard")>=0:false}
-function ea1_what_do_rtgs_use_to_make_ele_has_artemis(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What do RTGs use to make electricity?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Artemis")>=0:false}
-function ea1_what_do_rtgs_use_to_make_ele_has_apollo(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What do RTGs use to make electricity?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Apollo")>=0:false}
-function ea1_why_is_growing_food_on_a_mis_has_oxygen(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why is growing food on a mission valuable?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Oxygen")>=0:false}
-function ea1_why_is_growing_food_on_a_mis_has_methane(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why is growing food on a mission valuable?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Methane")>=0:false}
-function ea1_why_is_growing_food_on_a_mis_has_water(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why is growing food on a mission valuable?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Water")>=0:false}
-function ea1_why_is_growing_food_on_a_mis_has_hydrogen(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why is growing food on a mission valuable?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Hydrogen")>=0:false}
-function ea1_why_is_growing_food_on_a_mis_has_permanently_shadowed_craters(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why is growing food on a mission valuable?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Permanently shadowed craters may hold water ice")>=0:false}
-function ea1_why_is_growing_food_on_a_mis_has_it_is_the_warmest_region(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why is growing food on a mission valuable?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("It is the warmest region")>=0:false}
-function ea1_why_is_growing_food_on_a_mis_has_it_has_the_strongest_gravity(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why is growing food on a mission valuable?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("It has the strongest gravity")>=0:false}
-function ea1_why_is_growing_food_on_a_mis_has_it_is_closest_to_earth(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why is growing food on a mission valuable?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("It is closest to Earth")>=0:false}
-function ea1_why_is_growing_food_on_a_mis_has_24_hours_37_minutes(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why is growing food on a mission valuable?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("24 hours 37 minutes")>=0:false}
-function ea1_why_is_growing_food_on_a_mis_has_12_hours(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why is growing food on a mission valuable?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("12 hours")>=0:false}
-function ea1_why_is_growing_food_on_a_mis_has_48_hours(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why is growing food on a mission valuable?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("48 hours")>=0:false}
-function ea1_why_is_growing_food_on_a_mis_has_29_5_days(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why is growing food on a mission valuable?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("29.5 days")>=0:false}
-function ea1_why_is_growing_food_on_a_mis_has_carbon_dioxide(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why is growing food on a mission valuable?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Carbon dioxide")>=0:false}
-function ea1_why_is_growing_food_on_a_mis_has_nitrogen(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why is growing food on a mission valuable?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Nitrogen")>=0:false}
-function ea1_why_is_growing_food_on_a_mis_has_3_to_22_minutes(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why is growing food on a mission valuable?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("3 to 22 minutes")>=0:false}
-function ea1_why_is_growing_food_on_a_mis_has_instant(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why is growing food on a mission valuable?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Instant")>=0:false}
-function ea1_why_is_growing_food_on_a_mis_has_2_seconds(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why is growing food on a mission valuable?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("2 seconds")>=0:false}
-function ea1_why_is_growing_food_on_a_mis_has_3_hours(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why is growing food on a mission valuable?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("3 hours")>=0:false}
-function ea1_why_is_growing_food_on_a_mis_has_earth_s_magnetosphere(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why is growing food on a mission valuable?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Earth's magnetosphere")>=0:false}
-function ea1_why_is_growing_food_on_a_mis_has_thick_glass(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why is growing food on a mission valuable?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Thick glass")>=0:false}
-function ea1_why_is_growing_food_on_a_mis_has_lead_walls(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why is growing food on a mission valuable?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Lead walls")>=0:false}
-function ea1_why_is_growing_food_on_a_mis_has_the_solar_arrays(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why is growing food on a mission valuable?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("The solar arrays")>=0:false}
-function ea1_why_is_growing_food_on_a_mis_has_about_29_5_earth_days(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why is growing food on a mission valuable?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("About 29.5 Earth days")>=0:false}
-function ea1_why_is_growing_food_on_a_mis_has_24_hours(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why is growing food on a mission valuable?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("24 hours")>=0:false}
-function ea1_why_is_growing_food_on_a_mis_has_7_days(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why is growing food on a mission valuable?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("7 days")>=0:false}
-function ea1_why_is_growing_food_on_a_mis_has_365_days(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why is growing food on a mission valuable?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("365 days")>=0:false}
-function ea1_why_is_growing_food_on_a_mis_has_heat_from_decaying_plutonium(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why is growing food on a mission valuable?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Heat from decaying plutonium")>=0:false}
-function ea1_why_is_growing_food_on_a_mis_has_burning_methane(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why is growing food on a mission valuable?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Burning methane")>=0:false}
-function ea1_why_is_growing_food_on_a_mis_has_wind_turbines(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why is growing food on a mission valuable?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Wind turbines")>=0:false}
-function ea1_why_is_growing_food_on_a_mis_has_coal_cells(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why is growing food on a mission valuable?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Coal cells")>=0:false}
-function ea1_why_is_growing_food_on_a_mis_has_resupply_from_earth_is_slow_(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why is growing food on a mission valuable?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Resupply from Earth is slow and costly")>=0:false}
-function ea1_why_is_growing_food_on_a_mis_has_plants_glow_nicely(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why is growing food on a mission valuable?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Plants glow nicely")>=0:false}
-function ea1_why_is_growing_food_on_a_mis_has_soil_is_free_in_space(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why is growing food on a mission valuable?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Soil is free in space")>=0:false}
-function ea1_why_is_growing_food_on_a_mis_has_it_removes_all_co2(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why is growing food on a mission valuable?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("It removes all CO2")>=0:false}
-function ea1_why_is_growing_food_on_a_mis_has_dust_blocks_sunlight_and_coa(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why is growing food on a mission valuable?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Dust blocks sunlight and coats panels")>=0:false}
-function ea1_why_is_growing_food_on_a_mis_has_dust_freezes_panels(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why is growing food on a mission valuable?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Dust freezes panels")>=0:false}
-function ea1_why_is_growing_food_on_a_mis_has_dust_conducts_electricity(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why is growing food on a mission valuable?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Dust conducts electricity")>=0:false}
-function ea1_why_is_growing_food_on_a_mis_has_no_hazard(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why is growing food on a mission valuable?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("No hazard")>=0:false}
-function ea1_why_is_growing_food_on_a_mis_has_artemis(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why is growing food on a mission valuable?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Artemis")>=0:false}
-function ea1_why_is_growing_food_on_a_mis_has_apollo(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Why is growing food on a mission valuable?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Apollo")>=0:false}
-function ea1_what_hazard_do_dust_storms_o_has_oxygen(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What hazard do dust storms on Mars pose to solar power?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Oxygen")>=0:false}
-function ea1_what_hazard_do_dust_storms_o_has_methane(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What hazard do dust storms on Mars pose to solar power?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Methane")>=0:false}
-function ea1_what_hazard_do_dust_storms_o_has_water(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What hazard do dust storms on Mars pose to solar power?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Water")>=0:false}
-function ea1_what_hazard_do_dust_storms_o_has_hydrogen(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What hazard do dust storms on Mars pose to solar power?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Hydrogen")>=0:false}
-function ea1_what_hazard_do_dust_storms_o_has_permanently_shadowed_craters(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What hazard do dust storms on Mars pose to solar power?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Permanently shadowed craters may hold water ice")>=0:false}
-function ea1_what_hazard_do_dust_storms_o_has_it_is_the_warmest_region(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What hazard do dust storms on Mars pose to solar power?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("It is the warmest region")>=0:false}
-function ea1_what_hazard_do_dust_storms_o_has_it_has_the_strongest_gravity(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What hazard do dust storms on Mars pose to solar power?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("It has the strongest gravity")>=0:false}
-function ea1_what_hazard_do_dust_storms_o_has_it_is_closest_to_earth(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What hazard do dust storms on Mars pose to solar power?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("It is closest to Earth")>=0:false}
-function ea1_what_hazard_do_dust_storms_o_has_24_hours_37_minutes(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What hazard do dust storms on Mars pose to solar power?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("24 hours 37 minutes")>=0:false}
-function ea1_what_hazard_do_dust_storms_o_has_12_hours(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What hazard do dust storms on Mars pose to solar power?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("12 hours")>=0:false}
-function ea1_what_hazard_do_dust_storms_o_has_48_hours(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What hazard do dust storms on Mars pose to solar power?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("48 hours")>=0:false}
-function ea1_what_hazard_do_dust_storms_o_has_29_5_days(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What hazard do dust storms on Mars pose to solar power?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("29.5 days")>=0:false}
-function ea1_what_hazard_do_dust_storms_o_has_carbon_dioxide(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What hazard do dust storms on Mars pose to solar power?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Carbon dioxide")>=0:false}
-function ea1_what_hazard_do_dust_storms_o_has_nitrogen(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What hazard do dust storms on Mars pose to solar power?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Nitrogen")>=0:false}
-function ea1_what_hazard_do_dust_storms_o_has_3_to_22_minutes(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What hazard do dust storms on Mars pose to solar power?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("3 to 22 minutes")>=0:false}
-function ea1_what_hazard_do_dust_storms_o_has_instant(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What hazard do dust storms on Mars pose to solar power?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Instant")>=0:false}
-function ea1_what_hazard_do_dust_storms_o_has_2_seconds(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What hazard do dust storms on Mars pose to solar power?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("2 seconds")>=0:false}
-function ea1_what_hazard_do_dust_storms_o_has_3_hours(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What hazard do dust storms on Mars pose to solar power?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("3 hours")>=0:false}
-function ea1_what_hazard_do_dust_storms_o_has_earth_s_magnetosphere(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What hazard do dust storms on Mars pose to solar power?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Earth's magnetosphere")>=0:false}
-function ea1_what_hazard_do_dust_storms_o_has_thick_glass(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What hazard do dust storms on Mars pose to solar power?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Thick glass")>=0:false}
-function ea1_what_hazard_do_dust_storms_o_has_lead_walls(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What hazard do dust storms on Mars pose to solar power?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Lead walls")>=0:false}
-function ea1_what_hazard_do_dust_storms_o_has_the_solar_arrays(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What hazard do dust storms on Mars pose to solar power?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("The solar arrays")>=0:false}
-function ea1_what_hazard_do_dust_storms_o_has_about_29_5_earth_days(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What hazard do dust storms on Mars pose to solar power?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("About 29.5 Earth days")>=0:false}
-function ea1_what_hazard_do_dust_storms_o_has_24_hours(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What hazard do dust storms on Mars pose to solar power?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("24 hours")>=0:false}
-function ea1_what_hazard_do_dust_storms_o_has_7_days(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What hazard do dust storms on Mars pose to solar power?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("7 days")>=0:false}
-function ea1_what_hazard_do_dust_storms_o_has_365_days(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What hazard do dust storms on Mars pose to solar power?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("365 days")>=0:false}
-function ea1_what_hazard_do_dust_storms_o_has_heat_from_decaying_plutonium(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What hazard do dust storms on Mars pose to solar power?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Heat from decaying plutonium")>=0:false}
-function ea1_what_hazard_do_dust_storms_o_has_burning_methane(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What hazard do dust storms on Mars pose to solar power?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Burning methane")>=0:false}
-function ea1_what_hazard_do_dust_storms_o_has_wind_turbines(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What hazard do dust storms on Mars pose to solar power?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Wind turbines")>=0:false}
-function ea1_what_hazard_do_dust_storms_o_has_coal_cells(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What hazard do dust storms on Mars pose to solar power?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Coal cells")>=0:false}
-function ea1_what_hazard_do_dust_storms_o_has_resupply_from_earth_is_slow_(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What hazard do dust storms on Mars pose to solar power?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Resupply from Earth is slow and costly")>=0:false}
-function ea1_what_hazard_do_dust_storms_o_has_plants_glow_nicely(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What hazard do dust storms on Mars pose to solar power?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Plants glow nicely")>=0:false}
-function ea1_what_hazard_do_dust_storms_o_has_soil_is_free_in_space(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What hazard do dust storms on Mars pose to solar power?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Soil is free in space")>=0:false}
-function ea1_what_hazard_do_dust_storms_o_has_it_removes_all_co2(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What hazard do dust storms on Mars pose to solar power?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("It removes all CO2")>=0:false}
-function ea1_what_hazard_do_dust_storms_o_has_dust_blocks_sunlight_and_coa(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What hazard do dust storms on Mars pose to solar power?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Dust blocks sunlight and coats panels")>=0:false}
-function ea1_what_hazard_do_dust_storms_o_has_dust_freezes_panels(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What hazard do dust storms on Mars pose to solar power?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Dust freezes panels")>=0:false}
-function ea1_what_hazard_do_dust_storms_o_has_dust_conducts_electricity(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What hazard do dust storms on Mars pose to solar power?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Dust conducts electricity")>=0:false}
-function ea1_what_hazard_do_dust_storms_o_has_no_hazard(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What hazard do dust storms on Mars pose to solar power?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("No hazard")>=0:false}
-function ea1_what_hazard_do_dust_storms_o_has_artemis(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What hazard do dust storms on Mars pose to solar power?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Artemis")>=0:false}
-function ea1_what_hazard_do_dust_storms_o_has_apollo(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="What hazard do dust storms on Mars pose to solar power?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Apollo")>=0:false}
-function ea1_which_program_aims_to_return_has_oxygen(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which program aims to return astronauts to the Moon this decade?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Oxygen")>=0:false}
-function ea1_which_program_aims_to_return_has_methane(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which program aims to return astronauts to the Moon this decade?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Methane")>=0:false}
-function ea1_which_program_aims_to_return_has_water(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which program aims to return astronauts to the Moon this decade?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Water")>=0:false}
-function ea1_which_program_aims_to_return_has_hydrogen(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which program aims to return astronauts to the Moon this decade?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Hydrogen")>=0:false}
-function ea1_which_program_aims_to_return_has_permanently_shadowed_craters(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which program aims to return astronauts to the Moon this decade?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Permanently shadowed craters may hold water ice")>=0:false}
-function ea1_which_program_aims_to_return_has_it_is_the_warmest_region(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which program aims to return astronauts to the Moon this decade?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("It is the warmest region")>=0:false}
-function ea1_which_program_aims_to_return_has_it_has_the_strongest_gravity(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which program aims to return astronauts to the Moon this decade?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("It has the strongest gravity")>=0:false}
-function ea1_which_program_aims_to_return_has_it_is_closest_to_earth(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which program aims to return astronauts to the Moon this decade?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("It is closest to Earth")>=0:false}
-function ea1_which_program_aims_to_return_has_24_hours_37_minutes(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which program aims to return astronauts to the Moon this decade?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("24 hours 37 minutes")>=0:false}
-function ea1_which_program_aims_to_return_has_12_hours(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which program aims to return astronauts to the Moon this decade?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("12 hours")>=0:false}
-function ea1_which_program_aims_to_return_has_48_hours(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which program aims to return astronauts to the Moon this decade?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("48 hours")>=0:false}
-function ea1_which_program_aims_to_return_has_29_5_days(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which program aims to return astronauts to the Moon this decade?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("29.5 days")>=0:false}
-function ea1_which_program_aims_to_return_has_carbon_dioxide(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which program aims to return astronauts to the Moon this decade?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Carbon dioxide")>=0:false}
-function ea1_which_program_aims_to_return_has_nitrogen(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which program aims to return astronauts to the Moon this decade?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Nitrogen")>=0:false}
-function ea1_which_program_aims_to_return_has_3_to_22_minutes(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which program aims to return astronauts to the Moon this decade?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("3 to 22 minutes")>=0:false}
-function ea1_which_program_aims_to_return_has_instant(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which program aims to return astronauts to the Moon this decade?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Instant")>=0:false}
-function ea1_which_program_aims_to_return_has_2_seconds(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which program aims to return astronauts to the Moon this decade?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("2 seconds")>=0:false}
-function ea1_which_program_aims_to_return_has_3_hours(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which program aims to return astronauts to the Moon this decade?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("3 hours")>=0:false}
-function ea1_which_program_aims_to_return_has_earth_s_magnetosphere(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which program aims to return astronauts to the Moon this decade?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Earth's magnetosphere")>=0:false}
-function ea1_which_program_aims_to_return_has_thick_glass(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which program aims to return astronauts to the Moon this decade?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Thick glass")>=0:false}
-function ea1_which_program_aims_to_return_has_lead_walls(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which program aims to return astronauts to the Moon this decade?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Lead walls")>=0:false}
-function ea1_which_program_aims_to_return_has_the_solar_arrays(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which program aims to return astronauts to the Moon this decade?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("The solar arrays")>=0:false}
-function ea1_which_program_aims_to_return_has_about_29_5_earth_days(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which program aims to return astronauts to the Moon this decade?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("About 29.5 Earth days")>=0:false}
-function ea1_which_program_aims_to_return_has_24_hours(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which program aims to return astronauts to the Moon this decade?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("24 hours")>=0:false}
-function ea1_which_program_aims_to_return_has_7_days(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which program aims to return astronauts to the Moon this decade?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("7 days")>=0:false}
-function ea1_which_program_aims_to_return_has_365_days(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which program aims to return astronauts to the Moon this decade?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("365 days")>=0:false}
-function ea1_which_program_aims_to_return_has_heat_from_decaying_plutonium(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which program aims to return astronauts to the Moon this decade?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Heat from decaying plutonium")>=0:false}
-function ea1_which_program_aims_to_return_has_burning_methane(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which program aims to return astronauts to the Moon this decade?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Burning methane")>=0:false}
-function ea1_which_program_aims_to_return_has_wind_turbines(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which program aims to return astronauts to the Moon this decade?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Wind turbines")>=0:false}
-function ea1_which_program_aims_to_return_has_coal_cells(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which program aims to return astronauts to the Moon this decade?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Coal cells")>=0:false}
-function ea1_which_program_aims_to_return_has_resupply_from_earth_is_slow_(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which program aims to return astronauts to the Moon this decade?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Resupply from Earth is slow and costly")>=0:false}
-function ea1_which_program_aims_to_return_has_plants_glow_nicely(){var e=(function(){var a=QUIZ;for(var i=0;i<a.length;i++){if(String(a[i]["q"])==="Which program aims to return astronauts to the Moon this decade?"){return a[i]}}return null})();return e?e["a"].map(String).indexOf("Plants glow nicely")>=0:false}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 function fa2Drill(seed){
 var i=Math.abs(Math.floor(seed))%EVENTS.length;
@@ -2500,10 +2294,7 @@ var rot=i%3;
 choices=choices.slice(rot).concat(choices.slice(0,rot));
 return{text:ev.text,siteCount:ev.sites.length,choices:choices,correct:choices.indexOf(correct),weight:ev.w}}
 function fa2DrillCount(){return EVENTS.length}
-function fa2DrillGrade(answers){
-var right=0;
-answers.forEach(function(a){var d=fa2Drill(a.seed);if(a.pick===d.correct){right++}});
-return{asked:answers.length,right:right,pct:answers.length?Math.round(right/answers.length*100):0}}
+
 function fa2PassportTotal(){return QUIZ.length}
 function fa2PassportPct(done){
 if(!QUIZ.length){return 0}
@@ -2554,9 +2345,7 @@ function fa3Timeline(siteId){
 var ev=EVENTS.filter(function(e){return !siteId||e.sites.indexOf(siteId)>=0});
 ev=ev.slice().sort(function(a,b){return b.w-a.w});
 return{site:siteId||"all",events:ev.map(function(e){return{id:e.id,text:e.text,weight:e.w}}),count:ev.length,heaviest:ev.length?ev[0].id:null}}
-function fa3TimelineText(siteId){
-var t=fa3Timeline(siteId);
-return t.events.map(function(e,i){return (i+1)+". ["+e.id+"] "+e.text}).join(String.fromCharCode(10))}
+
 function fa3Hunt(unlockedIds){
 var got={};
 (unlockedIds||[]).forEach(function(id){got[id]=true});
@@ -2567,7 +2356,11 @@ function fa3HuntText(unlockedIds){
 var h=fa3Hunt(unlockedIds);
 return"Achievement hunt: "+h.done+"/"+h.total+(h.next.length?". Closest targets: "+h.next.join(", "):". All unlocked!")}
 
-return{fa3MarathonNew,fa3MarathonQ,fa3MarathonAnswer,fa3Timeline,fa3TimelineText,fa3Hunt,fa3HuntText,fa2Drill,fa2DrillCount,fa2DrillGrade,fa2PassportTotal,fa2PassportPct,fa2PassportText,fa2PassportRemaining,fa2Briefing,fa2Streak,fa2StreakNext,ea1_what_did_nasa_s_moxie_experi_has_soil_is_free_in_space,ea1_what_did_nasa_s_moxie_experi_has_it_removes_all_co2,ea1_what_did_nasa_s_moxie_experi_has_dust_blocks_sunlight_and_coa,ea1_what_did_nasa_s_moxie_experi_has_dust_freezes_panels,ea1_what_did_nasa_s_moxie_experi_has_dust_conducts_electricity,ea1_what_did_nasa_s_moxie_experi_has_no_hazard,ea1_what_did_nasa_s_moxie_experi_has_artemis,ea1_what_did_nasa_s_moxie_experi_has_apollo,ea1_why_do_planners_target_the_m_has_oxygen,ea1_why_do_planners_target_the_m_has_methane,ea1_why_do_planners_target_the_m_has_water,ea1_why_do_planners_target_the_m_has_hydrogen,ea1_why_do_planners_target_the_m_has_permanently_shadowed_craters,ea1_why_do_planners_target_the_m_has_it_is_the_warmest_region,ea1_why_do_planners_target_the_m_has_it_has_the_strongest_gravity,ea1_why_do_planners_target_the_m_has_it_is_closest_to_earth,ea1_why_do_planners_target_the_m_has_24_hours_37_minutes,ea1_why_do_planners_target_the_m_has_12_hours,ea1_why_do_planners_target_the_m_has_48_hours,ea1_why_do_planners_target_the_m_has_29_5_days,ea1_why_do_planners_target_the_m_has_carbon_dioxide,ea1_why_do_planners_target_the_m_has_nitrogen,ea1_why_do_planners_target_the_m_has_3_to_22_minutes,ea1_why_do_planners_target_the_m_has_instant,ea1_why_do_planners_target_the_m_has_2_seconds,ea1_why_do_planners_target_the_m_has_3_hours,ea1_why_do_planners_target_the_m_has_earth_s_magnetosphere,ea1_why_do_planners_target_the_m_has_thick_glass,ea1_why_do_planners_target_the_m_has_lead_walls,ea1_why_do_planners_target_the_m_has_the_solar_arrays,ea1_why_do_planners_target_the_m_has_about_29_5_earth_days,ea1_why_do_planners_target_the_m_has_24_hours,ea1_why_do_planners_target_the_m_has_7_days,ea1_why_do_planners_target_the_m_has_365_days,ea1_why_do_planners_target_the_m_has_heat_from_decaying_plutonium,ea1_why_do_planners_target_the_m_has_burning_methane,ea1_why_do_planners_target_the_m_has_wind_turbines,ea1_why_do_planners_target_the_m_has_coal_cells,ea1_why_do_planners_target_the_m_has_resupply_from_earth_is_slow_,ea1_why_do_planners_target_the_m_has_plants_glow_nicely,ea1_why_do_planners_target_the_m_has_soil_is_free_in_space,ea1_why_do_planners_target_the_m_has_it_removes_all_co2,ea1_why_do_planners_target_the_m_has_dust_blocks_sunlight_and_coa,ea1_why_do_planners_target_the_m_has_dust_freezes_panels,ea1_why_do_planners_target_the_m_has_dust_conducts_electricity,ea1_why_do_planners_target_the_m_has_no_hazard,ea1_why_do_planners_target_the_m_has_artemis,ea1_why_do_planners_target_the_m_has_apollo,ea1_about_how_long_is_one_martia_has_oxygen,ea1_about_how_long_is_one_martia_has_methane,ea1_about_how_long_is_one_martia_has_water,ea1_about_how_long_is_one_martia_has_hydrogen,ea1_about_how_long_is_one_martia_has_permanently_shadowed_craters,ea1_about_how_long_is_one_martia_has_it_is_the_warmest_region,ea1_about_how_long_is_one_martia_has_it_has_the_strongest_gravity,ea1_about_how_long_is_one_martia_has_it_is_closest_to_earth,ea1_about_how_long_is_one_martia_has_24_hours_37_minutes,ea1_about_how_long_is_one_martia_has_12_hours,ea1_about_how_long_is_one_martia_has_48_hours,ea1_about_how_long_is_one_martia_has_29_5_days,ea1_about_how_long_is_one_martia_has_carbon_dioxide,ea1_about_how_long_is_one_martia_has_nitrogen,ea1_about_how_long_is_one_martia_has_3_to_22_minutes,ea1_about_how_long_is_one_martia_has_instant,ea1_about_how_long_is_one_martia_has_2_seconds,ea1_about_how_long_is_one_martia_has_3_hours,ea1_about_how_long_is_one_martia_has_earth_s_magnetosphere,ea1_about_how_long_is_one_martia_has_thick_glass,ea1_about_how_long_is_one_martia_has_lead_walls,ea1_about_how_long_is_one_martia_has_the_solar_arrays,ea1_about_how_long_is_one_martia_has_about_29_5_earth_days,ea1_about_how_long_is_one_martia_has_24_hours,ea1_about_how_long_is_one_martia_has_7_days,ea1_about_how_long_is_one_martia_has_365_days,ea1_about_how_long_is_one_martia_has_heat_from_decaying_plutonium,ea1_about_how_long_is_one_martia_has_burning_methane,ea1_about_how_long_is_one_martia_has_wind_turbines,ea1_about_how_long_is_one_martia_has_coal_cells,ea1_about_how_long_is_one_martia_has_resupply_from_earth_is_slow_,ea1_about_how_long_is_one_martia_has_plants_glow_nicely,ea1_about_how_long_is_one_martia_has_soil_is_free_in_space,ea1_about_how_long_is_one_martia_has_it_removes_all_co2,ea1_about_how_long_is_one_martia_has_dust_blocks_sunlight_and_coa,ea1_about_how_long_is_one_martia_has_dust_freezes_panels,ea1_about_how_long_is_one_martia_has_dust_conducts_electricity,ea1_about_how_long_is_one_martia_has_no_hazard,ea1_about_how_long_is_one_martia_has_artemis,ea1_about_how_long_is_one_martia_has_apollo,ea1_what_is_the_main_component_o_has_oxygen,ea1_what_is_the_main_component_o_has_methane,ea1_what_is_the_main_component_o_has_water,ea1_what_is_the_main_component_o_has_hydrogen,ea1_what_is_the_main_component_o_has_permanently_shadowed_craters,ea1_what_is_the_main_component_o_has_it_is_the_warmest_region,ea1_what_is_the_main_component_o_has_it_has_the_strongest_gravity,ea1_what_is_the_main_component_o_has_it_is_closest_to_earth,ea1_what_is_the_main_component_o_has_24_hours_37_minutes,ea1_what_is_the_main_component_o_has_12_hours,ea1_what_is_the_main_component_o_has_48_hours,ea1_what_is_the_main_component_o_has_29_5_days,ea1_what_is_the_main_component_o_has_carbon_dioxide,ea1_what_is_the_main_component_o_has_nitrogen,ea1_what_is_the_main_component_o_has_3_to_22_minutes,ea1_what_is_the_main_component_o_has_instant,ea1_what_is_the_main_component_o_has_2_seconds,ea1_what_is_the_main_component_o_has_3_hours,ea1_what_is_the_main_component_o_has_earth_s_magnetosphere,ea1_what_is_the_main_component_o_has_thick_glass,ea1_what_is_the_main_component_o_has_lead_walls,ea1_what_is_the_main_component_o_has_the_solar_arrays,ea1_what_is_the_main_component_o_has_about_29_5_earth_days,ea1_what_is_the_main_component_o_has_24_hours,ea1_what_is_the_main_component_o_has_7_days,ea1_what_is_the_main_component_o_has_365_days,ea1_what_is_the_main_component_o_has_heat_from_decaying_plutonium,ea1_what_is_the_main_component_o_has_burning_methane,ea1_what_is_the_main_component_o_has_wind_turbines,ea1_what_is_the_main_component_o_has_coal_cells,ea1_what_is_the_main_component_o_has_resupply_from_earth_is_slow_,ea1_what_is_the_main_component_o_has_plants_glow_nicely,ea1_what_is_the_main_component_o_has_soil_is_free_in_space,ea1_what_is_the_main_component_o_has_it_removes_all_co2,ea1_what_is_the_main_component_o_has_dust_blocks_sunlight_and_coa,ea1_what_is_the_main_component_o_has_dust_freezes_panels,ea1_what_is_the_main_component_o_has_dust_conducts_electricity,ea1_what_is_the_main_component_o_has_no_hazard,ea1_what_is_the_main_component_o_has_artemis,ea1_what_is_the_main_component_o_has_apollo,ea1_how_long_can_a_one_way_radio_has_oxygen,ea1_how_long_can_a_one_way_radio_has_methane,ea1_how_long_can_a_one_way_radio_has_water,ea1_how_long_can_a_one_way_radio_has_hydrogen,ea1_how_long_can_a_one_way_radio_has_permanently_shadowed_craters,ea1_how_long_can_a_one_way_radio_has_it_is_the_warmest_region,ea1_how_long_can_a_one_way_radio_has_it_has_the_strongest_gravity,ea1_how_long_can_a_one_way_radio_has_it_is_closest_to_earth,ea1_how_long_can_a_one_way_radio_has_24_hours_37_minutes,ea1_how_long_can_a_one_way_radio_has_12_hours,ea1_how_long_can_a_one_way_radio_has_48_hours,ea1_how_long_can_a_one_way_radio_has_29_5_days,ea1_how_long_can_a_one_way_radio_has_carbon_dioxide,ea1_how_long_can_a_one_way_radio_has_nitrogen,ea1_how_long_can_a_one_way_radio_has_3_to_22_minutes,ea1_how_long_can_a_one_way_radio_has_instant,ea1_how_long_can_a_one_way_radio_has_2_seconds,ea1_how_long_can_a_one_way_radio_has_3_hours,ea1_how_long_can_a_one_way_radio_has_earth_s_magnetosphere,ea1_how_long_can_a_one_way_radio_has_thick_glass,ea1_how_long_can_a_one_way_radio_has_lead_walls,ea1_how_long_can_a_one_way_radio_has_the_solar_arrays,ea1_how_long_can_a_one_way_radio_has_about_29_5_earth_days,ea1_how_long_can_a_one_way_radio_has_24_hours,ea1_how_long_can_a_one_way_radio_has_7_days,ea1_how_long_can_a_one_way_radio_has_365_days,ea1_how_long_can_a_one_way_radio_has_heat_from_decaying_plutonium,ea1_how_long_can_a_one_way_radio_has_burning_methane,ea1_how_long_can_a_one_way_radio_has_wind_turbines,ea1_how_long_can_a_one_way_radio_has_coal_cells,ea1_how_long_can_a_one_way_radio_has_resupply_from_earth_is_slow_,ea1_how_long_can_a_one_way_radio_has_plants_glow_nicely,ea1_how_long_can_a_one_way_radio_has_soil_is_free_in_space,ea1_how_long_can_a_one_way_radio_has_it_removes_all_co2,ea1_how_long_can_a_one_way_radio_has_dust_blocks_sunlight_and_coa,ea1_how_long_can_a_one_way_radio_has_dust_freezes_panels,ea1_how_long_can_a_one_way_radio_has_dust_conducts_electricity,ea1_how_long_can_a_one_way_radio_has_no_hazard,ea1_how_long_can_a_one_way_radio_has_artemis,ea1_how_long_can_a_one_way_radio_has_apollo,ea1_what_protects_crews_on_the_i_has_oxygen,ea1_what_protects_crews_on_the_i_has_methane,ea1_what_protects_crews_on_the_i_has_water,ea1_what_protects_crews_on_the_i_has_hydrogen,ea1_what_protects_crews_on_the_i_has_permanently_shadowed_craters,ea1_what_protects_crews_on_the_i_has_it_is_the_warmest_region,ea1_what_protects_crews_on_the_i_has_it_has_the_strongest_gravity,ea1_what_protects_crews_on_the_i_has_it_is_closest_to_earth,ea1_what_protects_crews_on_the_i_has_24_hours_37_minutes,ea1_what_protects_crews_on_the_i_has_12_hours,ea1_what_protects_crews_on_the_i_has_48_hours,ea1_what_protects_crews_on_the_i_has_29_5_days,ea1_what_protects_crews_on_the_i_has_carbon_dioxide,ea1_what_protects_crews_on_the_i_has_nitrogen,ea1_what_protects_crews_on_the_i_has_3_to_22_minutes,ea1_what_protects_crews_on_the_i_has_instant,ea1_what_protects_crews_on_the_i_has_2_seconds,ea1_what_protects_crews_on_the_i_has_3_hours,ea1_what_protects_crews_on_the_i_has_earth_s_magnetosphere,ea1_what_protects_crews_on_the_i_has_thick_glass,ea1_what_protects_crews_on_the_i_has_lead_walls,ea1_what_protects_crews_on_the_i_has_the_solar_arrays,ea1_what_protects_crews_on_the_i_has_about_29_5_earth_days,ea1_what_protects_crews_on_the_i_has_24_hours,ea1_what_protects_crews_on_the_i_has_7_days,ea1_what_protects_crews_on_the_i_has_365_days,ea1_what_protects_crews_on_the_i_has_heat_from_decaying_plutonium,ea1_what_protects_crews_on_the_i_has_burning_methane,ea1_what_protects_crews_on_the_i_has_wind_turbines,ea1_what_protects_crews_on_the_i_has_coal_cells,ea1_what_protects_crews_on_the_i_has_resupply_from_earth_is_slow_,ea1_what_protects_crews_on_the_i_has_plants_glow_nicely,ea1_what_protects_crews_on_the_i_has_soil_is_free_in_space,ea1_what_protects_crews_on_the_i_has_it_removes_all_co2,ea1_what_protects_crews_on_the_i_has_dust_blocks_sunlight_and_coa,ea1_what_protects_crews_on_the_i_has_dust_freezes_panels,ea1_what_protects_crews_on_the_i_has_dust_conducts_electricity,ea1_what_protects_crews_on_the_i_has_no_hazard,ea1_what_protects_crews_on_the_i_has_artemis,ea1_what_protects_crews_on_the_i_has_apollo,ea1_roughly_how_long_is_a_full_l_has_oxygen,ea1_roughly_how_long_is_a_full_l_has_methane,ea1_roughly_how_long_is_a_full_l_has_water,ea1_roughly_how_long_is_a_full_l_has_hydrogen,ea1_roughly_how_long_is_a_full_l_has_permanently_shadowed_craters,ea1_roughly_how_long_is_a_full_l_has_it_is_the_warmest_region,ea1_roughly_how_long_is_a_full_l_has_it_has_the_strongest_gravity,ea1_roughly_how_long_is_a_full_l_has_it_is_closest_to_earth,ea1_roughly_how_long_is_a_full_l_has_24_hours_37_minutes,ea1_roughly_how_long_is_a_full_l_has_12_hours,ea1_roughly_how_long_is_a_full_l_has_48_hours,ea1_roughly_how_long_is_a_full_l_has_29_5_days,ea1_roughly_how_long_is_a_full_l_has_carbon_dioxide,ea1_roughly_how_long_is_a_full_l_has_nitrogen,ea1_roughly_how_long_is_a_full_l_has_3_to_22_minutes,ea1_roughly_how_long_is_a_full_l_has_instant,ea1_roughly_how_long_is_a_full_l_has_2_seconds,ea1_roughly_how_long_is_a_full_l_has_3_hours,ea1_roughly_how_long_is_a_full_l_has_earth_s_magnetosphere,ea1_roughly_how_long_is_a_full_l_has_thick_glass,ea1_roughly_how_long_is_a_full_l_has_lead_walls,ea1_roughly_how_long_is_a_full_l_has_the_solar_arrays,ea1_roughly_how_long_is_a_full_l_has_about_29_5_earth_days,ea1_roughly_how_long_is_a_full_l_has_24_hours,ea1_roughly_how_long_is_a_full_l_has_7_days,ea1_roughly_how_long_is_a_full_l_has_365_days,ea1_roughly_how_long_is_a_full_l_has_heat_from_decaying_plutonium,ea1_roughly_how_long_is_a_full_l_has_burning_methane,ea1_roughly_how_long_is_a_full_l_has_wind_turbines,ea1_roughly_how_long_is_a_full_l_has_coal_cells,ea1_roughly_how_long_is_a_full_l_has_resupply_from_earth_is_slow_,ea1_roughly_how_long_is_a_full_l_has_plants_glow_nicely,ea1_roughly_how_long_is_a_full_l_has_soil_is_free_in_space,ea1_roughly_how_long_is_a_full_l_has_it_removes_all_co2,ea1_roughly_how_long_is_a_full_l_has_dust_blocks_sunlight_and_coa,ea1_roughly_how_long_is_a_full_l_has_dust_freezes_panels,ea1_roughly_how_long_is_a_full_l_has_dust_conducts_electricity,ea1_roughly_how_long_is_a_full_l_has_no_hazard,ea1_roughly_how_long_is_a_full_l_has_artemis,ea1_roughly_how_long_is_a_full_l_has_apollo,ea1_what_do_rtgs_use_to_make_ele_has_oxygen,ea1_what_do_rtgs_use_to_make_ele_has_methane,ea1_what_do_rtgs_use_to_make_ele_has_water,ea1_what_do_rtgs_use_to_make_ele_has_hydrogen,ea1_what_do_rtgs_use_to_make_ele_has_permanently_shadowed_craters,ea1_what_do_rtgs_use_to_make_ele_has_it_is_the_warmest_region,ea1_what_do_rtgs_use_to_make_ele_has_it_has_the_strongest_gravity,ea1_what_do_rtgs_use_to_make_ele_has_it_is_closest_to_earth,ea1_what_do_rtgs_use_to_make_ele_has_24_hours_37_minutes,ea1_what_do_rtgs_use_to_make_ele_has_12_hours,ea1_what_do_rtgs_use_to_make_ele_has_48_hours,ea1_what_do_rtgs_use_to_make_ele_has_29_5_days,ea1_what_do_rtgs_use_to_make_ele_has_carbon_dioxide,ea1_what_do_rtgs_use_to_make_ele_has_nitrogen,ea1_what_do_rtgs_use_to_make_ele_has_3_to_22_minutes,ea1_what_do_rtgs_use_to_make_ele_has_instant,ea1_what_do_rtgs_use_to_make_ele_has_2_seconds,ea1_what_do_rtgs_use_to_make_ele_has_3_hours,ea1_what_do_rtgs_use_to_make_ele_has_earth_s_magnetosphere,ea1_what_do_rtgs_use_to_make_ele_has_thick_glass,ea1_what_do_rtgs_use_to_make_ele_has_lead_walls,ea1_what_do_rtgs_use_to_make_ele_has_the_solar_arrays,ea1_what_do_rtgs_use_to_make_ele_has_about_29_5_earth_days,ea1_what_do_rtgs_use_to_make_ele_has_24_hours,ea1_what_do_rtgs_use_to_make_ele_has_7_days,ea1_what_do_rtgs_use_to_make_ele_has_365_days,ea1_what_do_rtgs_use_to_make_ele_has_heat_from_decaying_plutonium,ea1_what_do_rtgs_use_to_make_ele_has_burning_methane,ea1_what_do_rtgs_use_to_make_ele_has_wind_turbines,ea1_what_do_rtgs_use_to_make_ele_has_coal_cells,ea1_what_do_rtgs_use_to_make_ele_has_resupply_from_earth_is_slow_,ea1_what_do_rtgs_use_to_make_ele_has_plants_glow_nicely,ea1_what_do_rtgs_use_to_make_ele_has_soil_is_free_in_space,ea1_what_do_rtgs_use_to_make_ele_has_it_removes_all_co2,ea1_what_do_rtgs_use_to_make_ele_has_dust_blocks_sunlight_and_coa,ea1_what_do_rtgs_use_to_make_ele_has_dust_freezes_panels,ea1_what_do_rtgs_use_to_make_ele_has_dust_conducts_electricity,ea1_what_do_rtgs_use_to_make_ele_has_no_hazard,ea1_what_do_rtgs_use_to_make_ele_has_artemis,ea1_what_do_rtgs_use_to_make_ele_has_apollo,ea1_why_is_growing_food_on_a_mis_has_oxygen,ea1_why_is_growing_food_on_a_mis_has_methane,ea1_why_is_growing_food_on_a_mis_has_water,ea1_why_is_growing_food_on_a_mis_has_hydrogen,ea1_why_is_growing_food_on_a_mis_has_permanently_shadowed_craters,ea1_why_is_growing_food_on_a_mis_has_it_is_the_warmest_region,ea1_why_is_growing_food_on_a_mis_has_it_has_the_strongest_gravity,ea1_why_is_growing_food_on_a_mis_has_it_is_closest_to_earth,ea1_why_is_growing_food_on_a_mis_has_24_hours_37_minutes,ea1_why_is_growing_food_on_a_mis_has_12_hours,ea1_why_is_growing_food_on_a_mis_has_48_hours,ea1_why_is_growing_food_on_a_mis_has_29_5_days,ea1_why_is_growing_food_on_a_mis_has_carbon_dioxide,ea1_why_is_growing_food_on_a_mis_has_nitrogen,ea1_why_is_growing_food_on_a_mis_has_3_to_22_minutes,ea1_why_is_growing_food_on_a_mis_has_instant,ea1_why_is_growing_food_on_a_mis_has_2_seconds,ea1_why_is_growing_food_on_a_mis_has_3_hours,ea1_why_is_growing_food_on_a_mis_has_earth_s_magnetosphere,ea1_why_is_growing_food_on_a_mis_has_thick_glass,ea1_why_is_growing_food_on_a_mis_has_lead_walls,ea1_why_is_growing_food_on_a_mis_has_the_solar_arrays,ea1_why_is_growing_food_on_a_mis_has_about_29_5_earth_days,ea1_why_is_growing_food_on_a_mis_has_24_hours,ea1_why_is_growing_food_on_a_mis_has_7_days,ea1_why_is_growing_food_on_a_mis_has_365_days,ea1_why_is_growing_food_on_a_mis_has_heat_from_decaying_plutonium,ea1_why_is_growing_food_on_a_mis_has_burning_methane,ea1_why_is_growing_food_on_a_mis_has_wind_turbines,ea1_why_is_growing_food_on_a_mis_has_coal_cells,ea1_why_is_growing_food_on_a_mis_has_resupply_from_earth_is_slow_,ea1_why_is_growing_food_on_a_mis_has_plants_glow_nicely,ea1_why_is_growing_food_on_a_mis_has_soil_is_free_in_space,ea1_why_is_growing_food_on_a_mis_has_it_removes_all_co2,ea1_why_is_growing_food_on_a_mis_has_dust_blocks_sunlight_and_coa,ea1_why_is_growing_food_on_a_mis_has_dust_freezes_panels,ea1_why_is_growing_food_on_a_mis_has_dust_conducts_electricity,ea1_why_is_growing_food_on_a_mis_has_no_hazard,ea1_why_is_growing_food_on_a_mis_has_artemis,ea1_why_is_growing_food_on_a_mis_has_apollo,ea1_what_hazard_do_dust_storms_o_has_oxygen,ea1_what_hazard_do_dust_storms_o_has_methane,ea1_what_hazard_do_dust_storms_o_has_water,ea1_what_hazard_do_dust_storms_o_has_hydrogen,ea1_what_hazard_do_dust_storms_o_has_permanently_shadowed_craters,ea1_what_hazard_do_dust_storms_o_has_it_is_the_warmest_region,ea1_what_hazard_do_dust_storms_o_has_it_has_the_strongest_gravity,ea1_what_hazard_do_dust_storms_o_has_it_is_closest_to_earth,ea1_what_hazard_do_dust_storms_o_has_24_hours_37_minutes,ea1_what_hazard_do_dust_storms_o_has_12_hours,ea1_what_hazard_do_dust_storms_o_has_48_hours,ea1_what_hazard_do_dust_storms_o_has_29_5_days,ea1_what_hazard_do_dust_storms_o_has_carbon_dioxide,ea1_what_hazard_do_dust_storms_o_has_nitrogen,ea1_what_hazard_do_dust_storms_o_has_3_to_22_minutes,ea1_what_hazard_do_dust_storms_o_has_instant,ea1_what_hazard_do_dust_storms_o_has_2_seconds,ea1_what_hazard_do_dust_storms_o_has_3_hours,ea1_what_hazard_do_dust_storms_o_has_earth_s_magnetosphere,ea1_what_hazard_do_dust_storms_o_has_thick_glass,ea1_what_hazard_do_dust_storms_o_has_lead_walls,ea1_what_hazard_do_dust_storms_o_has_the_solar_arrays,ea1_what_hazard_do_dust_storms_o_has_about_29_5_earth_days,ea1_what_hazard_do_dust_storms_o_has_24_hours,ea1_what_hazard_do_dust_storms_o_has_7_days,ea1_what_hazard_do_dust_storms_o_has_365_days,ea1_what_hazard_do_dust_storms_o_has_heat_from_decaying_plutonium,ea1_what_hazard_do_dust_storms_o_has_burning_methane,ea1_what_hazard_do_dust_storms_o_has_wind_turbines,ea1_what_hazard_do_dust_storms_o_has_coal_cells,ea1_what_hazard_do_dust_storms_o_has_resupply_from_earth_is_slow_,ea1_what_hazard_do_dust_storms_o_has_plants_glow_nicely,ea1_what_hazard_do_dust_storms_o_has_soil_is_free_in_space,ea1_what_hazard_do_dust_storms_o_has_it_removes_all_co2,ea1_what_hazard_do_dust_storms_o_has_dust_blocks_sunlight_and_coa,ea1_what_hazard_do_dust_storms_o_has_dust_freezes_panels,ea1_what_hazard_do_dust_storms_o_has_dust_conducts_electricity,ea1_what_hazard_do_dust_storms_o_has_no_hazard,ea1_what_hazard_do_dust_storms_o_has_artemis,ea1_what_hazard_do_dust_storms_o_has_apollo,ea1_which_program_aims_to_return_has_oxygen,ea1_which_program_aims_to_return_has_methane,ea1_which_program_aims_to_return_has_water,ea1_which_program_aims_to_return_has_hydrogen,ea1_which_program_aims_to_return_has_permanently_shadowed_craters,ea1_which_program_aims_to_return_has_it_is_the_warmest_region,ea1_which_program_aims_to_return_has_it_has_the_strongest_gravity,ea1_which_program_aims_to_return_has_it_is_closest_to_earth,ea1_which_program_aims_to_return_has_24_hours_37_minutes,ea1_which_program_aims_to_return_has_12_hours,ea1_which_program_aims_to_return_has_48_hours,ea1_which_program_aims_to_return_has_29_5_days,ea1_which_program_aims_to_return_has_carbon_dioxide,ea1_which_program_aims_to_return_has_nitrogen,ea1_which_program_aims_to_return_has_3_to_22_minutes,ea1_which_program_aims_to_return_has_instant,ea1_which_program_aims_to_return_has_2_seconds,ea1_which_program_aims_to_return_has_3_hours,ea1_which_program_aims_to_return_has_earth_s_magnetosphere,ea1_which_program_aims_to_return_has_thick_glass,ea1_which_program_aims_to_return_has_lead_walls,ea1_which_program_aims_to_return_has_the_solar_arrays,ea1_which_program_aims_to_return_has_about_29_5_earth_days,ea1_which_program_aims_to_return_has_24_hours,ea1_which_program_aims_to_return_has_7_days,ea1_which_program_aims_to_return_has_365_days,ea1_which_program_aims_to_return_has_heat_from_decaying_plutonium,ea1_which_program_aims_to_return_has_burning_methane,ea1_which_program_aims_to_return_has_wind_turbines,ea1_which_program_aims_to_return_has_coal_cells,ea1_which_program_aims_to_return_has_resupply_from_earth_is_slow_,ea1_which_program_aims_to_return_has_plants_glow_nicely,da0_achievements_scenario_hash,da0_achievements_hoarder_hash,da0_events_tag_mars,da0_events_tag_moon,da0_events_sites_distinct,da0_quiz_tag_oxygen,da0_quiz_tag_water,da0_quiz_tag_methane,da0_quiz_tag_hydrogen,da0_quiz_tag_permanently_shadowed_craters,da0_quiz_tag_it_is_the_warmest_region,da0_quiz_tag_it_has_the_strongest_gravity,da0_quiz_tag_it_is_closest_to_earth,da0_quiz_tag_24_hours_37_minutes,da0_quiz_tag_12_hours,da0_quiz_tag_48_hours,da0_quiz_tag_29_5_days,da0_quiz_tag_carbon_dioxide,da0_quiz_tag_nitrogen,da0_quiz_tag_3_to_22_minutes,da0_quiz_tag_instant,da0_quiz_tag_2_seconds,da0_quiz_tag_3_hours,da0_quiz_tag_earth_s_magnetosphere,da0_quiz_tag_thick_glass,da0_quiz_tag_lead_walls,da0_quiz_tag_the_solar_arrays,da0_quiz_tag_about_29_5_earth_days,da0_quiz_tag_24_hours,da0_quiz_tag_7_days,da0_quiz_tag_365_days,da0_quiz_tag_heat_from_decaying_plutonium,da0_quiz_tag_burning_methane,da0_quiz_tag_wind_turbines,da0_quiz_tag_coal_cells,da0_quiz_tag_resupply_from_earth_is_slow_,da0_quiz_tag_plants_glow_nicely,da0_quiz_tag_soil_is_free_in_space,da0_quiz_tag_it_removes_all_co2,da0_quiz_tag_dust_blocks_sunlight_and_coa,da0_quiz_tag_dust_freezes_panels,da0_quiz_tag_dust_conducts_electricity,da0_quiz_tag_no_hazard,da0_quiz_tag_artemis,da0_quiz_tag_apollo,da0_quiz_tag_gemini,da0_quiz_tag_mercury,da0_quiz_tag_james_webb,da0_quiz_tag_hubble,da0_quiz_tag_kepler,da0_quiz_tag_spitzer,da0_quiz_tag_it_absorbs_radiation_when_pi,da0_quiz_tag_it_is_magnetic,da0_quiz_tag_it_glows,da0_quiz_tag_it_is_radioactive,da0_quiz_tag_water_molecules,da0_quiz_tag_oil,da0_quiz_tag_methane_lakes,da0_quiz_tag_active_volcanoes,da0_quiz_tag_natural_caves_give_ready_mad,da0_quiz_tag_they_contain_gold,da0_quiz_tag_they_generate_heat,da0_quiz_tag_they_attract_rovers,da0_quiz_tag_using_local_resources_like_i,da0_quiz_tag_a_rocket_fuel,da0_quiz_tag_a_satellite_band,da0_quiz_tag_a_spacesuit_layer,da0_quiz_tag_toxic_to_humans_and_crops,da0_quiz_tag_delicious,da0_quiz_tag_radioactive,da0_quiz_tag_explosive,da0_quiz_tag_apollo_13,da0_quiz_tag_apollo_11,da0_quiz_tag_apollo_8,da0_quiz_tag_apollo_17,da0_quiz_tag_sunlight_there_is_weaker_and,da0_quiz_tag_plants_fear_mars,da0_quiz_tag_glass_freezes,da0_quiz_tag_it_doesn_t,da0_quiz_tag_solar_arrays_on_illuminated_,da0_quiz_tag_coal_plant,da0_quiz_tag_wind_farm,da0_quiz_tag_tidal_generator,da0_quiz_a_distinct,da0_storm_has_moon,da0_storm_has_mars,da0_micro_has_moon,da0_micro_has_mars,da0_illness_has_moon,da0_illness_has_mars,da0_aurora_has_moon,da0_aurora_has_mars,da0_quake_has_moon,da0_quake_has_mars,da0_find_has_moon,da0_find_has_mars,da0_relay_has_moon,da0_relay_has_mars,da0_calm_has_moon,da0_calm_has_mars,da0_flare_has_moon,da0_flare_has_mars,da0_birthday_has_moon,da0_birthday_has_mars,da0_stowaway_has_moon,da0_stowaway_has_mars,da0_coolant_has_moon,da0_coolant_has_mars,da0_podbonus_has_moon,da0_podbonus_has_mars,da0_breakthrough_has_moon,da0_breakthrough_has_mars,da0_homesick_has_moon,da0_homesick_has_mars,da0_meteorshower_has_moon,da0_meteorshower_has_mars,da0_o2leak_has_moon,da0_o2leak_has_mars,da0_blight_has_moon,da0_blight_has_mars,da0_argument_has_moon,da0_argument_has_mars,da0_dustdevil_has_moon,da0_dustdevil_has_mars,da0_suitpuncture_has_moon,da0_suitpuncture_has_mars,da0_icepocket_has_moon,da0_icepocket_has_mars,da0_what_did_nasa_s_moxie_experi_has_oxygen,da0_what_did_nasa_s_moxie_experi_has_methane,da0_what_did_nasa_s_moxie_experi_has_water,da0_what_did_nasa_s_moxie_experi_has_hydrogen,da0_what_did_nasa_s_moxie_experi_has_permanently_shadowed_craters,da0_what_did_nasa_s_moxie_experi_has_it_is_the_warmest_region,da0_what_did_nasa_s_moxie_experi_has_it_has_the_strongest_gravity,da0_what_did_nasa_s_moxie_experi_has_it_is_closest_to_earth,da0_what_did_nasa_s_moxie_experi_has_24_hours_37_minutes,da0_what_did_nasa_s_moxie_experi_has_12_hours,da0_what_did_nasa_s_moxie_experi_has_48_hours,da0_what_did_nasa_s_moxie_experi_has_29_5_days,da0_what_did_nasa_s_moxie_experi_has_carbon_dioxide,da0_what_did_nasa_s_moxie_experi_has_nitrogen,da0_what_did_nasa_s_moxie_experi_has_3_to_22_minutes,da0_what_did_nasa_s_moxie_experi_has_instant,da0_what_did_nasa_s_moxie_experi_has_2_seconds,da0_what_did_nasa_s_moxie_experi_has_3_hours,da0_what_did_nasa_s_moxie_experi_has_earth_s_magnetosphere,da0_what_did_nasa_s_moxie_experi_has_thick_glass,da0_what_did_nasa_s_moxie_experi_has_lead_walls,da0_what_did_nasa_s_moxie_experi_has_the_solar_arrays,da0_what_did_nasa_s_moxie_experi_has_about_29_5_earth_days,da0_what_did_nasa_s_moxie_experi_has_24_hours,da0_what_did_nasa_s_moxie_experi_has_7_days,da0_what_did_nasa_s_moxie_experi_has_365_days,da0_what_did_nasa_s_moxie_experi_has_heat_from_decaying_plutonium,da0_what_did_nasa_s_moxie_experi_has_burning_methane,da0_what_did_nasa_s_moxie_experi_has_wind_turbines,da0_what_did_nasa_s_moxie_experi_has_coal_cells,da0_what_did_nasa_s_moxie_experi_has_resupply_from_earth_is_slow_,da0_what_did_nasa_s_moxie_experi_has_plants_glow_nicely,ca9_quiz_has_making,ca9_quiz_has_planners,ca9_quiz_has_shadowed,ca9_quiz_has_light,ca9_quiz_has_shielding,ca9_quiz_has_night,ca9_quiz_has_local,ca9_quiz_has_return,ca9_quiz_has_sofia,ca9_quiz_has_tubes,ca9_quiz_has_apollo,ca9_quiz_has_experiment,ca9_quiz_has_produce,ca9_quiz_has_toward,ca9_quiz_has_rocket,ca9_quiz_has_target,ca9_quiz_has_craters,ca9_quiz_has_traps,ca9_quiz_has_preserve,ca9_quiz_has_close,ca9_events_storm_hash,ca9_events_micro_hash,ca9_events_illness_hash,ca9_events_aurora_hash,ca9_events_quake_hash,ca9_events_find_hash,ca9_events_relay_hash,ca9_events_calm_hash,ca9_events_flare_hash,ca9_events_birthday_hash,ca9_events_stowaway_hash,ca9_events_coolant_hash,ca9_events_podbonus_hash,ca9_events_breakthrough_hash,ca9_events_homesick_hash,ca9_events_meteorshower_hash,ca9_events_o2leak_hash,ca9_events_blight_hash,ca9_events_argument_hash,ca9_events_dustdevil_hash,ca9_events_suitpuncture_hash,ca9_events_icepocket_hash,ca9_quiz_what_did_nasa_s_moxie_experi_hash,ca9_quiz_why_do_planners_target_the_m_hash,ca9_quiz_about_how_long_is_one_martia_hash,ca9_quiz_what_is_the_main_component_o_hash,ca9_quiz_how_long_can_a_one_way_radio_hash,ca9_quiz_what_protects_crews_on_the_i_hash,ca9_quiz_roughly_how_long_is_a_full_l_hash,ca9_quiz_what_do_rtgs_use_to_make_ele_hash,ca9_quiz_why_is_growing_food_on_a_mis_hash,ca9_quiz_what_hazard_do_dust_storms_o_hash,ca9_quiz_which_program_aims_to_return_hash,ca9_quiz_which_telescope_launched_in__hash,ca9_quiz_what_makes_lunar_regolith_us_hash,ca9_quiz_what_did_the_sofia_observato_hash,ca9_quiz_why_are_lava_tubes_interesti_hash,ca9_quiz_what_is_isru_hash,ca9_quiz_perchlorate_salts_in_martian_hash,ca9_quiz_which_apollo_mission_turned__hash,ca9_quiz_why_does_a_greenhouse_on_mar_hash,ca9_quiz_what_is_a_fair_first_power_s_hash,ca9_achievements_firstsol_hash,ca9_achievements_power50_hash,ca9_achievements_science100_hash,ca9_achievements_shield3_hash,ca9_achievements_sol15_hash,ca9_achievements_sol30_hash,ca9_achievements_fullhouse_hash,ca9_achievements_quiz5_hash,ca9_achievements_selfsufficient_hash,ca9_achievements_survivor_hash,ca9_achievements_researcher_hash,ca9_achievements_awayteam_hash,ca9_achievements_veteran_hash,ca9_achievements_nightowl_hash,ca9_achievements_closedloop2_hash,ca9_achievements_highscore_hash,ca9_achievements_crosstrained_hash,ca9_achievements_farmer_hash,ba8_storm_id,ba8_storm_text,ba8_storm_w,ba8_storm_sites_n,ba8_storm_sites_first,ba8_storm_text_wc,ba8_micro_id,ba8_micro_text,ba8_micro_w,ba8_micro_sites_n,ba8_micro_sites_first,ba8_micro_text_wc,ba8_illness_id,ba8_illness_text,ba8_illness_w,ba8_illness_sites_n,ba8_illness_sites_first,ba8_illness_text_wc,ba8_aurora_id,ba8_aurora_text,ba8_aurora_w,ba8_aurora_sites_n,ba8_aurora_sites_first,ba8_aurora_text_wc,ba8_quake_id,ba8_quake_text,ba8_quake_w,ba8_quake_sites_n,ba8_quake_sites_first,ba8_quake_text_wc,ba8_find_id,ba8_find_text,ba8_find_w,ba8_find_sites_n,ba8_find_sites_first,ba8_find_text_wc,ba8_relay_id,ba8_relay_text,ba8_relay_w,ba8_relay_sites_n,ba8_relay_sites_first,ba8_relay_text_wc,ba8_calm_id,ba8_calm_text,ba8_calm_w,ba8_calm_sites_n,ba8_calm_sites_first,ba8_calm_text_wc,ba8_flare_id,ba8_flare_text,ba8_flare_w,ba8_flare_sites_n,ba8_flare_sites_first,ba8_flare_text_wc,ba8_birthday_id,ba8_birthday_text,ba8_birthday_w,ba8_birthday_sites_n,ba8_birthday_sites_first,ba8_birthday_text_wc,ba8_stowaway_id,ba8_stowaway_text,ba8_stowaway_w,ba8_stowaway_sites_n,ba8_stowaway_sites_first,ba8_stowaway_text_wc,ba8_coolant_id,ba8_coolant_text,ba8_coolant_w,ba8_coolant_sites_n,ba8_coolant_sites_first,ba8_coolant_text_wc,ba8_podbonus_id,ba8_podbonus_text,ba8_podbonus_w,ba8_podbonus_sites_n,ba8_podbonus_sites_first,ba8_podbonus_text_wc,ba8_breakthrough_id,ba8_breakthrough_text,ba8_breakthrough_w,ba8_breakthrough_sites_n,ba8_breakthrough_sites_first,ba8_breakthrough_text_wc,ba8_homesick_id,ba8_homesick_text,ba8_homesick_w,ba8_homesick_sites_n,ba8_homesick_sites_first,ba8_homesick_text_wc,ba8_meteorshower_id,ba8_meteorshower_text,ba8_meteorshower_w,ba8_meteorshower_sites_n,ba8_meteorshower_sites_first,ba8_meteorshower_text_wc,ba8_o2leak_id,ba8_o2leak_text,ba8_o2leak_w,ba8_o2leak_sites_n,ba8_o2leak_sites_first,ba8_o2leak_text_wc,ba8_blight_id,ba8_blight_text,ba8_blight_w,ba8_blight_sites_n,ba8_blight_sites_first,ba8_blight_text_wc,ba8_argument_id,ba8_argument_text,ba8_argument_w,ba8_argument_sites_n,ba8_argument_sites_first,ba8_argument_text_wc,ba8_dustdevil_id,ba8_dustdevil_text,ba8_dustdevil_w,ba8_dustdevil_sites_n,ba8_dustdevil_sites_first,ba8_dustdevil_text_wc,ba8_suitpuncture_id,ba8_suitpuncture_text,ba8_suitpuncture_w,ba8_suitpuncture_sites_n,ba8_suitpuncture_sites_first,ba8_suitpuncture_text_wc,ba8_icepocket_id,ba8_icepocket_text,ba8_icepocket_w,ba8_icepocket_sites_n,ba8_icepocket_sites_first,ba8_icepocket_text_wc,ba8_what_did_nasa_s_moxie_experi_q,ba8_what_did_nasa_s_moxie_experi_c,ba8_what_did_nasa_s_moxie_experi_fact,ba8_what_did_nasa_s_moxie_experi_a_n,ba8_what_did_nasa_s_moxie_experi_a_first,ba8_what_did_nasa_s_moxie_experi_q_wc,ba8_what_did_nasa_s_moxie_experi_fact_wc,ba8_why_do_planners_target_the_m_q,ba8_why_do_planners_target_the_m_c,ba8_why_do_planners_target_the_m_fact,ba8_why_do_planners_target_the_m_a_n,ba8_why_do_planners_target_the_m_a_first,ba8_why_do_planners_target_the_m_q_wc,ba8_why_do_planners_target_the_m_fact_wc,ba8_about_how_long_is_one_martia_q,ba8_about_how_long_is_one_martia_c,ba8_about_how_long_is_one_martia_fact,ba8_about_how_long_is_one_martia_a_n,ba8_about_how_long_is_one_martia_a_first,ba8_about_how_long_is_one_martia_q_wc,ba8_about_how_long_is_one_martia_fact_wc,ba8_what_is_the_main_component_o_q,ba8_what_is_the_main_component_o_c,ba8_what_is_the_main_component_o_fact,ba8_what_is_the_main_component_o_a_n,ba8_what_is_the_main_component_o_a_first,ba8_what_is_the_main_component_o_q_wc,ba8_what_is_the_main_component_o_fact_wc,ba8_how_long_can_a_one_way_radio_q,ba8_how_long_can_a_one_way_radio_c,ba8_how_long_can_a_one_way_radio_fact,ba8_how_long_can_a_one_way_radio_a_n,ba8_how_long_can_a_one_way_radio_a_first,ba8_how_long_can_a_one_way_radio_q_wc,ba8_how_long_can_a_one_way_radio_fact_wc,ba8_what_protects_crews_on_the_i_q,ba8_what_protects_crews_on_the_i_c,ba8_what_protects_crews_on_the_i_fact,ba8_what_protects_crews_on_the_i_a_n,ba8_what_protects_crews_on_the_i_a_first,ba8_what_protects_crews_on_the_i_q_wc,ba8_what_protects_crews_on_the_i_fact_wc,ba8_roughly_how_long_is_a_full_l_q,ba8_roughly_how_long_is_a_full_l_c,ba8_roughly_how_long_is_a_full_l_fact,ba8_roughly_how_long_is_a_full_l_a_n,ba8_roughly_how_long_is_a_full_l_a_first,ba8_roughly_how_long_is_a_full_l_q_wc,ba8_roughly_how_long_is_a_full_l_fact_wc,ba8_what_do_rtgs_use_to_make_ele_q,ba8_what_do_rtgs_use_to_make_ele_c,ba8_what_do_rtgs_use_to_make_ele_fact,ba8_what_do_rtgs_use_to_make_ele_a_n,ba8_what_do_rtgs_use_to_make_ele_a_first,ba8_what_do_rtgs_use_to_make_ele_q_wc,ba8_what_do_rtgs_use_to_make_ele_fact_wc,ba8_why_is_growing_food_on_a_mis_q,ba8_why_is_growing_food_on_a_mis_c,ba8_why_is_growing_food_on_a_mis_fact,ba8_why_is_growing_food_on_a_mis_a_n,ba8_why_is_growing_food_on_a_mis_a_first,ba8_why_is_growing_food_on_a_mis_q_wc,ba8_why_is_growing_food_on_a_mis_fact_wc,ba8_what_hazard_do_dust_storms_o_q,ba8_what_hazard_do_dust_storms_o_c,ba8_what_hazard_do_dust_storms_o_fact,ba8_what_hazard_do_dust_storms_o_a_n,ba8_what_hazard_do_dust_storms_o_a_first,ba8_what_hazard_do_dust_storms_o_q_wc,ba8_what_hazard_do_dust_storms_o_fact_wc,ba8_which_program_aims_to_return_q,ba8_which_program_aims_to_return_c,ba8_which_program_aims_to_return_fact,ba8_which_program_aims_to_return_a_n,ba8_which_program_aims_to_return_a_first,ba8_which_program_aims_to_return_q_wc,ba8_which_program_aims_to_return_fact_wc,ba8_which_telescope_launched_in__q,ba8_which_telescope_launched_in__c,ba8_which_telescope_launched_in__fact,ba8_which_telescope_launched_in__a_n,ba8_which_telescope_launched_in__a_first,ba8_which_telescope_launched_in__q_wc,ba8_which_telescope_launched_in__fact_wc,ba8_what_makes_lunar_regolith_us_q,ba8_what_makes_lunar_regolith_us_c,ba8_what_makes_lunar_regolith_us_fact,ba8_what_makes_lunar_regolith_us_a_n,ba8_what_makes_lunar_regolith_us_a_first,ba8_what_makes_lunar_regolith_us_q_wc,ba8_what_makes_lunar_regolith_us_fact_wc,ba8_what_did_the_sofia_observato_q,ba8_what_did_the_sofia_observato_c,ba8_what_did_the_sofia_observato_fact,ba8_what_did_the_sofia_observato_a_n,ba8_what_did_the_sofia_observato_a_first,ba8_what_did_the_sofia_observato_q_wc,ba8_what_did_the_sofia_observato_fact_wc,ba8_why_are_lava_tubes_interesti_q,ba8_why_are_lava_tubes_interesti_c,ba8_why_are_lava_tubes_interesti_fact,ba8_why_are_lava_tubes_interesti_a_n,ba8_why_are_lava_tubes_interesti_a_first,ba8_why_are_lava_tubes_interesti_q_wc,ba8_why_are_lava_tubes_interesti_fact_wc,ba8_what_is_isru_q,ba8_what_is_isru_c,ba8_what_is_isru_fact,ba8_what_is_isru_a_n,ba8_what_is_isru_a_first,ba8_what_is_isru_fact_wc,ba8_perchlorate_salts_in_martian_q,ba8_perchlorate_salts_in_martian_c,ba8_perchlorate_salts_in_martian_fact,ba8_perchlorate_salts_in_martian_a_n,ba8_perchlorate_salts_in_martian_a_first,ba8_perchlorate_salts_in_martian_q_wc,ba8_perchlorate_salts_in_martian_fact_wc,ba8_which_apollo_mission_turned__q,ba8_which_apollo_mission_turned__c,ba8_which_apollo_mission_turned__fact,ba8_which_apollo_mission_turned__a_n,ba8_which_apollo_mission_turned__a_first,ba8_which_apollo_mission_turned__q_wc,ba8_which_apollo_mission_turned__fact_wc,ba8_why_does_a_greenhouse_on_mar_q,ba8_why_does_a_greenhouse_on_mar_c,ba8_why_does_a_greenhouse_on_mar_fact,ba8_why_does_a_greenhouse_on_mar_a_n,ba8_why_does_a_greenhouse_on_mar_a_first,ba8_why_does_a_greenhouse_on_mar_q_wc,ba8_why_does_a_greenhouse_on_mar_fact_wc,ba8_what_is_a_fair_first_power_s_q,ba8_what_is_a_fair_first_power_s_c,ba8_what_is_a_fair_first_power_s_fact,ba8_what_is_a_fair_first_power_s_a_n,ba8_what_is_a_fair_first_power_s_a_first,ba8_what_is_a_fair_first_power_s_q_wc,ba8_what_is_a_fair_first_power_s_fact_wc,ba8_firstsol_id,ba8_firstsol_name,ba8_power50_id,ba8_power50_name,ba8_science100_id,ba8_science100_name,ba8_shield3_id,ba8_shield3_name,ba8_sol15_id,ba8_sol15_name,ba8_sol30_id,ba8_sol30_name,ba8_fullhouse_id,ba8_fullhouse_name,ba8_quiz5_id,ba8_quiz5_name,ba8_selfsufficient_id,ba8_selfsufficient_name,ba8_survivor_id,ba8_survivor_name,ba8_researcher_id,ba8_researcher_name,ba8_awayteam_id,ba8_awayteam_name,ba8_veteran_id,ba8_veteran_name,ba8_nightowl_id,ba8_nightowl_name,ba8_closedloop2_id,ba8_closedloop2_name,ba8_highscore_id,ba8_highscore_name,ba8_crosstrained_id,ba8_crosstrained_name,ba8_farmer_id,ba8_farmer_name,ba8_scenario_id,ba8_scenario_name,ba8_hoarder_id,ba8_hoarder_name,ba8_events_count,ba8_events_w_min,ba8_events_w_max,ba8_events_w_sum,ba8_quiz_count,ba8_quiz_c_min,ba8_quiz_c_max,ba8_quiz_c_sum,ba8_achievements_count,ba8_events_has_solar,ba8_events_has_building,ba8_events_has_morale,ba8_events_has_member,ba8_events_has_radiation,ba8_events_has_damaging,ba8_events_has_pocket,ba8_events_has_science,ba8_events_has_online,ba8_events_has_drops,ba8_events_has_oxygen,ba8_events_has_storm,ba8_events_has_output,ba8_events_has_micrometeorite,ba8_events_has_strike,ba8_events_has_damages,ba8_events_has_random,ba8_events_has_falls,ba8_events_has_loses,ba8_events_has_health,ba8_events_has_particle,ba8_events_has_event,ba8_events_has_unshielded,ba8_events_has_moonquake,ba8_events_has_rattles,ba8_events_has_surveyors,ba8_events_has_water,ba8_events_has_satellite,ba8_events_has_relay,ba8_events_has_passes,ba8_events_has_overhead,ba8_events_has_comms,ba8_events_has_improves,ba8_events_has_flare,ba8_events_has_extra,ba8_events_has_birthday,ba8_events_has_lifts,ba8_events_has_everyone,ba8_events_has_stowaway,ba8_events_has_stores,ba8_quiz_has_earth,ba8_quiz_has_lunar,ba8_quiz_has_martian,ba8_quiz_has_atmosphere,ba8_quiz_has_water,ba8_quiz_has_about,ba8_quiz_has_oxygen,ba8_quiz_has_crews,ba8_quiz_has_south,ba8_quiz_has_radiation,ba8_quiz_has_regolith,ba8_quiz_has_solar,ba8_quiz_has_polar,ba8_quiz_has_power,ba8_quiz_has_storms,ba8_quiz_has_mission,ba8_quiz_has_sunlight,ba8_quiz_has_which,ba8_quiz_has_moxie,ba8_quiz_has_first,o7a,o7b,o7c,o7d,o7e,o7f,o7g,o7h,o7i,o7j,o7k,o7l,o7m,o7n,o7o,o7p,o7q,o7r,o7s,o7t,o7u,o7v,o7w,o7x,o7y,o7z,o7ba,o7bb,o7bc,o7bd,o7be,o7bf,o7bg,o7bh,o7bi,o7bj,o7bk,o7bl,o7bm,o7bn,o7bo,o7bp,o7bq,o7br,o7bs,o7bt,o7bu,o7bv,o7bw,o7bx,o7by,o7bz,o7ca,o7cb,o7cc,o7cd,o7ce,o7cf,o7cg,o7ch,o7ci,o7cj,o7ck,o7cl,o7cm,o7cn,o7co,o7cp,o7cq,o7cr,o7cs,o7ct,o7cu,o7cv,o7cw,o7cx,o7cy,o7cz,o7da,o7db,o7dc,o7dd,o7de,o7df,o7dg,o7dh,o7di,o7dj,o7dk,o7dl,o7dm,o7dn,o7do,o7dp,o7dq,o7dr,o7ds,o7dt,o7du,o7dv,o7dw,o7dx,o7dy,o7dz,o7ea,o7eb,o7ec,o7ed,o7ee,o7ef,o7eg,o7eh,o7ei,o7ej,o7ek,o7el,o7em,o7en,o7eo,o7ep,o7eq,o7er,o7es,o7et,o7eu,o7ev,o7ew,o7ex,o7ey,o7ez,o7fa,o7fb,o7fc,o7fd,o7fe,o7ff,o7fg,o7fh,o7fi,o7fj,o7fk,a7a,a7b,a7c,a7d,a7e,a7f,a7g,a7h,a7i,a7j,a7k,a7l,a7m,a7n,a7o,a7p,a7q,a7r,a7s,a7t,a7u,a7v,a7w,a7x,a7y,a7z,a7ba,a7bb,a7bc,a7bd,a7be,a7bf,a7bg,a7bh,a7bi,a7bj,a7bk,a7bl,a7bm,a7bn,a7bo,a7bp,a7bq,a7br,a7bs,a7bt,a7bu,a7bv,a7bw,a7bx,a7by,a7bz,a7ca,a7cb,a7cc,a7cd,a7ce,a7cf,a7cg,a7ch,SITES:SITES,BUILDINGS:BUILDINGS,QUIZ:QUIZ,ACHIEVEMENTS:ACHIEVEMENTS,TECHS:TECHS,CROPS:CROPS,EXPEDITIONS:EXPEDITIONS,SCENARIOS:SCENARIOS,ROLES:ROLES,EVENTS:EVENTS,
-rest:rest,cleanSolar:cleanSolar,repairAll:repairAll,shelterMode:shelterMode,suitMaintenance:suitMaintenance,setObjectiveMode:setObjectiveMode,resourceHistory:resourceHistory,historyCSV:historyCSV,crewCSV:crewCSV,eventPreview:eventPreview,dryRunBuild:dryRunBuild,alerts:alerts,letterGrade:letterGrade,postMortem:postMortem,dailyChecklist:dailyChecklist,missionNameGen:missionNameGen,difficultyTable:difficultyTable,scoreBreakdown:scoreBreakdown,shareText:shareText,achievementProgress:achievementProgress,batteryStatus:batteryStatus,moraleReport:moraleReport,powerForecast:powerForecast,foodCalendar:foodCalendar,buildQueueEta:buildQueueEta,healthReport:healthReport,tutorialHints:tutorialHints,weeklySummary:weeklySummary,avgMorale:avgMorale,researchCost:researchCost,damageOne:damageOne,applyEvent:applyEvent,
-newGame:newGame,tick:tick,build:build,repair:repair,evaRepair:evaRepair,advise:advise,recruit:recruit,answerQuiz:answerQuiz,report:report,reportJSON:reportJSON,aliveCount:aliveCount,crewCapacity:crewCapacity,computePower:computePower,canBuild:canBuild,
-research:research,retrain:retrain,setRations:setRations,setCrop:setCrop,setManifest:setManifest,setMissionName:setMissionName,renameCrew:renameCrew,expedition:expedition,forecast:forecast,setScenario:setScenario,powerBreakdown:powerBreakdown,statsSummary:statsSummary,score:score,compareSites:compareSites,cLevel:cLevel,solReport:solReport,netRates:netRates,resourceRunway:resourceRunway,criticalCrew:criticalCrew,unpoweredList:unpoweredList,sciencePlan:sciencePlan,shieldPlan:shieldPlan,batteryPlan:batteryPlan,foodPlan:foodPlan,waterPlan:waterPlan,eventRiskReport:eventRiskReport,expeditionPlanner:expeditionPlanner,expeditionHistoryCSV:expeditionHistoryCSV,buildPlanCSV:buildPlanCSV,techTreeCSV:techTreeCSV,quizBankStats:quizBankStats,achievementTable:achievementTable,siteComparisonCSV:siteComparisonCSV,logCSV:logCSV,endgameProjection:endgameProjection,whatIfAllBuildings:whatIfAllBuildings,bestNextBuild:bestNextBuild,crewRoleMatrix:crewRoleMatrix,trainingPlan:trainingPlan,rationsAdvisor:rationsAdvisor,cropAdvisor:cropAdvisor,stormPrepChecklist:stormPrepChecklist,nightPrepChecklist:nightPrepChecklist,solMilestones:solMilestones,winProbabilityHint:winProbabilityHint,glossaryTerms:glossaryTerms,faqList:faqList,missionNameValidate:missionNameValidate,crewNameSuggest:crewNameSuggest,compareDifficulties:compareDifficulties,summaryEmailText:summaryEmailText,markdownLog:markdownLog,statsJSON:statsJSON,validateState:validateState,stateHash:stateHash,fatigueForecast:fatigueForecast,xpProgress:xpProgress,techRecommend:techRecommend,researchQueueCSV:researchQueueCSV,buildingEfficiency:buildingEfficiency,powerAudit:powerAudit,solarOutlook:solarOutlook,hazardCalendar:hazardCalendar,radiationBreakdown:radiationBreakdown,o2Sheet:o2Sheet,waterSheet:waterSheet,foodSheet:foodSheet,partsOutlook:partsOutlook,scienceSources:scienceSources,crewUpkeep:crewUpkeep,habitatReport:habitatReport,expansionPlan:expansionPlan,objectiveProgress:objectiveProgress,deadlineCheck:deadlineCheck,firstShortage:firstShortage,eventTypeCounts:eventTypeCounts,quizWeakSpots:quizWeakSpots,nearestAchievements:nearestAchievements,runModifiers:runModifiers,alternateSiteSim:alternateSiteSim,replayCode:replayCode,missionTimelineCSV:missionTimelineCSV,subsystemGrades:subsystemGrades,maintenancePlan:maintenancePlan,cleanOrder:cleanOrder,siteFacts:siteFacts,triviaOfTheSol:triviaOfTheSol,badgeShelf:badgeShelf,radioChatter:radioChatter,tomorrowBrief:tomorrowBrief,restRotation:restRotation,victoryGap:victoryGap,trueCost:trueCost,buildingCounts:buildingCounts,cropRotation:cropRotation,expeditionRiskTable:expeditionRiskTable,eventHistory:eventHistory,settingsSnapshot:settingsSnapshot,scoreProjection:scoreProjection,moraleLevers:moraleLevers,powerSpikeCheck:powerSpikeCheck,waterRecyclingGain:waterRecyclingGain,greenhouseYield:greenhouseYield,logSearch:logSearch,powerBalanceSheet:powerBalanceSheet,crewSummary:crewSummary,crewHealthAvg:crewHealthAvg,crewFatigueAvg:crewFatigueAvg,crewXpTotal:crewXpTotal,crewLevels:crewLevels,exhaustedCrew:exhaustedCrew,awayCrew:awayCrew,roleRoster:roleRoster,moraleSpread:moraleSpread,resLevels:resLevels,resLowest:resLowest,resRatios:resRatios,sciencePace:sciencePace,buildingTypes:buildingTypes,damagedList:damagedList,inProgressList:inProgressList,greenhouseList:greenhouseList,cropCoverage:cropCoverage,powerMargin:powerMargin,storeDays:storeDays,shieldInfo:shieldInfo,techsResearched:techsResearched,techCount:techCount,techsAvailable:techsAvailable,nextTechCost:nextTechCost,eventLog:eventLog,eventCountToday:eventCountToday,stormCount:stormCount,expeditionStats:expeditionStats,quizRecord:quizRecord,achievementPct:achievementPct,difficultyMult:difficultyMult,solsRemaining:solsRemaining,projectedScience:projectedScience,projectedWin:projectedWin,runwayTable:runwayTable,shortestRunway:shortestRunway,historyAt:historyAt,historyRange:historyRange,historyDelta:historyDelta,worstSol:worstSol,bestSol:bestSol,historyTrend:historyTrend,upcomingEvents:upcomingEvents,nextHazard:nextHazard,calendarNote:calendarNote,buildNext:buildNext,affordableBuildings:affordableBuildings,researchableNow:researchableNow,actionChecklist:actionChecklist,missionStatusLine:missionStatusLine,dangerScore:dangerScore,winOddsText:winOddsText,crewTableCSV:crewTableCSV,buildingsCSV:buildingsCSV,techCSV:techCSV,scheduleCSV:scheduleCSV,snapshotJSON:snapshotJSON,stateAudit:stateAudit,missionMd:missionMd,quizStatsText:quizStatsText,glossaryR5:glossaryR5,faqR5:faqR5,triviaR5:triviaR5,quizCheck01:quizCheck01}});
+function recruit(s){
+var cost=25;
+if(s.res.parts<cost){return false}
+if(s.crew.length>=crewCapacity(s)){return false}
+var idx=s.crew.length;
+s.crew.push({name:CREW_NAMES[idx%CREW_NAMES.length],health:100,morale:70,role:ROLES[idx%6],xp:0,fatigue:0,away:0,expedDest:null});
+s.res.parts-=cost;addLog(s,"New crew arrived: "+s.crew[s.crew.length-1].name+".");return true}
+return{fa3MarathonNew:fa3MarathonNew,fa3MarathonQ:fa3MarathonQ,fa3MarathonAnswer:fa3MarathonAnswer,fa3Timeline:fa3Timeline,fa3Hunt:fa3Hunt,fa3HuntText:fa3HuntText,fa2Drill:fa2Drill,fa2DrillCount:fa2DrillCount,fa2PassportTotal:fa2PassportTotal,fa2PassportPct:fa2PassportPct,fa2PassportText:fa2PassportText,fa2PassportRemaining:fa2PassportRemaining,fa2Briefing:fa2Briefing,fa2Streak:fa2Streak,fa2StreakNext:fa2StreakNext,SITES:SITES,BUILDINGS:BUILDINGS,QUIZ:QUIZ,ACHIEVEMENTS:ACHIEVEMENTS,TECHS:TECHS,CROPS:CROPS,EXPEDITIONS:EXPEDITIONS,SCENARIOS:SCENARIOS,ROLES:ROLES,EVENTS:EVENTS,rest:rest,cleanSolar:cleanSolar,repairAll:repairAll,shelterMode:shelterMode,suitMaintenance:suitMaintenance,setObjectiveMode:setObjectiveMode,resourceHistory:resourceHistory,historyCSV:historyCSV,crewCSV:crewCSV,eventPreview:eventPreview,dryRunBuild:dryRunBuild,alerts:alerts,letterGrade:letterGrade,postMortem:postMortem,dailyChecklist:dailyChecklist,shareText:shareText,achievementProgress:achievementProgress,batteryStatus:batteryStatus,moraleReport:moraleReport,powerForecast:powerForecast,foodCalendar:foodCalendar,buildQueueEta:buildQueueEta,healthReport:healthReport,tutorialHints:tutorialHints,weeklySummary:weeklySummary,avgMorale:avgMorale,researchCost:researchCost,damageOne:damageOne,applyEvent:applyEvent,newGame:newGame,tick:tick,build:build,repair:repair,evaRepair:evaRepair,advise:advise,recruit:recruit,answerQuiz:answerQuiz,report:report,reportJSON:reportJSON,aliveCount:aliveCount,crewCapacity:crewCapacity,recruit:recruit,computePower:computePower,canBuild:canBuild,research:research,retrain:retrain,setRations:setRations,setCrop:setCrop,setManifest:setManifest,setMissionName:setMissionName,expedition:expedition,forecast:forecast,setScenario:setScenario,powerBreakdown:powerBreakdown,statsSummary:statsSummary,score:score,compareSites:compareSites,cLevel:cLevel,solReport:solReport,netRates:netRates,resourceRunway:resourceRunway,criticalCrew:criticalCrew,unpoweredList:unpoweredList,sciencePlan:sciencePlan,buildPlanCSV:buildPlanCSV,techTreeCSV:techTreeCSV,quizBankStats:quizBankStats,siteComparisonCSV:siteComparisonCSV,endgameProjection:endgameProjection,bestNextBuild:bestNextBuild,stormPrepChecklist:stormPrepChecklist,nightPrepChecklist:nightPrepChecklist,solMilestones:solMilestones,winProbabilityHint:winProbabilityHint,glossaryTerms:glossaryTerms,faqList:faqList,summaryEmailText:summaryEmailText,markdownLog:markdownLog,statsJSON:statsJSON,validateState:validateState,stateHash:stateHash,xpProgress:xpProgress,techRecommend:techRecommend,researchQueueCSV:researchQueueCSV,o2Sheet:o2Sheet,waterSheet:waterSheet,foodSheet:foodSheet,objectiveProgress:objectiveProgress,deadlineCheck:deadlineCheck,firstShortage:firstShortage,nearestAchievements:nearestAchievements,missionTimelineCSV:missionTimelineCSV,subsystemGrades:subsystemGrades,maintenancePlan:maintenancePlan,triviaOfTheSol:triviaOfTheSol,victoryGap:victoryGap,logSearch:logSearch,crewSummary:crewSummary,crewHealthAvg:crewHealthAvg,crewFatigueAvg:crewFatigueAvg,crewXpTotal:crewXpTotal,crewLevels:crewLevels,exhaustedCrew:exhaustedCrew,awayCrew:awayCrew,roleRoster:roleRoster,moraleSpread:moraleSpread,resLevels:resLevels,resLowest:resLowest,resRatios:resRatios,sciencePace:sciencePace,buildingTypes:buildingTypes,damagedList:damagedList,inProgressList:inProgressList,greenhouseList:greenhouseList,cropCoverage:cropCoverage,powerMargin:powerMargin,storeDays:storeDays,shieldInfo:shieldInfo,techsResearched:techsResearched,techsAvailable:techsAvailable,nextTechCost:nextTechCost,quizRecord:quizRecord,achievementPct:achievementPct,solsRemaining:solsRemaining,projectedScience:projectedScience,projectedWin:projectedWin,runwayTable:runwayTable,shortestRunway:shortestRunway,historyAt:historyAt,historyDelta:historyDelta,worstSol:worstSol,bestSol:bestSol,historyTrend:historyTrend,upcomingEvents:upcomingEvents,nextHazard:nextHazard,calendarNote:calendarNote,affordableBuildings:affordableBuildings,researchableNow:researchableNow,actionChecklist:actionChecklist,missionStatusLine:missionStatusLine,dangerScore:dangerScore,winOddsText:winOddsText,crewTableCSV:crewTableCSV,buildingsCSV:buildingsCSV,techCSV:techCSV,scheduleCSV:scheduleCSV,snapshotJSON:snapshotJSON,stateAudit:stateAudit,missionMd:missionMd,quizStatsText:quizStatsText,glossaryR5:glossaryR5,faqR5:faqR5,triviaR5:triviaR5,quizCheck01:quizCheck01}});
