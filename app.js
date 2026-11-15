@@ -1170,8 +1170,14 @@ u.rate=0.98;
 speechSynthesis.speak(u)}catch(e){}}
 try{if(window.speechSynthesis){friendlyVoice=pickFriendlyVoice();speechSynthesis.onvoiceschanged=function(){friendlyVoice=pickFriendlyVoice()}}}catch(e){}
 window.__speak=speak;
+function satisfied(st){
+var gm=G("game"),running=!!(gm&&!gm.hidden);
+if(st.wait==="launch"||st.target==="setup"||st.target==="startBtn"){return running}
+if(st.wait==="sol"){var s0=window.__S&&window.__S();return !!(s0&&s0.sol>0)}
+return false}
 function showStep(){
 clearGlow();
+while(cur<steps.length-1&&satisfied(steps[cur])){cur++}
 var st=steps[cur];
 if(st.feat){openFeat(st.feat)}else if(st.menu){closeFeat()}
 G("tourText").textContent="Step "+(cur+1)+" of "+steps.length+": "+st.text;
