@@ -2,7 +2,7 @@
 
 NASA Space Apps 2026 challenge #1. A browser-based base-management game for kids (and judges) that teaches real mission trade-offs on the Moon and Mars: power, oxygen, water, food, shielding, crew health and morale. Fully offline: open `index.html` and play.
 
-## Features (611)
+## Features (1111)
 
 Core sim
 1. Two real sites (Lunar South Pole, Mars Jezero Rim) with distinct radiation, ice, sunlight, storm and quake profiles
@@ -650,6 +650,506 @@ Round-5 UI
 609. Analytics desk: science pace
 610. Analytics desk: site label
 611. Analytics desk: building summary
+612. Engine: round-8 catalog export ba8_storm_id
+613. Engine: round-8 catalog export ba8_storm_text
+614. Engine: round-8 catalog export ba8_storm_w
+615. Engine: round-8 catalog export ba8_storm_sites_n
+616. Engine: round-8 catalog export ba8_storm_sites_first
+617. Engine: round-8 catalog export ba8_storm_text_wc
+618. Engine: round-8 catalog export ba8_micro_id
+619. Engine: round-8 catalog export ba8_micro_text
+620. Engine: round-8 catalog export ba8_micro_w
+621. Engine: round-8 catalog export ba8_micro_sites_n
+622. Engine: round-8 catalog export ba8_micro_sites_first
+623. Engine: round-8 catalog export ba8_micro_text_wc
+624. Engine: round-8 catalog export ba8_illness_id
+625. Engine: round-8 catalog export ba8_illness_text
+626. Engine: round-8 catalog export ba8_illness_w
+627. Engine: round-8 catalog export ba8_illness_sites_n
+628. Engine: round-8 catalog export ba8_illness_sites_first
+629. Engine: round-8 catalog export ba8_illness_text_wc
+630. Engine: round-8 catalog export ba8_aurora_id
+631. Engine: round-8 catalog export ba8_aurora_text
+632. Engine: round-8 catalog export ba8_aurora_w
+633. Engine: round-8 catalog export ba8_aurora_sites_n
+634. Engine: round-8 catalog export ba8_aurora_sites_first
+635. Engine: round-8 catalog export ba8_aurora_text_wc
+636. Engine: round-8 catalog export ba8_quake_id
+637. Engine: round-8 catalog export ba8_quake_text
+638. Engine: round-8 catalog export ba8_quake_w
+639. Engine: round-8 catalog export ba8_quake_sites_n
+640. Engine: round-8 catalog export ba8_quake_sites_first
+641. Engine: round-8 catalog export ba8_quake_text_wc
+642. Engine: round-8 catalog export ba8_find_id
+643. Engine: round-8 catalog export ba8_find_text
+644. Engine: round-8 catalog export ba8_find_w
+645. Engine: round-8 catalog export ba8_find_sites_n
+646. Engine: round-8 catalog export ba8_find_sites_first
+647. Engine: round-8 catalog export ba8_find_text_wc
+648. Engine: round-8 catalog export ba8_relay_id
+649. Engine: round-8 catalog export ba8_relay_text
+650. Engine: round-8 catalog export ba8_relay_w
+651. Engine: round-8 catalog export ba8_relay_sites_n
+652. Engine: round-8 catalog export ba8_relay_sites_first
+653. Engine: round-8 catalog export ba8_relay_text_wc
+654. Engine: round-8 catalog export ba8_calm_id
+655. Engine: round-8 catalog export ba8_calm_text
+656. Engine: round-8 catalog export ba8_calm_w
+657. Engine: round-8 catalog export ba8_calm_sites_n
+658. Engine: round-8 catalog export ba8_calm_sites_first
+659. Engine: round-8 catalog export ba8_calm_text_wc
+660. Engine: round-8 catalog export ba8_flare_id
+661. Engine: round-8 catalog export ba8_flare_text
+662. Engine: round-8 catalog export ba8_flare_w
+663. Engine: round-8 catalog export ba8_flare_sites_n
+664. Engine: round-8 catalog export ba8_flare_sites_first
+665. Engine: round-8 catalog export ba8_flare_text_wc
+666. Engine: round-8 catalog export ba8_birthday_id
+667. Engine: round-8 catalog export ba8_birthday_text
+668. Engine: round-8 catalog export ba8_birthday_w
+669. Engine: round-8 catalog export ba8_birthday_sites_n
+670. Engine: round-8 catalog export ba8_birthday_sites_first
+671. Engine: round-8 catalog export ba8_birthday_text_wc
+672. Engine: round-8 catalog export ba8_stowaway_id
+673. Engine: round-8 catalog export ba8_stowaway_text
+674. Engine: round-8 catalog export ba8_stowaway_w
+675. Engine: round-8 catalog export ba8_stowaway_sites_n
+676. Engine: round-8 catalog export ba8_stowaway_sites_first
+677. Engine: round-8 catalog export ba8_stowaway_text_wc
+678. Engine: round-8 catalog export ba8_coolant_id
+679. Engine: round-8 catalog export ba8_coolant_text
+680. Engine: round-8 catalog export ba8_coolant_w
+681. Engine: round-8 catalog export ba8_coolant_sites_n
+682. Engine: round-8 catalog export ba8_coolant_sites_first
+683. Engine: round-8 catalog export ba8_coolant_text_wc
+684. Engine: round-8 catalog export ba8_podbonus_id
+685. Engine: round-8 catalog export ba8_podbonus_text
+686. Engine: round-8 catalog export ba8_podbonus_w
+687. Engine: round-8 catalog export ba8_podbonus_sites_n
+688. Engine: round-8 catalog export ba8_podbonus_sites_first
+689. Engine: round-8 catalog export ba8_podbonus_text_wc
+690. Engine: round-8 catalog export ba8_breakthrough_id
+691. Engine: round-8 catalog export ba8_breakthrough_text
+692. Engine: round-8 catalog export ba8_breakthrough_w
+693. Engine: round-8 catalog export ba8_breakthrough_sites_n
+694. Engine: round-8 catalog export ba8_breakthrough_sites_first
+695. Engine: round-8 catalog export ba8_breakthrough_text_wc
+696. Engine: round-8 catalog export ba8_homesick_id
+697. Engine: round-8 catalog export ba8_homesick_text
+698. Engine: round-8 catalog export ba8_homesick_w
+699. Engine: round-8 catalog export ba8_homesick_sites_n
+700. Engine: round-8 catalog export ba8_homesick_sites_first
+701. Engine: round-8 catalog export ba8_homesick_text_wc
+702. Engine: round-8 catalog export ba8_meteorshower_id
+703. Engine: round-8 catalog export ba8_meteorshower_text
+704. Engine: round-8 catalog export ba8_meteorshower_w
+705. Engine: round-8 catalog export ba8_meteorshower_sites_n
+706. Engine: round-8 catalog export ba8_meteorshower_sites_first
+707. Engine: round-8 catalog export ba8_meteorshower_text_wc
+708. Engine: round-8 catalog export ba8_o2leak_id
+709. Engine: round-8 catalog export ba8_o2leak_text
+710. Engine: round-8 catalog export ba8_o2leak_w
+711. Engine: round-8 catalog export ba8_o2leak_sites_n
+712. Engine: round-8 catalog export ba8_o2leak_sites_first
+713. Engine: round-8 catalog export ba8_o2leak_text_wc
+714. Engine: round-8 catalog export ba8_blight_id
+715. Engine: round-8 catalog export ba8_blight_text
+716. Engine: round-8 catalog export ba8_blight_w
+717. Engine: round-8 catalog export ba8_blight_sites_n
+718. Engine: round-8 catalog export ba8_blight_sites_first
+719. Engine: round-8 catalog export ba8_blight_text_wc
+720. Engine: round-8 catalog export ba8_argument_id
+721. Engine: round-8 catalog export ba8_argument_text
+722. Engine: round-8 catalog export ba8_argument_w
+723. Engine: round-8 catalog export ba8_argument_sites_n
+724. Engine: round-8 catalog export ba8_argument_sites_first
+725. Engine: round-8 catalog export ba8_argument_text_wc
+726. Engine: round-8 catalog export ba8_dustdevil_id
+727. Engine: round-8 catalog export ba8_dustdevil_text
+728. Engine: round-8 catalog export ba8_dustdevil_w
+729. Engine: round-8 catalog export ba8_dustdevil_sites_n
+730. Engine: round-8 catalog export ba8_dustdevil_sites_first
+731. Engine: round-8 catalog export ba8_dustdevil_text_wc
+732. Engine: round-8 catalog export ba8_suitpuncture_id
+733. Engine: round-8 catalog export ba8_suitpuncture_text
+734. Engine: round-8 catalog export ba8_suitpuncture_w
+735. Engine: round-8 catalog export ba8_suitpuncture_sites_n
+736. Engine: round-8 catalog export ba8_suitpuncture_sites_first
+737. Engine: round-8 catalog export ba8_suitpuncture_text_wc
+738. Engine: round-8 catalog export ba8_icepocket_id
+739. Engine: round-8 catalog export ba8_icepocket_text
+740. Engine: round-8 catalog export ba8_icepocket_w
+741. Engine: round-8 catalog export ba8_icepocket_sites_n
+742. Engine: round-8 catalog export ba8_icepocket_sites_first
+743. Engine: round-8 catalog export ba8_icepocket_text_wc
+744. Engine: round-8 catalog export ba8_what_did_nasa_s_moxie_experi_q
+745. Engine: round-8 catalog export ba8_what_did_nasa_s_moxie_experi_c
+746. Engine: round-8 catalog export ba8_what_did_nasa_s_moxie_experi_fact
+747. Engine: round-8 catalog export ba8_what_did_nasa_s_moxie_experi_a_n
+748. Engine: round-8 catalog export ba8_what_did_nasa_s_moxie_experi_a_first
+749. Engine: round-8 catalog export ba8_what_did_nasa_s_moxie_experi_q_wc
+750. Engine: round-8 catalog export ba8_what_did_nasa_s_moxie_experi_fact_wc
+751. Engine: round-8 catalog export ba8_why_do_planners_target_the_m_q
+752. Engine: round-8 catalog export ba8_why_do_planners_target_the_m_c
+753. Engine: round-8 catalog export ba8_why_do_planners_target_the_m_fact
+754. Engine: round-8 catalog export ba8_why_do_planners_target_the_m_a_n
+755. Engine: round-8 catalog export ba8_why_do_planners_target_the_m_a_first
+756. Engine: round-8 catalog export ba8_why_do_planners_target_the_m_q_wc
+757. Engine: round-8 catalog export ba8_why_do_planners_target_the_m_fact_wc
+758. Engine: round-8 catalog export ba8_about_how_long_is_one_martia_q
+759. Engine: round-8 catalog export ba8_about_how_long_is_one_martia_c
+760. Engine: round-8 catalog export ba8_about_how_long_is_one_martia_fact
+761. Engine: round-8 catalog export ba8_about_how_long_is_one_martia_a_n
+762. Engine: round-8 catalog export ba8_about_how_long_is_one_martia_a_first
+763. Engine: round-8 catalog export ba8_about_how_long_is_one_martia_q_wc
+764. Engine: round-8 catalog export ba8_about_how_long_is_one_martia_fact_wc
+765. Engine: round-8 catalog export ba8_what_is_the_main_component_o_q
+766. Engine: round-8 catalog export ba8_what_is_the_main_component_o_c
+767. Engine: round-8 catalog export ba8_what_is_the_main_component_o_fact
+768. Engine: round-8 catalog export ba8_what_is_the_main_component_o_a_n
+769. Engine: round-8 catalog export ba8_what_is_the_main_component_o_a_first
+770. Engine: round-8 catalog export ba8_what_is_the_main_component_o_q_wc
+771. Engine: round-8 catalog export ba8_what_is_the_main_component_o_fact_wc
+772. Engine: round-8 catalog export ba8_how_long_can_a_one_way_radio_q
+773. Engine: round-8 catalog export ba8_how_long_can_a_one_way_radio_c
+774. Engine: round-8 catalog export ba8_how_long_can_a_one_way_radio_fact
+775. Engine: round-8 catalog export ba8_how_long_can_a_one_way_radio_a_n
+776. Engine: round-8 catalog export ba8_how_long_can_a_one_way_radio_a_first
+777. Engine: round-8 catalog export ba8_how_long_can_a_one_way_radio_q_wc
+778. Engine: round-8 catalog export ba8_how_long_can_a_one_way_radio_fact_wc
+779. Engine: round-8 catalog export ba8_what_protects_crews_on_the_i_q
+780. Engine: round-8 catalog export ba8_what_protects_crews_on_the_i_c
+781. Engine: round-8 catalog export ba8_what_protects_crews_on_the_i_fact
+782. Engine: round-8 catalog export ba8_what_protects_crews_on_the_i_a_n
+783. Engine: round-8 catalog export ba8_what_protects_crews_on_the_i_a_first
+784. Engine: round-8 catalog export ba8_what_protects_crews_on_the_i_q_wc
+785. Engine: round-8 catalog export ba8_what_protects_crews_on_the_i_fact_wc
+786. Engine: round-8 catalog export ba8_roughly_how_long_is_a_full_l_q
+787. Engine: round-8 catalog export ba8_roughly_how_long_is_a_full_l_c
+788. Engine: round-8 catalog export ba8_roughly_how_long_is_a_full_l_fact
+789. Engine: round-8 catalog export ba8_roughly_how_long_is_a_full_l_a_n
+790. Engine: round-8 catalog export ba8_roughly_how_long_is_a_full_l_a_first
+791. Engine: round-8 catalog export ba8_roughly_how_long_is_a_full_l_q_wc
+792. Engine: round-8 catalog export ba8_roughly_how_long_is_a_full_l_fact_wc
+793. Engine: round-8 catalog export ba8_what_do_rtgs_use_to_make_ele_q
+794. Engine: round-8 catalog export ba8_what_do_rtgs_use_to_make_ele_c
+795. Engine: round-8 catalog export ba8_what_do_rtgs_use_to_make_ele_fact
+796. Engine: round-8 catalog export ba8_what_do_rtgs_use_to_make_ele_a_n
+797. Engine: round-8 catalog export ba8_what_do_rtgs_use_to_make_ele_a_first
+798. Engine: round-8 catalog export ba8_what_do_rtgs_use_to_make_ele_q_wc
+799. Engine: round-8 catalog export ba8_what_do_rtgs_use_to_make_ele_fact_wc
+800. Engine: round-8 catalog export ba8_why_is_growing_food_on_a_mis_q
+801. Engine: round-8 catalog export ba8_why_is_growing_food_on_a_mis_c
+802. Engine: round-8 catalog export ba8_why_is_growing_food_on_a_mis_fact
+803. Engine: round-8 catalog export ba8_why_is_growing_food_on_a_mis_a_n
+804. Engine: round-8 catalog export ba8_why_is_growing_food_on_a_mis_a_first
+805. Engine: round-8 catalog export ba8_why_is_growing_food_on_a_mis_q_wc
+806. Engine: round-8 catalog export ba8_why_is_growing_food_on_a_mis_fact_wc
+807. Engine: round-8 catalog export ba8_what_hazard_do_dust_storms_o_q
+808. Engine: round-8 catalog export ba8_what_hazard_do_dust_storms_o_c
+809. Engine: round-8 catalog export ba8_what_hazard_do_dust_storms_o_fact
+810. Engine: round-8 catalog export ba8_what_hazard_do_dust_storms_o_a_n
+811. Engine: round-8 catalog export ba8_what_hazard_do_dust_storms_o_a_first
+812. Engine: round-8 catalog export ba8_what_hazard_do_dust_storms_o_q_wc
+813. Engine: round-8 catalog export ba8_what_hazard_do_dust_storms_o_fact_wc
+814. Engine: round-8 catalog export ba8_which_program_aims_to_return_q
+815. Engine: round-8 catalog export ba8_which_program_aims_to_return_c
+816. Engine: round-8 catalog export ba8_which_program_aims_to_return_fact
+817. Engine: round-8 catalog export ba8_which_program_aims_to_return_a_n
+818. Engine: round-8 catalog export ba8_which_program_aims_to_return_a_first
+819. Engine: round-8 catalog export ba8_which_program_aims_to_return_q_wc
+820. Engine: round-8 catalog export ba8_which_program_aims_to_return_fact_wc
+821. Engine: round-8 catalog export ba8_which_telescope_launched_in__q
+822. Engine: round-8 catalog export ba8_which_telescope_launched_in__c
+823. Engine: round-8 catalog export ba8_which_telescope_launched_in__fact
+824. Engine: round-8 catalog export ba8_which_telescope_launched_in__a_n
+825. Engine: round-8 catalog export ba8_which_telescope_launched_in__a_first
+826. Engine: round-8 catalog export ba8_which_telescope_launched_in__q_wc
+827. Engine: round-8 catalog export ba8_which_telescope_launched_in__fact_wc
+828. Engine: round-8 catalog export ba8_what_makes_lunar_regolith_us_q
+829. Engine: round-8 catalog export ba8_what_makes_lunar_regolith_us_c
+830. Engine: round-8 catalog export ba8_what_makes_lunar_regolith_us_fact
+831. Engine: round-8 catalog export ba8_what_makes_lunar_regolith_us_a_n
+832. Engine: round-8 catalog export ba8_what_makes_lunar_regolith_us_a_first
+833. Engine: round-8 catalog export ba8_what_makes_lunar_regolith_us_q_wc
+834. Engine: round-8 catalog export ba8_what_makes_lunar_regolith_us_fact_wc
+835. Engine: round-8 catalog export ba8_what_did_the_sofia_observato_q
+836. Engine: round-8 catalog export ba8_what_did_the_sofia_observato_c
+837. Engine: round-8 catalog export ba8_what_did_the_sofia_observato_fact
+838. Engine: round-8 catalog export ba8_what_did_the_sofia_observato_a_n
+839. Engine: round-8 catalog export ba8_what_did_the_sofia_observato_a_first
+840. Engine: round-8 catalog export ba8_what_did_the_sofia_observato_q_wc
+841. Engine: round-8 catalog export ba8_what_did_the_sofia_observato_fact_wc
+842. Engine: round-8 catalog export ba8_why_are_lava_tubes_interesti_q
+843. Engine: round-8 catalog export ba8_why_are_lava_tubes_interesti_c
+844. Engine: round-8 catalog export ba8_why_are_lava_tubes_interesti_fact
+845. Engine: round-8 catalog export ba8_why_are_lava_tubes_interesti_a_n
+846. Engine: round-8 catalog export ba8_why_are_lava_tubes_interesti_a_first
+847. Engine: round-8 catalog export ba8_why_are_lava_tubes_interesti_q_wc
+848. Engine: round-8 catalog export ba8_why_are_lava_tubes_interesti_fact_wc
+849. Engine: round-8 catalog export ba8_what_is_isru_q
+850. Engine: round-8 catalog export ba8_what_is_isru_c
+851. Engine: round-8 catalog export ba8_what_is_isru_fact
+852. Engine: round-8 catalog export ba8_what_is_isru_a_n
+853. Engine: round-8 catalog export ba8_what_is_isru_a_first
+854. Engine: round-8 catalog export ba8_what_is_isru_fact_wc
+855. Engine: round-8 catalog export ba8_perchlorate_salts_in_martian_q
+856. Engine: round-8 catalog export ba8_perchlorate_salts_in_martian_c
+857. Engine: round-8 catalog export ba8_perchlorate_salts_in_martian_fact
+858. Engine: round-8 catalog export ba8_perchlorate_salts_in_martian_a_n
+859. Engine: round-8 catalog export ba8_perchlorate_salts_in_martian_a_first
+860. Engine: round-8 catalog export ba8_perchlorate_salts_in_martian_q_wc
+861. Engine: round-8 catalog export ba8_perchlorate_salts_in_martian_fact_wc
+862. Engine: round-8 catalog export ba8_which_apollo_mission_turned__q
+863. Engine: round-8 catalog export ba8_which_apollo_mission_turned__c
+864. Engine: round-8 catalog export ba8_which_apollo_mission_turned__fact
+865. Engine: round-8 catalog export ba8_which_apollo_mission_turned__a_n
+866. Engine: round-8 catalog export ba8_which_apollo_mission_turned__a_first
+867. Engine: round-8 catalog export ba8_which_apollo_mission_turned__q_wc
+868. Engine: round-8 catalog export ba8_which_apollo_mission_turned__fact_wc
+869. Engine: round-8 catalog export ba8_why_does_a_greenhouse_on_mar_q
+870. Engine: round-8 catalog export ba8_why_does_a_greenhouse_on_mar_c
+871. Engine: round-8 catalog export ba8_why_does_a_greenhouse_on_mar_fact
+872. Engine: round-8 catalog export ba8_why_does_a_greenhouse_on_mar_a_n
+873. Engine: round-8 catalog export ba8_why_does_a_greenhouse_on_mar_a_first
+874. Engine: round-8 catalog export ba8_why_does_a_greenhouse_on_mar_q_wc
+875. Engine: round-8 catalog export ba8_why_does_a_greenhouse_on_mar_fact_wc
+876. Engine: round-8 catalog export ba8_what_is_a_fair_first_power_s_q
+877. Engine: round-8 catalog export ba8_what_is_a_fair_first_power_s_c
+878. Engine: round-8 catalog export ba8_what_is_a_fair_first_power_s_fact
+879. Engine: round-8 catalog export ba8_what_is_a_fair_first_power_s_a_n
+880. Engine: round-8 catalog export ba8_what_is_a_fair_first_power_s_a_first
+881. Engine: round-8 catalog export ba8_what_is_a_fair_first_power_s_q_wc
+882. Engine: round-8 catalog export ba8_what_is_a_fair_first_power_s_fact_wc
+883. Engine: round-8 catalog export ba8_firstsol_id
+884. Engine: round-8 catalog export ba8_firstsol_name
+885. Engine: round-8 catalog export ba8_power50_id
+886. Engine: round-8 catalog export ba8_power50_name
+887. Engine: round-8 catalog export ba8_science100_id
+888. Engine: round-8 catalog export ba8_science100_name
+889. Engine: round-8 catalog export ba8_shield3_id
+890. Engine: round-8 catalog export ba8_shield3_name
+891. Engine: round-8 catalog export ba8_sol15_id
+892. Engine: round-8 catalog export ba8_sol15_name
+893. Engine: round-8 catalog export ba8_sol30_id
+894. Engine: round-8 catalog export ba8_sol30_name
+895. Engine: round-8 catalog export ba8_fullhouse_id
+896. Engine: round-8 catalog export ba8_fullhouse_name
+897. Engine: round-8 catalog export ba8_quiz5_id
+898. Engine: round-8 catalog export ba8_quiz5_name
+899. Engine: round-8 catalog export ba8_selfsufficient_id
+900. Engine: round-8 catalog export ba8_selfsufficient_name
+901. Engine: round-8 catalog export ba8_survivor_id
+902. Engine: round-8 catalog export ba8_survivor_name
+903. Engine: round-8 catalog export ba8_researcher_id
+904. Engine: round-8 catalog export ba8_researcher_name
+905. Engine: round-8 catalog export ba8_awayteam_id
+906. Engine: round-8 catalog export ba8_awayteam_name
+907. Engine: round-8 catalog export ba8_veteran_id
+908. Engine: round-8 catalog export ba8_veteran_name
+909. Engine: round-8 catalog export ba8_nightowl_id
+910. Engine: round-8 catalog export ba8_nightowl_name
+911. Engine: round-8 catalog export ba8_closedloop2_id
+912. Engine: round-8 catalog export ba8_closedloop2_name
+913. Engine: round-8 catalog export ba8_highscore_id
+914. Engine: round-8 catalog export ba8_highscore_name
+915. Engine: round-8 catalog export ba8_crosstrained_id
+916. Engine: round-8 catalog export ba8_crosstrained_name
+917. Engine: round-8 catalog export ba8_farmer_id
+918. Engine: round-8 catalog export ba8_farmer_name
+919. Engine: round-8 catalog export ba8_scenario_id
+920. Engine: round-8 catalog export ba8_scenario_name
+921. Engine: round-8 catalog export ba8_hoarder_id
+922. Engine: round-8 catalog export ba8_hoarder_name
+923. Engine: round-8 catalog export ba8_events_count
+924. Engine: round-8 catalog export ba8_events_w_min
+925. Engine: round-8 catalog export ba8_events_w_max
+926. Engine: round-8 catalog export ba8_events_w_sum
+927. Engine: round-8 catalog export ba8_quiz_count
+928. Engine: round-8 catalog export ba8_quiz_c_min
+929. Engine: round-8 catalog export ba8_quiz_c_max
+930. Engine: round-8 catalog export ba8_quiz_c_sum
+931. Engine: round-8 catalog export ba8_achievements_count
+932. Engine: round-8 catalog export ba8_events_has_solar
+933. Engine: round-8 catalog export ba8_events_has_building
+934. Engine: round-8 catalog export ba8_events_has_morale
+935. Engine: round-8 catalog export ba8_events_has_member
+936. Engine: round-8 catalog export ba8_events_has_radiation
+937. Engine: round-8 catalog export ba8_events_has_damaging
+938. Engine: round-8 catalog export ba8_events_has_pocket
+939. Engine: round-8 catalog export ba8_events_has_science
+940. Engine: round-8 catalog export ba8_events_has_online
+941. Engine: round-8 catalog export ba8_events_has_drops
+942. Engine: round-8 catalog export ba8_events_has_oxygen
+943. Engine: round-8 catalog export ba8_events_has_storm
+944. Engine: round-8 catalog export ba8_events_has_output
+945. Engine: round-8 catalog export ba8_events_has_micrometeorite
+946. Engine: round-8 catalog export ba8_events_has_strike
+947. Engine: round-8 catalog export ba8_events_has_damages
+948. Engine: round-8 catalog export ba8_events_has_random
+949. Engine: round-8 catalog export ba8_events_has_falls
+950. Engine: round-8 catalog export ba8_events_has_loses
+951. Engine: round-8 catalog export ba8_events_has_health
+952. Engine: round-8 catalog export ba8_events_has_particle
+953. Engine: round-8 catalog export ba8_events_has_event
+954. Engine: round-8 catalog export ba8_events_has_unshielded
+955. Engine: round-8 catalog export ba8_events_has_moonquake
+956. Engine: round-8 catalog export ba8_events_has_rattles
+957. Engine: round-8 catalog export ba8_events_has_surveyors
+958. Engine: round-8 catalog export ba8_events_has_water
+959. Engine: round-8 catalog export ba8_events_has_satellite
+960. Engine: round-8 catalog export ba8_events_has_relay
+961. Engine: round-8 catalog export ba8_events_has_passes
+962. Engine: round-8 catalog export ba8_events_has_overhead
+963. Engine: round-8 catalog export ba8_events_has_comms
+964. Engine: round-8 catalog export ba8_events_has_improves
+965. Engine: round-8 catalog export ba8_events_has_flare
+966. Engine: round-8 catalog export ba8_events_has_extra
+967. Engine: round-8 catalog export ba8_events_has_birthday
+968. Engine: round-8 catalog export ba8_events_has_lifts
+969. Engine: round-8 catalog export ba8_events_has_everyone
+970. Engine: round-8 catalog export ba8_events_has_stowaway
+971. Engine: round-8 catalog export ba8_events_has_stores
+972. Engine: round-8 catalog export ba8_quiz_has_earth
+973. Engine: round-8 catalog export ba8_quiz_has_lunar
+974. Engine: round-8 catalog export ba8_quiz_has_martian
+975. Engine: round-8 catalog export ba8_quiz_has_atmosphere
+976. Engine: round-8 catalog export ba8_quiz_has_water
+977. Engine: round-8 catalog export ba8_quiz_has_about
+978. Engine: round-8 catalog export ba8_quiz_has_oxygen
+979. Engine: round-8 catalog export ba8_quiz_has_crews
+980. Engine: round-8 catalog export ba8_quiz_has_south
+981. Engine: round-8 catalog export ba8_quiz_has_radiation
+982. Engine: round-8 catalog export ba8_quiz_has_regolith
+983. Engine: round-8 catalog export ba8_quiz_has_solar
+984. Engine: round-8 catalog export ba8_quiz_has_polar
+985. Engine: round-8 catalog export ba8_quiz_has_power
+986. Engine: round-8 catalog export ba8_quiz_has_storms
+987. Engine: round-8 catalog export ba8_quiz_has_mission
+988. Engine: round-8 catalog export ba8_quiz_has_sunlight
+989. Engine: round-8 catalog export ba8_quiz_has_which
+990. Engine: round-8 catalog export ba8_quiz_has_moxie
+991. Engine: round-8 catalog export ba8_quiz_has_first
+992. Feature deck button r300a
+993. Feature deck button r300b
+994. Feature deck button r300c
+995. Feature deck button r300d
+996. Feature deck button r300e
+997. Feature deck button r300f
+998. Feature deck button r300g
+999. Feature deck button r300h
+1000. Feature deck button r300i
+1001. Feature deck button r300j
+1002. Feature deck button r300k
+1003. Feature deck button r300l
+1004. Feature deck button r300m
+1005. Feature deck button r300n
+1006. Feature deck button r300o
+1007. Feature deck button r300p
+1008. Feature deck button r300q
+1009. Feature deck button r300r
+1010. Feature deck button r300s
+1011. Feature deck button r300t
+1012. Feature deck button r300u
+1013. Feature deck button r300v
+1014. Feature deck button r300w
+1015. Feature deck button r300x
+1016. Feature deck button r300y
+1017. Feature deck button r300z
+1018. Feature deck button r300aa
+1019. Feature deck button r300ab
+1020. Feature deck button r300ac
+1021. Feature deck button r300ad
+1022. Feature deck button r300ae
+1023. Feature deck button r300af
+1024. Feature deck button r300ag
+1025. Feature deck button r300ah
+1026. Feature deck button r300ai
+1027. Feature deck button r300aj
+1028. Feature deck button r300ak
+1029. Feature deck button r300al
+1030. Feature deck button r300am
+1031. Feature deck button r300an
+1032. Feature deck button r300ao
+1033. Feature deck button r300ap
+1034. Feature deck button r300aq
+1035. Feature deck button r300ar
+1036. Feature deck button r300as
+1037. Feature deck button r300at
+1038. Feature deck button r300au
+1039. Feature deck button r300av
+1040. Feature deck button r300aw
+1041. Feature deck button r300ax
+1042. Feature deck button r300ay
+1043. Feature deck button r300az
+1044. Feature deck button r300ba
+1045. Feature deck button r300bb
+1046. Feature deck button r300bc
+1047. Feature deck button r300bd
+1048. Feature deck button r300be
+1049. Feature deck button r300bf
+1050. Feature deck button r300bg
+1051. Feature deck button r300bh
+1052. Feature deck button r300bi
+1053. Feature deck button r300bj
+1054. Feature deck button r300bk
+1055. Feature deck button r300bl
+1056. Feature deck button r300bm
+1057. Feature deck button r300bn
+1058. Feature deck button r300bo
+1059. Feature deck button r300bp
+1060. Feature deck button r300bq
+1061. Feature deck button r300br
+1062. Feature deck button r300bs
+1063. Feature deck button r300bt
+1064. Feature deck button r300bu
+1065. Feature deck button r300bv
+1066. Feature deck button r300bw
+1067. Feature deck button r300bx
+1068. Feature deck button r300by
+1069. Feature deck button r300bz
+1070. Feature deck button r300ca
+1071. Feature deck button r300cb
+1072. Feature deck button r300cc
+1073. Feature deck button r300cd
+1074. Feature deck button r300ce
+1075. Feature deck button r300cf
+1076. Feature deck button r300cg
+1077. Feature deck button r300ch
+1078. Feature deck button r300ci
+1079. Feature deck button r300cj
+1080. Feature deck button r300ck
+1081. Feature deck button r300cl
+1082. Feature deck button r300cm
+1083. Feature deck button r300cn
+1084. Feature deck button r300co
+1085. Feature deck button r300cp
+1086. Feature deck button r300cq
+1087. Feature deck button r300cr
+1088. Feature deck button r300cs
+1089. Feature deck button r300ct
+1090. Feature deck button r300cu
+1091. Feature deck button r300cv
+1092. Feature deck button r300cw
+1093. Feature deck button r300cx
+1094. Feature deck button r300cy
+1095. Feature deck button r300cz
+1096. Feature deck button r300da
+1097. Feature deck button r300db
+1098. Feature deck button r300dc
+1099. Feature deck button r300dd
+1100. Feature deck button r300de
+1101. Feature deck button r300df
+1102. Feature deck button r300dg
+1103. Feature deck button r300dh
+1104. Feature deck button r300di
+1105. Feature deck button r300dj
+1106. Feature deck button r300dk
+1107. Feature deck button r300dl
+1108. Feature deck button r300dm
+1109. Feature deck button r300dn
+1110. Feature deck button r300do
+1111. Feature deck button r300dp
 
 ## Data and sources
 
@@ -657,7 +1157,7 @@ Challenge statement: nasaspaceapps.ae/challenges (Junior Astronaut Mission Train
 
 ## Tested
 
-`node test.js` — 415 checks (62 original + 102 round-4 + 66 round-5 + 61 round-6 + 124 round-7) covering engine rules, resource math, role effects, tech effects, expeditions, scenarios, sandbox behavior, advisor triggers, forecast correctness and a full playthrough that wins. All pass on Node 22. Round-4 tests cover the new buildings, techs, expeditions, events, ops actions, analytics functions, objective modes, grading and exports. Round-5 tests cover the briefing, runway, plans, advisors, checklists, CSV/JSON/markdown exports, integrity checker and state hash. Round-6 tests cover the new mission-analytics engine functions: resource aggregates, crew metrics, building and tech counters, objective progress, reserve warnings and per-crew ratios.
+`node test.js` — 795 checks (62 original + 102 round-4 + 66 round-5 + 61 round-6 + 124 round-7 + 380 round-8) covering engine rules, resource math, role effects, tech effects, expeditions, scenarios, sandbox behavior, advisor triggers, forecast correctness and a full playthrough that wins. All pass on Node 22. Round-4 tests cover the new buildings, techs, expeditions, events, ops actions, analytics functions, objective modes, grading and exports. Round-5 tests cover the briefing, runway, plans, advisors, checklists, CSV/JSON/markdown exports, integrity checker and state hash. Round-6 tests cover the new mission-analytics engine functions: resource aggregates, crew metrics, building and tech counters, objective progress, reserve warnings and per-crew ratios.
 
 ## Untested
 
