@@ -35,7 +35,8 @@ button:disabled{opacity:.5;cursor:not-allowed}
 #endBanner{grid-column:1/-1;text-align:center;font-size:1.2rem;font-weight:600;padding:16px;border-radius:10px}
 #endBanner.win{background:#e3f4e8;border:1px solid #3f9e63;color:#17572e}
 #endBanner.lose{background:#fbe7e7;border:1px solid #d05757;color:#7a1d1d}
-#quizOpts button{display:block;width:100%;margin:8px 0;text-align:left;background:#fff;color:#1c2430;border:1px solid #c9d2e0}
+#quizOpts{display:flex;flex-direction:column;gap:10px;margin:8px 0}
+#quizOpts button{display:block;width:100%;margin:0;text-align:left;background:#fff;color:#1c2430;border:1px solid #c9d2e0}
 #quizOpts button:hover{background:#eef2fa;border-color:#2058c9}
 #quizFact{font-size:.9rem;color:#7a5b12;margin-top:8px}
 .chip{display:inline-block;background:#eef2fa;border:1px solid #c9d2e0;border-radius:20px;padding:4px 12px;margin:3px;font-size:.8rem}
@@ -55,12 +56,15 @@ body.hc .tag,body.hc .hint,body.hc .bld small{color:#fff}
 .score{font-size:13px;color:#5b6675;margin:2px 0}
 .hint{color:#5b6675;font-size:.85rem;margin:2px 0 8px}
 .r580card{background:#f6f8fb;border:1px solid #dfe4ec;border-radius:8px;padding:8px 10px;margin:6px 0;font-size:.9rem;line-height:1.45}
-#r650Opts button{display:block;width:100%;margin:8px 0;text-align:left;background:#fff;color:#1c2430;border:1px solid #c9d2e0}
+#r650Opts{display:flex;flex-direction:column;gap:10px;margin:8px 0}
+#r650Opts button{display:block;width:100%;margin:0;text-align:left;background:#fff;color:#1c2430;border:1px solid #c9d2e0}
 #r650Opts button:hover{background:#eef2fa;border-color:#2058c9}
-#r580DrillBtns button{margin:6px 8px 6px 0}
+#r580DrillBtns{display:flex;flex-wrap:wrap;gap:12px;margin:8px 0}
+#r580DrillBtns button{margin:0}
 #r580DrillOut,#r650MarOut,#r650TlOut,#r650HuntOut{margin-top:8px;font-size:.9rem;line-height:1.45}
 #r580Streak{margin-top:6px;color:#7a5b12;font-size:.85rem}
-.row{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.row{display:flex;flex-wrap:wrap;gap:12px;margin:8px 0}
+.btnRow{display:flex;flex-wrap:wrap;gap:12px;margin:8px 0}
 .row button{padding:6px 10px;font-size:.82rem;background:#fff;color:#2058c9;border:1px solid #c9d2e0}
 .row button:hover{background:#eef2fa;border-color:#2058c9}
 #r5Out{margin-top:10px}
@@ -74,12 +78,12 @@ body.hc .tag,body.hc .hint,body.hc .bld small{color:#fff}
 #tourCard,#tourCard *{pointer-events:auto}
 #tourCard{background:#fff;border:1px solid #dfe4ec;border-radius:12px;max-width:520px;padding:16px 18px;box-shadow:0 8px 30px rgba(16,24,40,.18)}
 #tourText{line-height:1.5;margin-bottom:12px}
-#tourBtns{display:flex;justify-content:flex-end;gap:8px}
+#tourBtns{display:flex;justify-content:flex-end;gap:12px}
 .tourGlow{outline:2px solid #2058c9;outline-offset:3px;border-radius:8px;position:relative;z-index:60}
 body.kid .advOnly{display:none}
 #helpSetup{background:#fff;border:1px solid #c9d2e0;color:#2058c9;font-size:.85rem;padding:6px 10px}
 #helpSetup:hover{background:#eef2fa}
-#viewNav{grid-column:1/-1;display:flex;gap:8px;justify-content:center}
+#viewNav{grid-column:1/-1;display:flex;gap:12px;justify-content:center}
 .navBtn{background:#fff;color:#33405a;border:1px solid #c9d2e0}
 .navBtn:hover{background:#eef2fa;border-color:#2058c9}
 .navBtn.on{background:#2058c9;border-color:#2058c9;color:#fff}
@@ -134,9 +138,9 @@ main.wb-open[data-feat="hunt"] section.panel[data-feat="hunt"]:not([hidden]){dis
 body.hc .wbCard{background:#000;border-color:#fff}
 body.hc .wbCard b,body.hc .wbCard span{color:#fff}
 
-.passQ{border:1px solid #dfe4ec;border-radius:8px;padding:10px 12px;margin:8px 0;background:#f6f8fb}
+.passQ{border:1px solid #dfe4ec;border-radius:8px;padding:10px 12px;margin:8px 0;background:#f6f8fb;display:flex;flex-direction:column;gap:10px;align-items:stretch}
 .passQ .pq{font-weight:600;font-size:.9rem;margin-bottom:6px}
-.passQ button{display:block;width:100%;margin:6px 0;text-align:left;background:#fff;color:#1c2430;border:1px solid #c9d2e0}
+.passQ button{display:block;width:100%;margin:0;text-align:left;background:#fff;color:#1c2430;border:1px solid #c9d2e0}
 .passQ button:hover{background:#eef2fa;border-color:#2058c9}
 .passFact{font-size:.88rem;color:#17572e;margin-top:8px}
 .ok{background:#e3f4e8!important;border-color:#3f9e63!important;color:#17572e!important}

@@ -384,7 +384,7 @@ s.schedule[0]="stowaway";E.tick(s);
 assert(s.res.food<f0+30)});
 T("v3: quiz pool now has 20 questions with facts",function(){
 assert.strictEqual(E.QUIZ.length,20);
-E.QUIZ.forEach(function(q){assert(q.fact.length>10);assert(q.c>=0&&q.c<q.a.length)});var qdist=[0,0,0,0];E.QUIZ.forEach(function(q){qdist[q.c]++});assert.deepStrictEqual(qdist,[5,5,5,5])});
+E.QUIZ.forEach(function(q){assert(q.fact.length>10);assert(q.c>=0&&q.c<q.a.length);assert.strictEqual(new Set(q.a).size,q.a.length)});assert(new Set(E.QUIZ.map(function(q){return q.c})).size>1)});
 T("v3: achievements pool has 20 entries",function(){
 assert.strictEqual(E.ACHIEVEMENTS.length,20)});
 T("v3: full game with all v3 systems still wins",function(){
@@ -461,7 +461,7 @@ for(let i=0;i<3;i++){s.pendingQuiz=i;const q=E.QUIZ[i];E.answerQuiz(s,q.c)}
 assert(s.bestQuizStreak>=3)});
 T2("wrong answer resets streak",()=>{
 const s=E.newGame("moon",5,"explorer");
-s.pendingQuiz=0;E.answerQuiz(s,0);
+s.pendingQuiz=0;E.answerQuiz(s,(E.QUIZ[0].c+1)%E.QUIZ[0].a.length);
 s.pendingQuiz=1;E.answerQuiz(s,(E.QUIZ[1].c+1)%4);
 assert.strictEqual(s.quizStreak,0)});
 T2("resource history recorded per sol",()=>{
@@ -735,4 +735,20 @@ TQ14("ice pocket doubles water once",function(){var s=E.newGame("moon",7,"sandbo
 TQ14("markdown log renders messages",function(){var s=E.newGame("moon",7,"explorer");E.tick(s);var md=E.markdownLog(s);assert(md.indexOf("[object Object]")<0);assert(md.indexOf("Sol")>=0)});
 TQ14("recruit exported and costs parts",function(){var s=E.newGame("moon",7,"explorer");s.res.parts=100;E.build(s,"habitat");E.tick(s);E.tick(s);E.tick(s);s.buildings.forEach(function(b){b.damaged=false});var p=s.res.parts;assert(E.recruit(s));assert.strictEqual(s.res.parts,p-25)});
 console.log(pR14+" round-14 passed, "+fR14+" failed");
-process.exit(fail+fail2+fail3+fail4+fail7+(fR8)+(fR9)+(fR10)+(fR11)+(fR12)+(fR13)+(fR14)?1:0);
+var pR15=0,fR15=0;
+function TQ15(n,c){if(c){pR15++}else{fR15++;console.log("FAIL15 "+n)}}
+var dist=[0,0,0,0],lost=0;
+for(var si=0;si<8000;si++){var sr=E.shuffleChoices(["a","b","c","d"],2);dist[sr.correct]++;if(sr.choices[sr.correct]!=="c"){lost++}}
+TQ15("shuffle keeps the correct answer",lost===0);
+TQ15("shuffle uniform over 8000 runs",dist.every(function(d){return d>1800&&d<2200}));
+var seq=[];for(var qi=0;qi<40;qi++){seq.push(E.shuffleChoices(["a","b","c","d"],0).correct)}
+var rotSteps=0,maxRun=1,run=1;
+for(var sj=1;sj<40;sj++){if(seq[sj]===(seq[sj-1]+1)%4){rotSteps++}if(seq[sj]===seq[sj-1]){run++;if(run>maxRun){maxRun=run}}else{run=1}}
+TQ15("no rotation across 40 questions",rotSteps<30);
+TQ15("no long same-position streak",maxRun<8);
+var dpos=[];for(var di=0;di<9;di++){dpos.push(E.fa2Drill(di).correct)}
+var drot=0;for(var dk=1;dk<9;dk++){if(dpos[dk]===(dpos[dk-1]+1)%3){drot++}}
+TQ15("drill positions not a rotation",drot<8);
+TQ15("quiz bank positions vary",new Set(E.QUIZ.map(function(q){return q.c})).size>1);
+console.log(pR15+" round-15 passed, "+fR15+" failed");
+process.exit(fail+fail2+fail3+fail4+fail7+(fR8)+(fR9)+(fR10)+(fR11)+(fR12)+(fR13)+(fR14)+(fR15)?1:0);

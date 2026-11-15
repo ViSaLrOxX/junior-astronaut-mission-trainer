@@ -161,10 +161,12 @@
 <section data-feat="ops" class="panel v-mission">
 <h2>Ops actions</h2>
 <p class="hint">Quick fixes for the base.</p>
+<div class="btnRow">
 <button id="cleanBtn">Clean panels (2 parts)</button>
 <button id="suitBtn">Service EVA suits (3 parts)</button>
 <button id="repAllBtn">Repair all</button>
 <button id="shelterBtn">Shelter mode next sol</button>
+</div>
 <p class="hint" id="opsMsg"></p>
 </section>
 <section data-feat="analytics" class="panel v-reports" style="grid-column:1/-1">
@@ -179,12 +181,15 @@
 <h2>Resource history</h2>
 <canvas id="histCv" width="1100" height="220"></canvas>
 <label>Trace <select id="histSel"><option value="o2">Oxygen</option><option value="water">Water</option><option value="food">Food</option><option value="parts">Parts</option><option value="science">Science</option></select></label>
+<div class="btnRow">
 <button id="histCsvBtn">Download history CSV</button>
 <button id="crewCsvBtn">Download crew CSV</button>
 <button id="shareBtn">Copy share text</button>
+</div>
 </section>
 <section data-feat="briefing" class="panel v-reports" style="grid-column:1/-1">
 <h2>Mission briefing</h2>
+<div class="btnRow">
 <button id="reportBtn">Download report</button>
 <button id="reportJsonBtn">Report JSON</button>
 <button id="briefBtn">Refresh briefing</button>
@@ -195,6 +200,7 @@
 <button id="techCsvBtn">Download tech tree CSV</button>
 <button id="sitesCsvBtn">Download site comparison CSV</button>
 <button id="stateCheckBtn">Check state integrity</button>
+</div>
 <div id="briefOut"></div>
 <details><summary>Endgame projection</summary><div id="projOut"></div></details>
 <details><summary>Checklists, glossary and FAQ</summary><div id="guideOut"></div></details>
@@ -266,8 +272,10 @@
 <section data-feat="daily" class="panel v-learn">
 <h2>Daily briefing</h2>
 <div class="r580card" id="r580Brief">-</div>
+<div class="btnRow">
 <button id="r580BriefBtn">Show today's briefing</button>
 <button id="r580Trained">Mark today trained</button>
+</div>
 <div id="r580Streak">Streak: 0</div>
 </section>
 <section data-feat="drill" class="panel v-learn">
