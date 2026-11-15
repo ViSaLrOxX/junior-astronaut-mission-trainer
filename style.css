@@ -472,7 +472,7 @@ body.hc .hudPlus{background:#fff;color:#000}
 #topCtl .themeLab{width:auto}
 }
 
-/* Walk the base */
+
 main.wb-open[data-feat="walk"] section.panel[data-feat="walk"]:not([hidden]){display:block!important}
 #walkPanel canvas{width:100%;height:auto;max-height:46vh;display:block;border-radius:10px;border:1px solid var(--edge);background:#03060f;touch-action:manipulation}
 #walkPanel canvas:focus{outline:2px solid var(--accent)}

@@ -28,7 +28,7 @@ Alongside the sim there is a quiz deck about the Moon and Mars, a drill mode tha
 
 Site parameters, events and quiz facts are baked into engine.js as plain data tables. Nothing is fetched at runtime.
 
-## Merged build: Walk the base + RIM CAMP story (15 Nov 2026)
+## Merged build: Walk the base + RIM CAMP story
 
 This build merges two lines of the game: the v31 build you sent (rooms, guided tour, HUD, themes, ambience modes, outpost scene, parts help, Sources card) and the earlier RIM CAMP build (story layer, saved NASA DONKI record, eerie ambience, supply boost, decision-linked learning). Nothing from either was dropped except where noted below.
 
@@ -41,25 +41,19 @@ This build merges two lines of the game: the v31 build you sent (rooms, guided t
 - Other crew walk between modules as scenery. Machinery moves (solar tilt, dish, drill, plants, status lights). Reduced-motion turns off bobbing, dust and easing but everything stays playable. Jobs are also a plain list with buttons for keyboard and screen-reader users.
 All of this is a simplified teaching model, not real procedures.
 
-**Merge decisions**
-- Foundation: the v31 code (engine, app, rooms, tour, HUD, themes). The v31 engine changes are kept (science called data, rations formula, workshop log, parts tip, achievement progress fix).
-- Kept from RIM CAMP: story.js, donki-may2024.js, the story supply boost, decision-linked learning, the Sources overlay and its honesty notes, the warp on Launch, the eerie ambience (now the default of four ambience modes: Eerie ship, Deep space, Ship hum, Dark matter).
-- The v31 build has its own small built-in story. It still runs for Mars and other non-RIM-CAMP setups. For Moon + Science goal + no scenario + not Commander, RIM CAMP runs instead so there are not two stories at once.
-- The first-person cockpit frame from v31 replaces the RIM CAMP cockpit skin (both were translucent glass cockpits). Only the story overlay styling was kept, in story.css.
-- Real NASA records are not a lunar storm simulation. The RIM CAMP storm is invented. The DONKI saved copy is not live and is not a warning time.
 
 Files: index.html, style.css, story.css, engine.js, app.js, story.js, walk.js, donki-may2024.js, test.js. `node test.js` runs the engine tests. `original/` holds the untouched ZIPs (the first supplied game and the v31 archive).
 
 The guided tour now includes Walk the base (controls, hours per sol, return window). Tapping a job in Today's jobs makes the astronaut walk to that module first (walking is free in hours but takes real time) and then do it; nothing is done remotely.
 
-## First-person view (15 Nov 2026)
+## First-person view
 
 Walk the base is now seen through the astronaut's helmet. It is software 3D drawn on a 2D canvas (no WebGL, no libraries, still one folder you open in a browser): perspective projection, shaded faces, a low sun with long shadows, craters and rocks, distance haze, domes, solar arrays, comms dishes, drills and a mission console built as simple 3D shapes, other crew walking, a visor with readouts, gloves that move when you work, dust and darkening in storms. Controls: left/right arrows or A/D turn, up/down or W/S walk, E does the job you face, or tap a job to be walked there. On-screen buttons do the same on phones. The jobs, hours, return window and storm rules are unchanged. It is more realistic than the cartoon side view but it is low-poly, not photorealistic: no textures or true lighting. That needs WebGL (for example three.js) and real 3D models, which is a bigger step.
 
 ## Music (Dark shanty)
 The default ambience is "Dark shanty": an original D-minor slow 3/4 bass march at 62 bpm (low kick, choir-like pad, drone, sea swell), written for a deep, ominous sea-shanty mood. It is NOT "Hoist the Colours": no melody, lyrics or recording from that song is used. Change it in the ambience select (Eerie ship, Deep space, Ship hum, Dark matter are still there). Audio was only measured (offline render, peak -0.9 dB, strong low-frequency energy, no page errors), not listened to by the builder. audio/shanty-preview.mp3 is an offline render of the same generator.
 
-## Science notebook, captain's log and mission patch (15 Nov 2026)
+## Science notebook, captain's log and mission patch
 
 Added in lab.js (new card "Science notebook" in the Mission room). The engine rules are unchanged except one small once-only reward.
 - **Hypothesis and readings.** Hypothesis: a shielded habitat gives a lower daily dose than standing outside. Every experiment you run at the Mission console also takes one simulated dosimeter reading, outside or inside as you choose. The readings are invented for teaching: they are scattered around a scale value by a made-up 20 percent.
@@ -72,7 +66,7 @@ Added in lab.js (new card "Science notebook" in the Mission room). The engine ru
 
 Honest limits. The scatter, the shielding factor and the conclusion rule are game rules. The DONKI record is a saved real past event, not live and not a lunar storm simulation. The Rim Camp storm is invented. Story pop-ups are still modal. Not tested on a real phone or Safari. Not hosted, submitted or entered anywhere, and nothing here claims to win any category.
 
-## Realism build: EVA planner, radiation survey, hands-on repair, radio calls (15 Nov 2026)
+## Realism build: EVA planner, radiation survey, hands-on repair, radio calls
 
 New file survey.js; changes in walk.js, lab.js, story.js, story.css.
 
@@ -86,7 +80,7 @@ New file survey.js; changes in walk.js, lab.js, story.js, story.css.
 
 - **Other fixes in this build.** The decorative cockpit frame sits behind the content now, so the footer no longer overlays buttons or the notebook when scrolling. Walking to a target now steers around modules instead of getting stuck on the Mission console.
 
-## Mission build: suit supplies, return decision, fault diagnosis, Mission Control (15 Nov 2026)
+## Mission build: suit supplies, return decision, fault diagnosis, Mission Control
 
 New file suit.js (loaded after survey.js); hooks in walk.js and lab.js. One connected mission: survey with the detector, watch your suit, diagnose what breaks, decide whether to finish or turn back, report to Mission Control, and see it all in the debrief.
 
@@ -97,7 +91,7 @@ New file suit.js (loaded after survey.js); hooks in walk.js and lab.js. One conn
 - **Debrief.** The captain's log now says how many check-ins, diagnoses (right and wrong) and suit warnings you had, and whether you aborted, pushed on, or ran short.
 - **Limits.** All suit numbers, events, faults and replies are made up and not a real procedure or safety threshold. The planner, suit and events are skipped in test mode (`__walkFast`), and `__evaReal` plus `__walkFast` auto-picks the safer option. `__suitForce` forces an event for testing. Not tested on a real phone or Safari.
 
-## Walk update: jetpack sprint, low-gravity hop and a livelier HUD (15 Nov 2026)
+## Walk update: jetpack sprint, low-gravity hop and a livelier HUD
 
 Walking the base is quicker and louder now. Hold Shift (or the Boost button) for a jetpack sprint: speed roughly doubles while the boost meter lasts, and it refills when you stop sprinting. Press Space away from a module for a low-gravity hop, higher on the Moon than on Mars. Doing a job pops the reward up on screen, a welding spark shows while you patch a fault, and a strip along the top marks every module so you can see what is ahead, with damaged ones in red and the mission console in blue. The visor readout now shows boost, hours, sol and science while you walk. Story cards can also be read aloud in a friendlier voice: the game picks a clear English voice from whatever the device offers instead of the robotic default.
 

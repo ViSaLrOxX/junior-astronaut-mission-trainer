@@ -1,12 +1,10 @@
-/* Radiation survey: fictional survey stakes you walk to in first person, a detector reading at each,
-   and a choice of where to put an emergency shelter. The map and every spot value are INVENTED for the game.
-   They are not a map of the Moon or Mars. Reading scale: see lab.js. */
+
 (function(){
 "use strict";
 function $(i){return document.getElementById(i)}
 function S(){return window.__S?window.__S():null}
 function esc(t){return String(t==null?"":t).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
-/* x,z: position in the walk world. dm: invented distance from the airlock in metres. f: hidden game factor on the dose scale. */
+
 var SPOTS=[
  {id:"plain",name:"Open plain stake",x:30,z:-30,dm:350,f:1.0},
  {id:"rim",name:"Crater rim stake",x:70,z:32,dm:700,f:1.15},
@@ -33,7 +31,7 @@ var r=Math.max(2,F*.35/base.d);cx.fillStyle=col;cx.beginPath();cx.arc(top.x,top.
 if(o.shelter){cx.fillStyle="rgba(107,212,255,.35)";cx.beginPath();cx.ellipse(base.x,base.y,r*5,r*1.6,0,0,6.3);cx.fill()}
 if(base.d<45){cx.font="bold "+Math.min(22,Math.max(10,Math.round(F*1.6/base.d)))+"px Verdana";cx.textAlign="center";cx.fillStyle="#fff";cx.fillText(o.name.replace(" stake",""),top.x,top.y-r-5);cx.textAlign="left"}
 cx.globalAlpha=1}
-/* ---- notebook section ---- */
+
 function eligible(s,p,sv){var rs=sv.r[p.id]||[];var kinds=Object.keys(sv.r).filter(function(k){return sv.r[k].length}).length;return !sv.shelter&&rs.length>0&&kinds>=NEED_SPOTS&&s.res.parts>=SHELTER_COST}
 function html(s){var sv=lab(s);if(!sv){return""}
 var h="<div class='labBox'><b>Radiation survey (fictional map)</b><p class='hint'>Five survey stakes stand out on the plain. You can see them in the walk view. Walk to one, face it and press E to take a detector reading. Each reading is a 1 h task inside a planned EVA, with a buddy, a walk out and back, and the suit reserve. The map, the distances and each spot's dose are invented for the game. They are not a map of the Moon or Mars, and real shelter sites are chosen very differently.</p>";

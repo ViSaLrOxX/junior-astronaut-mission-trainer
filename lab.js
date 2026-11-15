@@ -1,11 +1,9 @@
-/* Science notebook, dose ledger, captain's log and mission patch.
-   Additive module: it reads the game state and never changes the engine's own rules,
-   apart from one small, once-only reward for a correct conclusion (+6 science, +8 parts). */
+
 (function(){
 "use strict";
-var BASE={moon:1.44,mars:0.64};             /* mSv per day dose equivalent: Moon about 60 uSv/h x 24 (Chang'e-4 LND), Mars 0.64 (Curiosity RAD). Scale only. */
-var SD=0.2;                                  /* INVENTED game scatter (20 percent) so readings are not identical */
-var NEED=3;                                  /* readings needed per location before concluding */
+var BASE={moon:1.44,mars:0.64};
+var SD=0.2;
+var NEED=3;
 var SOURCES=[
  ["Mars: dose equivalent 0.64 +/- 0.12 mSv per day from galactic cosmic rays on the surface, Curiosity rover RAD instrument, Gale crater, 7 Aug 2012 to 1 Jun 2013 (solar maximum). Hassler et al. 2014, Science","https://www.science.org/doi/10.1126/science.1244797"],
  ["Moon: Chang'e-4 lander LND instrument, von Karman crater on the far side, landed 3 Jan 2019. Measured absorbed dose rate in silicon 13.2 +/- 1 microGy per hour. Zhang et al. 2020, Science Advances","https://www.science.org/doi/10.1126/sciadv.aaz1334"],
@@ -22,7 +20,7 @@ function S(){return window.__S?window.__S():null}
 function esc(t){return String(t==null?"":t).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function L(s){s.flags=s.flags||{};if(!s.flags.lab){s.flags.lab={readings:[],loc:"out",concluded:null,paid:false,dose:{},days:0}}return s.flags.lab}
 function base(s){return BASE[s.site]||BASE.moon}
-function shieldFactor(s){return 1/(1+0.5*(s.shieldLevel||0))}   /* game rule, not a measurement */
+function shieldFactor(s){return 1/(1+0.5*(s.shieldLevel||0))}
 function rnd(seed,n){var x=Math.sin(seed*127.1+n*311.7)*43758.5453;return x-Math.floor(x)}
 function gauss(seed,n){return (rnd(seed,n)+rnd(seed,n+101)+rnd(seed,n+202)-1.5)*2}
 function stats(a){var n=a.length;if(!n){return{n:0,mean:0,se:0}}var m=0;a.forEach(function(v){m+=v});m/=n;var q=0;a.forEach(function(v){q+=(v-m)*(v-m)});var sd=n>1?Math.sqrt(q/(n-1)):0;return{n:n,mean:m,se:sd/Math.sqrt(n)}}
@@ -77,7 +75,7 @@ var w=document.querySelector('.wbCard[data-feat="walk"]')||document.querySelecto
 card.onclick=function(){window.__openFeat("lab")};
 window.__featRefresh=window.__featRefresh||{};var prev=window.__featRefresh.lab;window.__featRefresh.lab=function(){draw();if(prev){prev()}};
 setInterval(function(){var gm=$("game");if(gm&&gm.dataset.feat==="lab"&&!(document.activeElement&&document.activeElement.tagName==="SELECT")){draw()}},2000)}
-/* ---------- end of mission: captain's log, Earth link, patch ---------- */
+
 function logText(s){var lab=L(s),alive=s.crew.filter(function(c){return c.health>0}),g=groups(lab),v=verdict(lab),site=s.site==="mars"?"Jezero rim":"the lunar south pole";var o=[];
 o.push("Sol "+s.sol+". I'm writing this from "+site+". "+(alive.length===s.crew.length?"All "+alive.length:alive.length+" of "+s.crew.length)+" of us are still here"+(s.won?", and the base is alive.":"."));
 o.push("We logged "+Math.floor(s.res.science)+" of "+(s.objectiveScience||0)+" science. "+(s.won?"The goal is met before the return window closed.":"We did not reach the goal, but nobody was left behind."));

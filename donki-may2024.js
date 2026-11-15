@@ -1,7 +1,4 @@
-/* SAVED COPY of NASA DONKI records for May 2024. NOT LIVE DATA.
-   Fetched 15 Nov 2026 from the NASA open API (api.nasa.gov/DONKI, DEMO_KEY):
-   GST and SEP for 2024-05-01..31, CME for 2024-05-08..09. Only fields listed here were kept.
-   Source: https://ccmc.gsfc.nasa.gov/tools/DONKI/  */
+
 window.DONKI_SAVED={
 fetched:"2026-11-15",
 source:"https://ccmc.gsfc.nasa.gov/tools/DONKI/",

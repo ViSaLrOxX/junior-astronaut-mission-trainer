@@ -680,17 +680,12 @@ var pass7=0,fail7=0;
 function T7(name,fn){try{fn();pass7++;console.log("PASS",name)}catch(e){fail7++;console.log("FAIL",name,"-",e.message)}}
 var G=E.newGame("moon",7,"standard");
 var pR8=0,fR8=0;
-function TR8(n,c){if(c){pR8++}else{fR8++;console.log("FAIL8 "+n)}}
 
 var pR9=0,fR9=0;
-function TR9(n,c){if(c){pR9++}else{fR9++;console.log("FAIL8 "+n)}}
 
 var pR10=0,fR10=0;
-function TR10(n,c){if(c){pR10++}else{fR10++;console.log("FAIL8 "+n)}}
 
 var pR11=0,fR11=0;
-function TR11(n,c){if(c){pR11++}else{fR11++;console.log("FAIL8 "+n)}}
-
 
 var pR12=0,fR12=0;
 function TR12(n,c){if(c){pR12++}else{fR12++;console.log("FAIL12 "+n)}}
@@ -711,7 +706,6 @@ TR12("streaknext hold",function(){assert.strictEqual(E.fa2StreakNext(4,50,50),4)
 TR12("streaknext inc",function(){assert.strictEqual(E.fa2StreakNext(4,50,51),5)});
 TR12("streaknext reset",function(){assert.strictEqual(E.fa2StreakNext(4,50,60),1)});
 console.log(pR12+" round-12 passed, "+fR12+" failed");
-
 
 var pR13=0,fR13=0;
 function TQ13(n,c){if(c){pR13++}else{fR13++;console.log("FAIL13 "+n)}}

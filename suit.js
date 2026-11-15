@@ -1,6 +1,4 @@
-/* Suit supplies, mid-EVA return decision, fault diagnosis and Mission Control check-ins.
-   Every capacity, rate, fault and reply below is INVENTED for the game. Real suits do track oxygen, power and CO2 removal,
-   and real crews do report to a control room, but nothing here is a real procedure or a safety threshold. */
+
 (function(){
 "use strict";
 function $(i){return document.getElementById(i)}
@@ -8,7 +6,7 @@ function S(){return window.__S?window.__S():null}
 function esc(t){return String(t==null?"":t).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function lc(t){return t.charAt(0).toLowerCase()+t.slice(1)}
 function r1(x){return Math.round(x*10)/10}
-var CAP={o2:6,batt:5.5,co2:5},RES=.5;           /* invented: hours of use at the planned rate; invented reserve */
+var CAP={o2:6,batt:5.5,co2:5},RES=.5;
 var NAMES={o2:"oxygen",batt:"battery",co2:"CO2 filter"};
 var MULT={fix:{o2:1.2,batt:1.3,co2:1.15},survey:{o2:1,batt:1.1,co2:1},chore:{o2:1.1,batt:1,co2:1.1}};
 var EVT={co2:{t:"The CO2 filter is loading up faster than planned.",fac:{co2:1.6}},o2:{t:"A slow oxygen leak at a fitting.",fac:{o2:1.5}},batt:{t:"A battery cell dropped out.",loss:{batt:1.2}}};
@@ -24,7 +22,7 @@ function useOf(plan,kind,hours,ev,abort){var m=mult(kind),u={};["o2","batt","co2
 if(ev){var rem=abort?(plan.travel+.25):(plan.travel+.25+plan.task/2);if(ev.fac){Object.keys(ev.fac).forEach(function(r){u[r]+=rem*m[r]*(ev.fac[r]-1)})}if(ev.loss){Object.keys(ev.loss).forEach(function(r){u[r]+=ev.loss[r]})}}return u}
 function marginOf(u){var mg={},min=99,lim="";["o2","batt","co2"].forEach(function(r){mg[r]=CAP[r]-u[r];if(mg[r]<min){min=mg[r];lim=r}});return{mg:mg,min:min,lim:lim}}
 function resup(u){return{o2:Math.ceil(u.o2),parts:Math.ceil(u.co2/2)}}
-/* ---- planner hooks ---- */
+
 function project(s,tot,kind){var u=useOf({travel:0,task:0},kind,tot),m=marginOf(u),rs=resup(u),why="";
 if(m.min<RES){why="The "+NAMES[m.lim]+" supply would not last: this sortie uses "+r1(u[m.lim])+" h of a "+CAP[m.lim]+" h "+NAMES[m.lim]+" capacity, and the game keeps "+RES+" h in reserve. (Invented suit numbers.)"}
 else if(s.res.parts<rs.parts){why="The suit needs "+rs.parts+" part"+(rs.parts===1?"":"s")+" for a fresh CO2 filter afterwards and the base has "+Math.floor(s.res.parts)+"."}
@@ -33,12 +31,12 @@ return{use:u,mg:m.mg,min:m.min,lim:m.lim,rs:rs,why:why}}
 function planHtml(pl){var su=pl.suit;if(!su){return""}
 var t="<br><b>Suit supplies</b> (invented capacities: oxygen "+CAP.o2+" h, battery "+CAP.batt+" h, CO2 filter "+CAP.co2+" h; real suits track these three things, but these numbers are made up). This sortie"+(pl.wc?" (counting 1 extra hour in case you misdiagnose the fault)":"")+" uses oxygen "+r1(su.use.o2)+" h, battery "+r1(su.use.batt)+" h, CO2 filter "+r1(su.use.co2)+" h, leaving "+r1(su.mg.o2)+" / "+r1(su.mg.batt)+" / "+r1(su.mg.co2)+" h (game reserve "+RES+" h each). Afterwards the suit is refilled from the base: "+su.rs.o2+" O2 and "+su.rs.parts+" part"+(su.rs.parts===1?"":"s")+". Something may go wrong mid-task. The tighter the margin, the harder the call.";
 return t}
-/* ---- on-screen decision card (reuses the plan box) ---- */
+
 function box(){return $("wkPlan")}
 function ui(html,btns){var b=box();if(!b){return}b.hidden=false;b.innerHTML=html+"<div class='wkBtns'></div>";var row=b.querySelector(".wkBtns");btns.forEach(function(x){var e=document.createElement("button");e.type="button";e.className="wkOpt";e.innerHTML=x[0];e.onclick=function(){x[1]()};row.appendChild(e)});try{b.scrollIntoView({block:"nearest",behavior:"smooth"})}catch(e){}}
 function hide(){var b=box();if(b){b.hidden=true;b.innerHTML=""}}
 function note(a,txt){var f=F(S());f.log.push({sol:S().sol,t:txt})}
-/* ---- diagnosis (fix jobs) ---- */
+
 function faultFor(m){var k=m.kind;if(k==='solar'||k==='rtg'||k==='battery'||k==='pad'){return FAULTS[0]}if(k==='comms'||k==='observatory'||k==='drill'){return FAULTS[2]}return FAULTS[1]}
 function diagnose(a,done){var s=S(),m=a.m,fd=faultFor(m),f=F(s);
 function after(good,pick){a.j.diag=good?"right":"wrong";if(good){f.diagOk++;a.j.tol=.2;note(a,"Diagnosed the "+fd.n.toLowerCase()+" correctly ("+fd.opt[fd.ok]+").");f.f.push({t:"diag",text:"correct diagnosis of the "+fd.n.toLowerCase()+": "+fd.opt[fd.ok]})}
@@ -46,7 +44,7 @@ else{f.diagBad++;a.j.extraH=1;a.j.extraParts=1;note(a,"Misdiagnosed the "+fd.n.t
 hide();var msgEl=$("wkMsg");if(msgEl){msgEl.textContent=good?"Right call: "+fd.opt[fd.ok]+". The patch window is wider.":"Wrong cause. It was "+fd.opt[fd.ok].toLowerCase()+". That cost 1 extra hour and 1 part."}done()}
 if(fast()){after(true,fd.ok);return}
 ui("<b>Diagnose the fault at the "+esc(m.name)+": "+esc(fd.n)+" (invented fault)</b><br>Your instruments say:<ul>"+fd.sym.map(function(x){return"<li>"+esc(x)+"</li>"}).join("")+"</ul>What is the most likely cause? A wrong answer costs 1 hour and 1 part, a right one makes the patch easier.",fd.opt.map(function(o,i){return[esc(o),function(){after(i===fd.ok,i)}]}))}
-/* ---- mid-task event and return decision ---- */
+
 function pickEvent(s,a){if(window.__suitForce){return EVT[window.__suitForce]?{id:window.__suitForce,e:EVT[window.__suitForce]}:null}
 var long=a.plan.total>=2.5,r=rnd(s.sol*17+(W().jobs||0),a.plan.dm||5);if(r>(long?.55:.35)){return null}
 var ids=["co2","o2","batt"],id=ids[Math.floor(rnd(s.sol,a.plan.dm+3)*3)%3];return{id:id,e:EVT[id]}}
@@ -65,7 +63,7 @@ ui("<b>Suit warning: "+esc(ev.t)+"</b> (invented event)<br>Halfway through the t
 function begin(a){var s=S();if(!a.plan||!window.__suit){return}
 if(a.j.kind==="fix"){a.paused=true;diagnose(a,function(){mid(a,function(){a.paused=false})})}}
 function midNow(a){a.paused=true;mid(a,function(){a.paused=false})}
-/* ---- after the EVA: consume, resupply, consequences ---- */
+
 function finish(s,plan,j,o){o=o||{};var f=F(s),a=o.act||{},ev=(a.ev||j.ev)||null,hours=o.total!=null?o.total:plan.total;
 var extraH=j.extraH||0;if(extraH){var w=W();w.hours=r1(Math.max(0,w.hours-extraH));hours+=extraH}
 var u=useOf(plan,j.kind,hours,ev,!!o.abort),m=marginOf(u),rs=resup(u),out="";
@@ -78,7 +76,7 @@ f.last={use:u,mg:m.mg};
 if(j.kind==="survey"){var sv=window.__lab&&window.__lab.state().survey,rr=sv&&sv.r[j.spot];if(rr&&rr.length){f.f.push({t:"survey",text:"a reading of "+rr[rr.length-1].toFixed(2)+" mSv/day at "+(window.__survey.spotList().filter(function(p){return p.id===j.spot})[0]||{}).name})}}
 if(ev){f.f.push({t:"suit",text:"suit trouble: "+lc(ev.t)+" ("+(o.abort?"I aborted":"I finished")+")"})}
 refresh();return out}
-/* ---- objectives and check-ins ---- */
+
 function nsp(s){var sv=window.__lab&&window.__lab.state().survey;return sv?Object.keys(sv.r).filter(function(k){return sv.r[k].length}).length:0}
 var OBJ=[
  {id:"first",t:"Walk to the Open plain stake, take a detector reading and bring it back",done:function(s){return nsp(s)>=1}},

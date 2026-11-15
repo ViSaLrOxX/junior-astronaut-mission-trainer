@@ -1,6 +1,4 @@
-/* RIM CAMP: KEEP THE LIGHT ON - story layer for the Junior Astronaut Mission Trainer.
-   FICTION: the crew, the storm and the Earth message windows are invented game content.
-   Real facts live only in the Sources panel. Loaded after app.js; reads state through window.__S(). */
+
 (function(){
 "use strict";
 var $=function(id){return document.getElementById(id)};
@@ -12,7 +10,6 @@ function alive(s){return s.crew.filter(function(c){return c.health>0})}
 function chapter(sol){return sol<6?1:sol<16?2:sol<21?3:4}
 var CH=["","Chapter 1: Build the camp","Chapter 2: The warning","Chapter 3: The storm","Chapter 4: The handover"];
 
-/* ---------- overlay ---------- */
 var ov=document.createElement("div");ov.id="stOv";ov.hidden=true;ov.setAttribute("role","dialog");ov.setAttribute("aria-modal","true");
 ov.innerHTML='<div id="stCard"></div>';document.body.appendChild(ov);
 var warn=document.createElement("div");warn.id="stWarn";warn.hidden=true;warn.setAttribute("role","status");document.body.appendChild(warn);
@@ -59,8 +56,6 @@ function choose(s,txt){s.story.choices.push({sol:s.sol,text:txt})}
 function toast(s,m){var w=$("stWarn");w.textContent=m;w.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(function(){w.hidden=true},6500)}
 function log(s,m){s.log.unshift({sol:s.sol,msg:m});if(s.log.length>60){s.log.length=60}}
 
-
-/* ---------- decision-linked learning checks (replace trivia in story mode) ---------- */
 function ask(s,q){
 s.story.learn=s.story.learn||[];
 var opts=q.options.map(function(o,i){return{label:o.t,fn:function(){
@@ -100,7 +95,6 @@ ask(s,{id:"diff",title:"What would you do differently?",text:"Pick the change yo
 options:[{t:"Prepare for the storm earlier",ok:true},{t:"Watch Ana's runway warnings",ok:true},{t:"Build science earlier",ok:true},{t:"Keep more spare parts",ok:true}],
 right:"Good choice. For your mission: "+tips[e],wrong:"",fact:"",after:done})}
 
-/* ---------- story cards ---------- */
 function mk(s){return{
 intro:function(){say({who:"Mission Control, Earth",title:"RIM CAMP: KEEP THE LIGHT ON",text:[
 "A small crew has landed on a crater rim near the Moon's south pole. Four people, one habitat, thirty turns.",
@@ -153,7 +147,6 @@ rule:"Training-game rule: scheduled message window.",options:[{label:"Copy that"
 }}
 var SCHEDULE=[[0,"intro"],[2,"e2"],[6,"e6"],[9,"e9"],[12,"e12"],[14,"e14"],[16,"e16"],[20,"e20"],[21,"e21"],[22,"e22"],[26,"e26"]];
 
-/* ---------- per-sol rules ---------- */
 function perSol(s,sol){
 var st=s.story;
 if(st.storm&&sol>=16&&sol<=19){
@@ -162,7 +155,7 @@ if(s.shieldLevel===0){s.crew.forEach(function(c){c.health=Math.max(25,c.health-4
 if(st.plan==="shelter"){s.crew.forEach(function(c){c.morale=Math.min(100,c.morale+2)})}
 log(s,"Storm, turn "+(sol-15)+" of 4: "+(loss?loss+" parts lost. ":"shield held. ")+(st.plan==="shelter"?"Crew sheltering.":"Experiment shift running."));
 if(sol===19){st.storm=false;log(s,"The storm passes. The crew is safe.")}}
-/* early warnings from observed drain */
+
 var p=st.prev;
 if(p){["o2","water","food"].forEach(function(k){
 var d=p[k]-s.res[k];
@@ -208,7 +201,6 @@ var hide=!!(s&&s.story&&!s.over&&need&&s.sol<need&&!tourOn&&s.difficulty!=="comm
 b.classList.toggle("stHide",hide)});
 if(s&&s.story){var ch=chapter(s.sol);var cl=$("stChap");if(cl){cl.textContent=CH[ch]}}}
 
-/* ---------- outpost scene ---------- */
 function runway(s){var p=s.story.prev,min=99;if(!p){return 99}
 ["o2","water","food"].forEach(function(k){var d=(s.story.prev0||p)[k]-s.res[k];if(d>0){min=Math.min(min,s.res[k]/d)}});return min}
 var lastSig="";
@@ -231,28 +223,27 @@ g+='<rect width="600" height="170" fill="url(#stSk)"/>';
 for(var i=0;i<30;i++){g+='<circle cx="'+((i*97)%600)+'" cy="'+((i*53)%95)+'" r="'+(i%4?0.8:1.4)+'" fill="#cfe0ff" opacity=".7"/>'}
 g+='<circle cx="520" cy="38" r="14" fill="#4d9bff" opacity=".85"/><circle cx="526" cy="34" r="14" fill="#05080f" opacity=".0"/>';
 g+='<path d="M0 135 Q150 118 300 130 T600 124 V170 H0Z" fill="#6c7380"/><path d="M0 150 Q200 138 380 148 T600 146 V170 H0Z" fill="#555c68"/>';
-/* shield dome */
+
 if(s.shieldLevel>0){g+='<path d="M200 132 A110 80 0 0 1 420 132" fill="none" stroke="#6fd3ff" stroke-width="'+Math.min(5,1+s.shieldLevel)+'" opacity="'+Math.min(.85,.25+s.shieldLevel*.15)+'" stroke-dasharray="'+(s.shieldLevel>=3?'0':'6 5')+'"/>'}
-/* habitat */
+
 var hx=270;
 g+='<circle cx="'+(hx+30)+'" cy="112" r="46" fill="url(#stGl)"/>';
 g+='<path d="M'+hx+' 132 A30 30 0 0 1 '+(hx+60)+' 132Z" fill="#aab4c4" stroke="#e8f2ff"/>';
 g+='<rect x="'+(hx+24)+'" y="108" width="12" height="9" fill="'+col+'"><title>Habitat light: '+light+'</title></rect>';
 for(var h=1;h<cnt("habitat");h++){g+='<path d="M'+(hx+66+(h-1)*40)+' 132 A18 18 0 0 1 '+(hx+102+(h-1)*40)+' 132Z" fill="#8f99aa" stroke="#e8f2ff"/>'}
-/* solars */
+
 for(var a=0;a<Math.min(6,cnt("solar"));a++){var sx=110+a*32;g+='<rect x="'+sx+'" y="116" width="26" height="9" fill="#2a4a8f" stroke="#8fb3ff" transform="skewX(-12)"/><line x1="'+(sx+11)+'" y1="125" x2="'+(sx+11)+'" y2="134" stroke="#8fb3ff" transform="skewX(-12)"/>'}
 if(cnt("lab")){g+='<rect x="450" y="118" width="28" height="14" fill="#c8d0dd" stroke="#fff"/><circle cx="464" cy="118" r="5" fill="#6fd3ff"/>'}
 if(cnt("greenhouse")){g+='<path d="M490 132 L496 114 H526 L532 132Z" fill="#2fa86a" opacity=".6" stroke="#9af0c0"/>'}
-/* seedling */
+
 var gr=Math.min(1,s.sol/24),sh=4+gr*22;
 g+='<g transform="translate(250 134)"><line x1="0" y1="0" x2="0" y2="-'+sh+'" stroke="#38e08a" stroke-width="2"/>'+(gr>.25?'<ellipse cx="-5" cy="-'+(sh*.7)+'" rx="5" ry="2.5" fill="#38e08a"/>':'')+(gr>.55?'<ellipse cx="6" cy="-'+(sh*.9)+'" rx="5" ry="2.5" fill="#38e08a"/>':'')+'</g>';
-/* crew */
+
 alive(s).forEach(function(c,i){var cc=c.health>=70?"#e8f2ff":c.health>=40?"#ffcf6b":"#ff6b6b";g+='<circle cx="'+(180+i*16)+'" cy="138" r="4" fill="'+cc+'"><title>'+esc(c.name)+' health '+Math.round(c.health)+'</title></circle><rect x="'+(177+i*16)+'" y="142" width="6" height="7" fill="'+cc+'"/>'});
 if(s.story.storm){for(var p=0;p<26;p++){g+='<line class="stPart" x1="'+(p*23)+'" y1="-10" x2="'+(p*23-14)+'" y2="14" stroke="#ffd9a0" stroke-width="1.2" opacity=".7" style="animation-delay:'+(-(p%7)*.3)+'s"/>'}}
 g+='</svg><div class="cap"><b id="stChap"></b> &middot; Habitat light: <b style="color:'+col+'">'+light.toUpperCase()+'</b> &middot; Shield '+s.shieldLevel+' &middot; Crew '+alive(s).length+'/'+s.crew.length+(s.story.storm?' &middot; STORM (game)':'')+'</div>';
 box.innerHTML=g}
 
-/* ---------- ending ---------- */
 var ENDS={
 thriving:{t:"Ending: A thriving camp",x:"Everyone is healthy, the science target is met, and the green light is still on. Mei's seedling is taller than her hand."},
 hardwon:{t:"Ending: Hard-won success",x:"You hit the science target and the crew is safe, though someone needs a few days with Kofi. The light is still on."},
@@ -275,7 +266,6 @@ say({who:"Mission debrief",title:e.t,text:t,rule:"<b>Real vs game rule.</b> Real
 {label:"Mission Control: \"Your mission wasn't to do everything. It was to decide what mattered, and take care of the people depending on you.\"",sub:"Close debrief, then one last question",fn:function(){lastQ(s,function(){})}},
 {label:"Retry the mission",sub:"Start fresh from the setup screen.",fn:function(){location.reload()}}]})}
 
-/* ---------- sources ---------- */
 function sources(){
 say({who:"Sources",title:"What is real and what is a game rule",text:[
 "<b>Real, saved copy (fetched 15 Nov 2026, not live):</b> NASA DONKI (Space Weather Database Of Notifications, Knowledge, Information) recorded, for May 2024: "+(window.DONKI_SAVED?DONKI_SAVED.cmeCount8to9May+" CMEs (clouds of charged gas from the Sun) on 8 and 9 May, the first at 05:36 UTC on 8 May. It recorded "+DONKI_SAVED.sepTotal+" solar energetic particle events from 9 to 13 May. It recorded "+DONKI_SAVED.gstCountMay+" geomagnetic storms (shaking of Earth's magnetic field) in the month. The strongest began on 10 May at 15:00 UTC, about "+Math.round(DONKI_SAVED.hoursFirstCmeToStormStart)+" hours after that first CME was recorded. These are Earth-based records. They are not a Moon forecast.":"a real NASA database of space weather events.")+" The Rim Camp storm is fiction and uses none of these numbers.",
@@ -290,7 +280,6 @@ var sp=$("statusPanel");if(sp){var sc=document.createElement("div");sc.id="stSce
 var su=$("setup");if(su){var n=document.createElement("p");n.className="hint";n.id="stNote";n.innerHTML="<b>Story mode:</b> Moon + Science objective + no scenario + Explorer or Cadet starts the fictional RIM CAMP story. Anything else is plain sandbox.";su.appendChild(n)}
 var style=document.createElement("style");style.textContent="@keyframes stFall{from{transform:translate(0,0)}to{transform:translate(-30px,170px)}}.stPart{animation:stFall 1.1s linear infinite}@media (prefers-reduced-motion:reduce){.stPart{animation:none}}";document.head.appendChild(style)}
 
-/* ---------- wiring ---------- */
 function begin(){
 var s=S();if(!s||s.story){return}
 var on=s.site==="moon"&&!s.scenario&&s.objectiveMode==="science"&&s.difficulty!=="commander";

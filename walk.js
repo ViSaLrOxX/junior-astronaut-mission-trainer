@@ -1,7 +1,4 @@
-/* WALK THE BASE: a playable astronaut layer for the Junior Astronaut Mission Trainer.
-   You walk between the base's modules, do routine jobs and fix faults. Every job costs hours from a short working day,
-   and the mission (science goal before the return window) needs hours too. Reads and changes the game state through
-   window.__S() and TrainerEngine. Game rules here are simplified teaching rules, not real procedures. */
+
 (function(){
 "use strict";
 var $=function(id){return document.getElementById(id)};
@@ -18,7 +15,7 @@ shield:["Stack regolith bags on the wall","regolith",3],medbay:["Restock the fir
 comms:["Align the dish and check the signal","science",2],drill:["Clear the drill bit","regolith",3],workshop:["Sweep up the regolith dust","parts",1],
 algae:["Stir the algae tank","food",2],observatory:["Wipe the telescope dome","morale",2],gym:["Do a workout","health",2],pad:["Walk the pad for loose debris","parts",1]};
 var NAME={mission:"Mission console"};
-/* EVA planning constants. Sources (NASA): ISS suit 7 h max = 15 min egress + 6 h work + 15 min ingress + 30 min reserve; Artemis suit: at least 8 h, 1 h contingency, 2 km/h walking, distance limited by the walk back. Distances and the hours pool are game conventions. */
+
 var EVA={egress:.25,ingress:.25,speed:2000,reserve:1,cap:8,walkMax:1};
 function evaOn(){return !(window.__walkFast&&!window.__evaReal)}
 function r1(x){return Math.round(x*10)/10}
@@ -126,7 +123,7 @@ var warn=isStorm(s)?"STORM: outdoor jobs are unsafe and the day is shorter. Stay
 warnEl.textContent=warn;warnEl.hidden=!warn;
 var res=s.res,chips=[["O₂",res.o2,60],["Water",res.water,60],["Food",res.food,40],["Parts",res.parts,10]];
 infoEl.innerHTML=chips.map(function(c){var v=Math.floor(c[1]),cl=v<c[2]*0.6?"lo":(v<c[2]?"mid":"ok");return'<span class="wkChip '+cl+'">'+c[0]+" "+v+"</span>"}).join("")}
-/* ---------- first-person drawing (software 3D on a 2D canvas: perspective projection, shaded faces, long low-sun shadows) ---------- */
+
 var EYE=1.7,HZ0=.5,SUN=(function(){var v=[-.55,.28,.78],l=Math.sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);return[v[0]/l,v[1]/l,v[2]/l]})();
 var rocks=null,craters=null,stars=null;
 function rng(seed){var s=seed;return function(){s=(s*1664525+1013904223)%4294967296;return s/4294967296}}
@@ -144,14 +141,13 @@ function polyP(pts,fill,alpha){var o=[];for(var i=0;i<pts.length;i++){var p=pr(p
 cx.beginPath();cx.moveTo(o[0].x,o[0].y);for(var j=1;j<o.length;j++){cx.lineTo(o[j].x,o[j].y)}cx.closePath();if(alpha!==undefined){cx.globalAlpha=alpha}cx.fillStyle=fill;cx.fill();cx.globalAlpha=1;return o}
 function lit(n){return .28+.72*Math.max(0,n[0]*SUN[0]+n[1]*SUN[1]+n[2]*SUN[2])}
 function dist(x,z){return Math.sqrt((x-P.x)*(x-P.x)+(z-P.z)*(z-P.z))}
-function quad(a,b,c,d,n,rgb,storm,al,dd){polyP([a,b,c,d],shade(rgb,lit(n),fogOf(dd,storm)),al)}
 function box(x,y,z,w,dp,h,rgb,storm,al){
 var hw=w/2,hd=dp/2,d0=dist(x,z);
 var V=[[x-hw,y,z-hd],[x+hw,y,z-hd],[x+hw,y,z+hd],[x-hw,y,z+hd],[x-hw,y+h,z-hd],[x+hw,y+h,z-hd],[x+hw,y+h,z+hd],[x-hw,y+h,z+hd]];
 var F6=[[[0,1,5,4],[0,0,-1]],[[1,2,6,5],[1,0,0]],[[2,3,7,6],[0,0,1]],[[3,0,4,7],[-1,0,0]],[[4,5,6,7],[0,1,0]]];
 F6.forEach(function(f){var n=f[1];var cxn=x+n[0]*hw,czn=z+n[2]*hd;if((P.x-cxn)*n[0]+(P.z-czn)*n[2]<0&&n[1]===0){return}if(n[1]===1&&P.x===x){}
 polyP(f[0].map(function(i){return V[i]}),shade(rgb,lit(n),fogOf(d0,storm)),al)})}
-function face(x,y,z,w,h,side,rgb,storm,al){/* flat emissive quad on a box face */
+function face(x,y,z,w,h,side,rgb,storm,al){
 var d0=dist(x,z),c=rgb;var p;
 if(side==="n"){p=[[x-w/2,y,z],[x+w/2,y,z],[x+w/2,y+h,z],[x-w/2,y+h,z]]}else if(side==="s"){p=[[x-w/2,y,z],[x+w/2,y,z],[x+w/2,y+h,z],[x-w/2,y+h,z]]}else if(side==="w"){p=[[x,y,z-w/2],[x,y,z+w/2],[x,y+h,z+w/2],[x,y+h,z-w/2]]}
 polyP(p,"rgb("+Math.round(c[0]*(1-fogOf(d0,storm)*.6))+","+Math.round(c[1]*(1-fogOf(d0,storm)*.6))+","+Math.round(c[2]*(1-fogOf(d0,storm)*.6))+")",al)}
@@ -168,7 +164,7 @@ quads.sort(function(u,v){return v.dd-u.dd});
 quads.forEach(function(q){var base=shade(rgb,lit(q.n),fogOf(d0,storm));var o=polyP(q.P,base,al);
 if(o&&q.a===1&&(q.s===1||q.s===5||q.s===9)&&!storm){polyP([[q.P[0][0],q.P[0][1]+.1,q.P[0][2]],[q.P[1][0],q.P[1][1]+.1,q.P[1][2]],[q.P[2][0],q.P[2][1]-.1,q.P[2][2]],[q.P[3][0],q.P[3][1]-.1,q.P[3][2]]],"rgb(255,214,120)",1)}})}
 function disk(x,y,z,r,tilt,rot,rgb,storm){var d0=dist(x,z),pts=[];for(var i=0;i<16;i++){var a=i/16*6.2832+rot,lx=Math.cos(a)*r,lz=Math.sin(a)*r;pts.push([x+lx,y+Math.sin(tilt)*lz*.6+Math.cos(tilt)*0,z+lz*Math.cos(tilt)])}polyP(pts,shade(rgb,.9,fogOf(d0,storm)))}
-function shadow(m,x,z,r,h,storm){/* long low-sun shadow: footprint dragged away from the sun */
+function shadow(m,x,z,r,h,storm){
 var L=h*2.2,dx=-SUN[0],dz=-SUN[2],n=Math.sqrt(dx*dx+dz*dz);dx/=n;dz/=n;
 var seg=10,fp=[],sp=[];for(var i=0;i<seg;i++){var a=i/seg*6.2832;var px=x+Math.cos(a)*r,pz=z+Math.sin(a)*r;fp.push([px,0,pz]);sp.push([px+dx*L,0,pz+dz*L])}
 cx.fillStyle="rgba(0,0,0,"+(storm?.18:.38)+")";
@@ -239,7 +235,7 @@ if(storm!==wasStorm){wasStorm=storm;list()}
 var grav=(s.site==="mars")?9.2:5.2;if(P.jumpY>0||P.jumpV!==0){P.jumpY+=P.jumpV*dt;if(P.jumpY>0){P.jumpV-=grav*dt}else{P.jumpY=0;P.jumpV=0}}
 var bob=((!reduce&&fwd)?Math.sin(P.step)*3:0)+P.jumpY*26;HZ=ch*.5+bob;
 var t=P.t;
-/* sky */
+
 var sky=cx.createLinearGradient(0,0,0,HZ);var mars=s.site==="mars";
 if(storm){sky.addColorStop(0,"#2a1f1c");sky.addColorStop(1,mars?"#8a5236":"#3a3a44")}else{sky.addColorStop(0,mars?"#2a1a2e":"#02040a");sky.addColorStop(1,mars?"#b96a44":"#1d2a48")}
 cx.fillStyle=sky;cx.fillRect(0,0,cw,ch);
@@ -248,13 +244,13 @@ if(!storm){stars.forEach(function(st){var sx=((st.u*cw*3-P.yaw*cw*.55)%(cw*3)+cw
 var sunx=cw/2+((Math.atan2(SUN[2],SUN[0])-P.yaw+Math.PI*3)%(6.2832)-Math.PI)*F*.9,suny=HZ-HZ*.28;
 var sg=cx.createRadialGradient(sunx,suny,2,sunx,suny,90);sg.addColorStop(0,"rgba(255,250,230,.95)");sg.addColorStop(.15,"rgba(255,240,200,.35)");sg.addColorStop(1,"rgba(255,240,200,0)");cx.fillStyle=sg;cx.fillRect(sunx-90,suny-90,180,180);
 var ex=((((-.5-P.yaw)+Math.PI*3)%6.2832)-Math.PI)*F*.9+cw/2;cx.fillStyle="rgb(70,120,220)";cx.beginPath();cx.arc(ex,HZ*.45,16,0,6.3);cx.fill();cx.fillStyle="rgba(255,255,255,.3)";cx.beginPath();cx.arc(ex-5,HZ*.45-5,7,0,6.3);cx.fill()}
-/* horizon ridge + ground */
+
 cx.fillStyle="#2c3044";cx.beginPath();cx.moveTo(0,HZ);for(var rx=0;rx<=cw;rx+=20){cx.lineTo(rx,HZ-6-8*Math.sin(rx*.013+P.yaw*3)-5*Math.sin(rx*.04+1.3))}cx.lineTo(cw,HZ);cx.fill();
 var gg=cx.createLinearGradient(0,HZ,0,ch);gg.addColorStop(0,mars?"#6a3b2c":"#3b3f4f");gg.addColorStop(.35,mars?"#7f4631":"#5a5e6c");gg.addColorStop(1,mars?"#93523a":"#6e7280");cx.fillStyle=gg;cx.fillRect(0,HZ,cw,ch-HZ);
-/* craters */
+
 craters.forEach(function(c){var ring=[],ok=true;for(var i=0;i<14;i++){var a=i/14*6.2832;var p=pr(c.x+Math.cos(a)*c.r,0,c.z+Math.sin(a)*c.r);if(!p){ok=false;break}ring.push(p)}
 if(!ok){return}cx.beginPath();cx.moveTo(ring[0].x,ring[0].y);for(var j=1;j<ring.length;j++){cx.lineTo(ring[j].x,ring[j].y)}cx.closePath();cx.fillStyle="rgba(0,0,0,.16)";cx.fill();cx.strokeStyle="rgba(255,255,255,.07)";cx.lineWidth=1;cx.stroke()});
-/* rocks and objects, far to near */
+
 var items=[];
 rocks.forEach(function(r){var d=dist(r.x,r.z);if(d<1.5||d>110){return}var dx=r.x-P.x,dz=r.z-P.z;var dep=dx*cosY+dz*sinY;if(dep<.4){return}items.push({d:d,t:"r",r:r})});
 ms.forEach(function(m){var d=dist(m.wx,m.wz);items.push({d:d,t:"m",m:m})});
@@ -266,16 +262,16 @@ if(it.t==="r"){var p=pr(it.r.x,0,it.r.z);if(!p){return}var rr=Math.max(1,it.r.s*
 else if(it.t==="m"){drawMod(it.m,s,storm,t)}
 else if(it.t==="s"){window.__survey.draw(it.o,cx,pr,F,fogOf,storm,t,s)}
 else{var o=it.o,sc=(1.8*F/o.p.d)/72;drawAstro(o.p.x,o.p.y,sc,o.n.col,"#334",false)}});
-/* storm dust */
+
 if(storm){cx.fillStyle="rgba(120,80,50,.22)";cx.fillRect(0,0,cw,ch);if(!reduce){cx.strokeStyle="rgba(235,205,170,.4)";cx.lineWidth=1;for(var d2=0;d2<70;d2++){var px=((d2*71+t*520)%(cw+80))-40,py=(d2*37+t*50)%ch;cx.beginPath();cx.moveTo(cw-px,py);cx.lineTo(cw-px-30-d2%20,py+3);cx.stroke()}}}
-/* work effects */
+
 for(var q=fx.length-1;q>=0;q--){var f=fx[q];f.x+=f.vx;f.y+=f.vy;f.vy+=.1;f.l-=.025;if(f.l<=0){fx.splice(q,1);continue}cx.globalAlpha=f.l;cx.fillStyle=f.c;cx.fillRect(f.x,f.y,4,4)}cx.globalAlpha=1;
-/* helmet and visor */
+
 var vg=cx.createRadialGradient(cw/2,ch/2,Math.min(cw,ch)*.34,cw/2,ch/2,Math.max(cw,ch)*.75);vg.addColorStop(0,"rgba(0,0,0,0)");vg.addColorStop(1,"rgba(0,0,0,.72)");cx.fillStyle=vg;cx.fillRect(0,0,cw,ch);
 cx.strokeStyle="#0c0f18";cx.lineWidth=24;cx.beginPath();cx.moveTo(18,ch*.78);cx.quadraticCurveTo(-14,ch*.5,18,ch*.2);cx.quadraticCurveTo(cw/2,-ch*.1,cw-18,ch*.2);cx.quadraticCurveTo(cw+14,ch*.5,cw-18,ch*.78);cx.quadraticCurveTo(cw/2,ch*1.12,18,ch*.78);cx.stroke();
 cx.lineWidth=3;cx.strokeStyle="rgba(120,200,255,.25)";cx.beginPath();cx.moveTo(44,ch*.74);cx.quadraticCurveTo(14,ch*.5,44,ch*.24);cx.stroke();
 var rg=cx.createLinearGradient(0,0,cw,ch);rg.addColorStop(0,"rgba(255,255,255,.07)");rg.addColorStop(.4,"rgba(255,255,255,0)");cx.fillStyle=rg;cx.fillRect(0,0,cw,ch);
-/* hands */
+
 var wk=P.act&&!reduce?Math.sin(t*14)*8:0,hy=ch-(P.act?96:62)+bob*2;
 function glove(gx,gy){cx.fillStyle="#d9dde6";cx.beginPath();cx.ellipse(gx,gy,30,22,0,0,6.3);cx.fill();cx.fillStyle="#aab0be";cx.fillRect(gx-26,gy+8,52,6);cx.fillStyle="#c4c9d6";cx.beginPath();cx.arc(gx-14,gy-12,6,0,6.3);cx.arc(gx,gy-17,6,0,6.3);cx.arc(gx+14,gy-12,6,0,6.3);cx.fill()}
 glove(cw*.28,hy+wk);glove(cw*.72,hy-wk);
@@ -283,9 +279,9 @@ if(P.act&&!reduce){cx.save();cx.strokeStyle=P.act.j.kind==="fix"?"rgba(255,209,1
 for(var pi=popups.length-1;pi>=0;pi--){var pp=popups[pi];pp.y-=42*dt;pp.l-=0.75*dt;if(pp.l<=0){popups.splice(pi,1);continue}cx.save();cx.globalAlpha=Math.min(1,pp.l*1.4);cx.font="bold 16px Verdana";cx.fillStyle="#5eead4";cx.textAlign="center";cx.fillText(pp.txt,pp.x,pp.y);cx.restore()}
 cx.fillStyle="rgba(8,16,32,0.65)";cx.fillRect(cw*0.3,10,cw*0.4,20);cx.strokeStyle="rgba(111,211,255,0.4)";cx.strokeRect(cw*0.3,10,cw*0.4,20);
 ms.forEach(function(m){var ang=Math.atan2(m.wz-P.z,m.wx-P.x)-P.yaw;while(ang>Math.PI){ang-=6.2832}while(ang<-Math.PI){ang+=6.2832}if(Math.abs(ang)<1.2){var bx=cw*0.5+(ang/1.2)*(cw*0.19);cx.fillStyle=m.damaged?"#ff6b6b":(m.kind==="mission"?"#6fd3ff":"#7be0a0");cx.fillRect(bx-2,14,4,12)}});
-/* visor readout */
+
 var w=W(s);cx.font="bold 13px Verdana";cx.fillStyle="rgba(111,211,255,.9)";cx.fillText("HRS "+w.hours+"/"+w.total,cw*.12,34);cx.fillText("SOL "+s.sol+"/"+s.objectiveSols,cw*.12,52);cx.fillText("BOOST "+Math.round(P.boost)+"%",cw*.12,70);cx.textAlign="right";cx.fillText("SCI "+Math.floor(s.res.science)+"/"+s.objectiveScience,cw*.88,34);cx.fillText("O₂ "+Math.floor(s.res.o2),cw*.88,52);cx.textAlign="left";
-/* crosshair + prompt */
+
 cx.strokeStyle="rgba(255,255,255,.5)";cx.lineWidth=1;cx.beginPath();cx.moveTo(cw/2-8,HZ);cx.lineTo(cw/2+8,HZ);cx.moveTo(cw/2,HZ-8);cx.lineTo(cw/2,HZ+8);cx.stroke();
 if(P.act&&P.mini){var q=P.mini,bx=cw/2-110,by=ch*.6;cx.fillStyle="rgba(0,0,0,.65)";cx.fillRect(bx-6,by-22,232,52);cx.fillStyle="#2b3350";cx.fillRect(bx,by,220,14);cx.fillStyle="#3fbf7a";cx.fillRect(bx+220*.37,by,220*.26,14);cx.fillStyle="#fff";cx.fillRect(bx+220*q.x-2,by-4,4,22);cx.font="12px Verdana";cx.textAlign="center";cx.fillStyle="#cfe6ff";cx.fillText("Seat the patch: press E when the bar is in the green ("+q.n+"/3)",cw/2,by-8);cx.textAlign="left"}
 else if(P.act){cx.fillStyle="rgba(0,0,0,.6)";cx.fillRect(cw/2-70,ch*.62,140,10);cx.fillStyle="#7be0a0";cx.fillRect(cw/2-70,ch*.62,140*Math.min(1,P.prog),10)}
@@ -295,7 +291,7 @@ if(!txt&&!P.act&&!P.pend&&window.__survey){var svp=window.__survey.prompt(s,P.x,
 if(txt){cx.fillStyle="rgba(0,0,0,.62)";cx.fillRect(cw*.1,ch*.84,cw*.8,24);cx.fillStyle="#fff";cx.font="13px Verdana";cx.textAlign="center";cx.fillText(txt,cw/2,ch*.84+16);cx.textAlign="left"}}
 function dist2(a,b,c,d){return Math.sqrt((a-c)*(a-c)+(b-d)*(b-d))}
 function loop(now){drawFP(now);requestAnimationFrame(loop)}
-/* ---------- wiring ---------- */
+
 function build(){
 var g=$("game");if(!g||$("walkPanel")){return}
 panel=document.createElement("section");panel.id="walkPanel";panel.className="panel v-mission";panel.setAttribute("data-feat","walk");
@@ -318,7 +314,7 @@ else if(!P.pend){if(P.jumpY<=0.01){P.jumpV=(sNow&&sNow.site==="mars")?3.4:4.6}sa
 }});
 document.addEventListener("keyup",function(e){var k=e.key;if(k==="ArrowLeft"||k==="a"||k==="A"){keys.l=false}else if(k==="ArrowRight"||k==="d"||k==="D"){keys.r=false}else if(k==="ArrowUp"||k==="w"||k==="W"){keys.u=false}else if(k==="ArrowDown"||k==="s"||k==="S"){keys.d=false}else if(k==="Shift"){keys.boost=false}});
 cv.addEventListener("click",function(e){var s=S();if(!s){return}if(P.act&&P.mini){lockMini();return}var r=cv.getBoundingClientRect(),mx=(e.clientX-r.left)*cv.width/r.width,best=null,bd=1e9;mods(s).forEach(function(m){var p=pr(m.wx,2,m.wz);if(p){var d=Math.abs(p.x-mx);if(d<bd&&d<cv.width*.18){bd=d;best=m}}});if(best){P.tgt=best;P.auto=false;P.act=null;say("Walking to "+best.name+"...")}});
-/* menu card, first in the Mission menu */
+
 var card=document.createElement("button");card.className="wbCard wkCard";card.setAttribute("data-feat","walk");card.innerHTML="<b>Walk the base</b><span>Play the astronaut: daily jobs, faults and the mission clock</span>";
 var first=document.querySelector('.wbCard[data-feat="status"]');if(first&&first.parentNode){first.parentNode.insertBefore(card,first)}
 card.onclick=function(){window.__openFeat("walk")};

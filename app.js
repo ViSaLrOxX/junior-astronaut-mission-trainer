@@ -58,7 +58,7 @@ var sh=actx.createGain();sh.gain.value=2.4;sh.connect(g);var sb=shantyBed(actx,s
 var beat=60/SHANTY_BPM,nxt=actx.currentTime+.3,si=0;
 ping=setInterval(function(){if(!musNodes){return}while(nxt<actx.currentTime+.6){shantyStep(actx,sh,si,nxt);nxt+=beat;si++}},120)
 }else if(musMode==="eerie"){
-/* Eerie ship ambience: low hum, dissonant drone (minor second / tritone), slow filter sweep, feedback echo, sparse distant pings. */
+
 var eb=musRoot*2;
 var dly=actx.createDelay(2);dly.delayTime.value=.9;var fb=actx.createGain();fb.gain.value=.55;var wet=actx.createGain();wet.gain.value=.5;
 dly.connect(fb);fb.connect(dly);dly.connect(wet);wet.connect(g);
@@ -98,8 +98,6 @@ ping=setTimeout(function tick(){if(!musNodes){return}musPing();musNodes.ping=set
 g.gain.setTargetAtTime(musVol,actx.currentTime,2.5);
 musNodes={g:g,oscs:oscs,extra:extra,ping:ping}}
 
-/* Dark shanty: an ORIGINAL slow, low, sea-shanty-style bass march in D minor (slow 3/4, deep bass line, heavy low drum, choir-like pad, sea swell).
-   Not a copy of any existing tune. All synthesised in the browser. */
 var SHANTY_BPM=62,SHANTY_ROOT=73.42;
 var SHANTY_BARS=[[0,null,7],[0,5,3],[-4,null,3],[-2,5,-2],[0,null,7],[3,2,0],[-4,0,3],[-2,-2,0]];
 function shantyStep(ctx,dest,i,t){
@@ -628,7 +626,7 @@ function outpostLoop(){outpostT+=0.12;var cv=document.getElementById("outpostCv"
 if(!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches)){requestAnimationFrame(outpostLoop)}
 function storyArm(){
 if(!s||s.difficulty==="sandbox"){return}
-/* Moon + science + no scenario + not commander: handled by the RIM CAMP story layer (story.js) instead */
+
 if(s.site==="moon"&&!s.scenario&&s.objectiveMode==="science"&&s.difficulty!=="commander"){return}
 s.flags=s.flags||{};
 if(s.flags.storyArmed){return}
@@ -1444,7 +1442,6 @@ gKind=kind==="data"?"data":"parts";
 G("guide").hidden=false;
 showChooser()};
 })();
-
 
 (function(){
 function G(id){return document.getElementById(id)}

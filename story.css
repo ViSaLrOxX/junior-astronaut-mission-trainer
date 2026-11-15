@@ -1,4 +1,4 @@
-/* RIM CAMP story layer styling (overlay, outpost scene, warnings). Uses the shared theme accent. */
+
 :root{--glass:rgba(10,20,40,.62);--ink:#e8f2ff;--ink2:#a9bddb;--acc:var(--accent,#6fd3ff);--ok:#7be0a0;--warn:#ffcf6b;--bad:#ff8a8a}
 #stOv{position:fixed;inset:0;z-index:70;background:rgba(0,4,12,.6);display:flex;align-items:center;justify-content:center;padding:16px}
 #stOv[hidden]{display:none}
@@ -31,7 +31,7 @@ body.hc #stOv{background:#000}
 body.hc #stCard{background:#000;border:2px solid #fff}
 body.hc #stCard button{background:#000;color:#fff;border:2px solid #fff}
 
-/* science notebook */
+
 .labBox{border:1px solid rgba(80,220,200,.35);border-radius:8px;padding:10px 12px;margin:10px 0;background:rgba(8,16,28,.55)}
 .labTb{border-collapse:collapse;width:100%;font-size:.9em;margin:6px 0}
 .labTb th,.labTb td{border-bottom:1px solid rgba(255,255,255,.12);padding:3px 6px;text-align:left}
@@ -41,7 +41,7 @@ body.hc #stCard button{background:#000;color:#fff;border:2px solid #fff}
 #labPanel{grid-column:1/-1;max-width:100%;box-sizing:border-box}
 #labPanel select{max-width:100%;width:auto}
 
-/* radio calls: while Walk the base is open, the story card sits inline in the walk panel under the controls. It does not cover the view, the walk buttons or the footer. */
+
 #stOv.docked{position:static;inset:auto;background:none;display:block;padding:0;margin:8px 0;z-index:auto}
 #stOv.docked #stCard{max-height:none;max-width:none;width:auto;border-left:4px solid var(--acc)}
 #stOv.docked #stCard::before{content:"RADIO CALL - you can keep walking";display:block;font-size:.72rem;letter-spacing:.08em;color:var(--ok);margin-bottom:6px}
