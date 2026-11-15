@@ -28,6 +28,15 @@ Alongside the sim there is a quiz deck about the Moon and Mars, a drill mode tha
 
 Site parameters, events and quiz facts are baked into engine.js as plain data tables. Nothing is fetched at runtime.
 
+Real NASA data used:
+- NASA DONKI (ccmc.gsfc.nasa.gov/tools/DONKI/): a saved copy of the real May 2024 space-weather records (CMEs, solar energetic particle events, geomagnetic storms), shown in the Moon story's Sources card. Saved copy, not a live feed.
+- NASA Curiosity RAD: the Mars radiation scale of about 0.64 mSv per day (Hassler et al., Science 2014).
+- NASA MOXIE on Perseverance (NASA JPL): the O2 Generator is named after it.
+- NASA GISS Mars24: a Mars sol is 24 h 39 min 35 s.
+- NASA OCHMO radiation brief and NASA NTRS EVA references (ISS suit 7 h breakdown with 30 min reserve, Artemis suit 8 h with 1 h contingency, 2 km/h walk-back limit, EVA buddy pairs): the EVA planner's reserve rules.
+- Not NASA, said so in-game: the Moon radiation scale of about 1.44 mSv per day is from the Chang'e-4 LND instrument (CNSA lander, DLR instrument; Zhang et al., Science Advances 2020).
+Every other number in the game is an invented teaching model.
+
 ## Merged build: Walk the base + RIM CAMP story
 
 This build merges two lines of the game: the v31 build you sent (rooms, guided tour, HUD, themes, ambience modes, outpost scene, parts help, Sources card) and the earlier RIM CAMP build (story layer, saved NASA DONKI record, eerie ambience, supply boost, decision-linked learning). Nothing from either was dropped except where noted below.
