@@ -963,4 +963,33 @@ for(var m=0;m<64;m++){var sides={};sc.items.forEach(function(it,idx){sides[idx]=
 var c=E.fa8StowCheck(0,sides);if(c.pct<bp){bp=c.pct;best=c}}
 assert(best.ok&&best.stars===3,"a near-perfect split exists");
 assert(!E.fa8StowCheck(1,{}).ok,"all-port ascent load fails")});
+T("crew traits assigned and effective",function(){
+var s=E.newGame("moon",7,"explorer");
+assert(s.crew.length===4,"four crew");
+assert(s.crew.every(function(c){return !!c.trait}),"every crew has a trait");
+var kinds=s.crew.map(function(c){return c.trait});
+assert(new Set(kinds).size===4,"four distinct traits");
+assert(E.traitName("greenthumb")==="Green thumb","trait names resolve");
+s.res.parts=100;s.buildings[2].damaged=true;s.buildings[2].damageSol=0;
+var hasT=s.crew.some(function(c){return c.trait==="tinkerer"&&c.health>0});
+var before=s.res.parts;E.repair(s,2);
+var base=s.crew.some(function(c){return c.role==="Engineer"&&c.health>0})?3:5;
+assert(before-s.res.parts===(hasT?base-1:base),"tinkerer trims repair cost")});
+T("captain's call decisions",function(){
+var s=E.newGame("moon",7,"explorer");
+for(var i=0;i<5;i++){E.tick(s)}
+assert(s.pendingDecision!==null&&s.pendingDecision!==undefined,"decision pending at sol 5");
+var d=E.decisionInfo(s);
+assert(d&&d.title&&d.opts.length===2,"decision has title and two options");
+var sci=s.res.science;
+assert(E.applyDecision(s,0)===true,"first option applies");
+assert(s.pendingDecision===null,"decision cleared");
+assert(E.applyDecision(s,0)===false,"no double-apply");
+for(var j=0;j<5;j++){E.tick(s)}
+assert(s.pendingDecision!==null,"next decision at sol 10")});
+T("save roundtrip keeps traits",function(){
+var s=E.newGame("mars",3,"cadet");
+for(var i=0;i<3;i++){E.tick(s)}
+var rt=JSON.parse(JSON.stringify(s));
+assert(rt.crew.every(function(c){return !!c.trait}),"traits survive serialisation")});
 process.exit(fail+fail2+fail3+fail4+fail7+(fR8)+(fR9)+(fR10)+(fR11)+(fR12)+(fR13)+(fR14)+(fR15)+(fR16)+(fR17)+(fR18)?1:0);

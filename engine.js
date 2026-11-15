@@ -142,14 +142,14 @@ var d=difficulty||"explorer";
 var doseMult=d==="cadet"?0.55:(d==="commander"?1.3:1);
 var siteDef=SITES[site]||SITES.moon;
 var mult=d==="cadet"?1.35:(d==="commander"?0.8:1);
-var s={site:site,difficulty:d,sol:0,phase:"day",seed:seed||1,rngState:(seed||1)|0,missionName:"",
+var s={site:site,difficulty:d,sol:0,phase:"day",seed:seed||1,rngState:(seed||1)|0,missionName:"",pendingDecision:null,
 res:{o2:Math.round(siteDef.o2Start*mult),water:Math.round(siteDef.waterStart*mult),food:Math.round(siteDef.foodStart*mult),parts:Math.round(siteDef.startParts*mult),regolith:20,science:0},
 crew:[],buildings:[],shieldLevel:0,log:[],over:false,won:false,doseMult:doseMult,quizIndex:0,quizCorrect:0,quizDue:5,pendingQuiz:null,partsSpent:0,
 stormsSurvived:0,selfSufficientStreak:0,lastPowerGen:0,lastPowerUse:0,earned:[],objectiveScience:d==="cadet"?120:200,objectiveSols:d==="commander"?40:30,
 techs:{},rations:1,manifest:"mixed",scenario:null,powerStore:0,batteryNights:0,expeditionsDone:0,retrains:0,cropSwitches:0,totals:{science:0,power:0,water:0},schedule:[],
 history:[],milestonesHit:[],quizStreak:0,bestQuizStreak:0,solarBoostSols:0,shelterNext:false,evaShield:false,icePocketArmed:false,relayFixedUntil:0,objectiveMode:"science",podLight:false,redundancySol:-1};
 var n=4;
-for(var i=0;i<n;i++){s.crew.push({name:CREW_NAMES[i],health:100,morale:80,role:ROLES[i],xp:0,fatigue:0,away:0,expedDest:null})}
+for(var i=0;i<n;i++){s.crew.push({name:CREW_NAMES[i],health:100,morale:80,role:ROLES[i],xp:0,fatigue:0,away:0,expedDest:null,trait:TRAITS[(s.seed+i)%TRAITS.length].k})}
 s.buildings.push({type:"habitat",done:true,solsLeft:0,damaged:false,crop:null});
 s.buildings.push({type:"habitat",done:true,solsLeft:0,damaged:false,crop:null});
 s.buildings.push({type:"solar",done:true,solsLeft:0,damaged:false,crop:null});
@@ -187,6 +187,7 @@ function researchCost(s,id){var t=TECHS[id];if(!t){return 0}var c=t.cost;if(s.te
 function build(s,type){if(!canBuild(s,type)){return false}var def=BUILDINGS[type];s.res.parts-=def.cost;s.partsSpent=(s.partsSpent||0)+def.cost;s.buildings.push({type:type,done:false,solsLeft:def.buildSols,damaged:false,crop:type==="greenhouse"?"potato":null,damageSol:null});addLog(s,"Construction started: "+def.name+".");return true}
 function repair(s,idx){var b=s.buildings[idx];if(!b||!b.damaged){return false}
 var cost=bestRoleLevel(s,"Engineer")>0?3:5;
+if(hasTrait(s,"tinkerer")){cost=Math.max(1,cost-1)}
 if(s.res.parts<cost){return false}s.res.parts-=cost;s.partsSpent=(s.partsSpent||0)+cost;b.damaged=false;b.damageSol=null;addLog(s,"Repaired "+BUILDINGS[b.type].name+" for "+cost+" parts.");return true}
 function evaRepair(s,idx,crewIdx){
 var b=s.buildings[idx];
@@ -233,7 +234,7 @@ var ex=EXPEDITIONS[dest];c.expedDest=null;
 var broke=rand(s)<0.1;
 var f=broke?0.5:1;
 if(broke){c.health=Math.max(1,c.health-10);addLog(s,c.name+"'s rover broke down on the way back: -10 health, half haul.")}
-if(ex.science){var g=Math.round(ex.science*f);s.res.science+=g;s.totals.science+=g}
+if(ex.science){var g=Math.round(ex.science*f);if(c.trait==="pathfinder"){g=Math.round(g*1.25)}s.res.science+=g;s.totals.science+=g}
 if(ex.water){var w=Math.round(ex.water*f);if(dest==="icefield"&&s.icePocketArmed){w*=2;s.icePocketArmed=false;addLog(s,"The flagged ice pocket paid off: double water haul.")}s.res.water+=w;s.totals.water+=w}
 if(ex.parts){s.res.parts+=Math.round(ex.parts*f)}
 if(ex.relay){s.relayFixedUntil=s.sol+10;addLog(s,"Relay station back online: +2 data per sol for 10 sols.")}
@@ -280,6 +281,7 @@ if(def.o2){s.res.o2+=Math.round(def.o2*o2boost)}
 if(def.water){var wm=Math.round(def.water*siteDef.ice);s.res.water+=wm;s.totals.water+=wm}
 if(def.food){var crop=CROPS[s.buildings.filter(function(bb){return bb.type===t&&bb.done&&!bb.damaged})[0]?s.buildings.filter(function(bb){return bb.type===t&&bb.done&&!bb.damaged})[0].crop||"potato":"potato"];
 var wu=crop.water;var fo=crop.food;if(s.techs.advCrops){fo=Math.round(fo*1.5)}
+if(hasTrait(s,"greenthumb")){fo=Math.round(fo*1.25)}
 if(s.res.water>=wu){s.res.water-=wu;s.res.food+=fo}else{addLog(s,"Greenhouse lacks water.")}}
 if(def.heal){var healBoost=roleBoost(s,"Medic",2);for(var c=0;c<s.crew.length;c++){if(s.crew[c].health>0){s.crew[c].health=Math.min(100,s.crew[c].health+def.heal+healBoost)}}}
 if(def.science){var sci=def.science+roleBoost(s,"Scientist",2);s.res.science+=sci;s.totals.science+=sci}
@@ -316,7 +318,7 @@ if(s.techs.radShield){dose*=0.6}
 cr.health-=dose+deficit;
 cr.health=Math.max(0,Math.round(cr.health*10)/10);
 if(s.rations<1){cr.morale=Math.max(0,cr.morale-(s.rations===0.6?6:3));cr.health=Math.max(0,cr.health-(s.rations===0.6?2:0))}
-if(deficit>0){cr.morale=Math.max(0,cr.morale-12)}else if(s.rations===1){cr.morale=Math.min(100,cr.morale+2)}
+if(deficit>0){cr.morale=Math.max(0,cr.morale-12)}else if(s.rations===1){cr.morale=Math.min(100,cr.morale+(cr.trait==="optimist"?3:2))}
 cr.fatigue=Math.max(0,(cr.fatigue||0)-15);
 cr.xp=(cr.xp||0)+1;
 if((cr.fatigue||0)>85){cr.morale=Math.max(0,cr.morale-4)}
@@ -324,6 +326,8 @@ if(cr.health<=0){addLog(s,cr.name+" has died. The mission cannot recover from th
 }
 if(s.res.o2>0&&s.res.water>0&&s.res.food>0){s.selfSufficientStreak+=1}else{s.selfSufficientStreak=0}
 for(var e=0;e<events.length;e++){applyEvent(s,events[e])}
+if(s.pendingDecision===null||s.pendingDecision===undefined){
+if([5,10,15,20,25].indexOf(s.sol)>=0){s.pendingDecision=(s.seed+s.sol)%DECISIONS.length;addLog(s,"Mission Control needs a captain's call: "+DECISIONS[s.pendingDecision].title+".")}}
 if(s.sol%7===0){var pod=s.difficulty==="cadet"?1.35:1;
 if(countB(s,"pad")>0){pod*=1.5;addLog(s,"Landing pad guided the pod in: manifest boosted.")}
 if(s.podLight){pod*=0.5;s.podLight=false;addLog(s,"The off-target pod arrived light.")}
@@ -424,7 +428,7 @@ var cost=25;
 if(s.res.parts<cost){return false}
 if(s.crew.length>=crewCapacity(s)){return false}
 var idx=s.crew.length;
-s.crew.push({name:CREW_NAMES[idx%CREW_NAMES.length],health:100,morale:70,role:ROLES[idx%6],xp:0,fatigue:0,away:0,expedDest:null});
+s.crew.push({name:CREW_NAMES[idx%CREW_NAMES.length],health:100,morale:70,role:ROLES[idx%6],xp:0,fatigue:0,away:0,expedDest:null,trait:TRAITS[(s.seed+idx)%TRAITS.length].k});
 s.res.parts-=cost;s.partsSpent=(s.partsSpent||0)+cost;addLog(s,"New crew arrived: "+s.crew[s.crew.length-1].name+".");return true}
 function avgMorale(s){var a=s.crew.filter(function(c){return c.health>0});if(!a.length){return 0}return a.reduce(function(x,c){return x+c.morale},0)/a.length}
 function rest(s,idx){var c=s.crew[idx];if(!c||c.health<=0||(c.away||0)>0){return false}
@@ -434,6 +438,7 @@ if(!s.buildings.some(function(b){return b.type==="solar"&&b.done&&!b.damaged})){
 s.res.parts-=2;s.partsSpent=(s.partsSpent||0)+2;s.solarBoostSols=3;addLog(s,"Panels cleaned: solar output +20% for 3 sols.");return true}
 function repairAll(s){
 var cost=bestRoleLevel(s,"Engineer")>0?3:5;
+if(hasTrait(s,"tinkerer")){cost=Math.max(1,cost-1)}
 var fixed=0;
 for(var i=0;i<s.buildings.length;i++){var b=s.buildings[i];
 if(b.damaged&&s.res.parts>=cost){s.res.parts-=cost;s.partsSpent=(s.partsSpent||0)+cost;b.damaged=false;b.damageSol=null;fixed++}}
@@ -853,7 +858,7 @@ term=String(term||"").toLowerCase();
 return s.log.filter(function(e){return e.msg.toLowerCase().indexOf(term)>=0}).map(function(e){return{sol:e.sol,msg:e.msg}})}
 function crewSummary(s){
 return s.crew.map(function(c){
-return{name:c.name,role:c.role,level:cLevel(c),health:c.health,morale:c.morale,fatigue:c.fatigue,away:c.away||0}})}
+return{name:c.name,role:c.role,trait:traitName(c.trait),level:cLevel(c),health:c.health,morale:c.morale,fatigue:c.fatigue,away:c.away||0}})}
 function crewHealthAvg(s){
 var a=s.crew.filter(function(c){return c.health>0});
 if(!a.length){return 0}
@@ -2660,4 +2665,52 @@ var ok=pct<=sc.limit;
 var stars=ok?(pct<=2?3:(pct<=3.5?2:1)):0;
 var note=ok?(stars===3?"Near-perfect trim - the guidance system barely has to work.":(stars===2?"Within limits, with a little gimbal work needed.":"Just inside the limit. Fine for training, tight for a real pad.")):("Off balance: "+Math.round(pct*10)/10+" percent offset against a "+sc.limit+" percent limit. The heavier side would drag the craft over.");
 return{ok:ok,stars:stars,note:note,port:port,star:star,pct:Math.round(pct*10)/10,limit:sc.limit}}
-return{fa3MarathonNew:fa3MarathonNew,fa3MarathonQ:fa3MarathonQ,fa3MarathonAnswer:fa3MarathonAnswer,fa3Timeline:fa3Timeline,fa3Hunt:fa3Hunt,fa3HuntText:fa3HuntText,fa2Drill:fa2Drill,fa2DrillCount:fa2DrillCount,fa2PassportTotal:fa2PassportTotal,fa2PassportPct:fa2PassportPct,fa2PassportText:fa2PassportText,fa2PassportRemaining:fa2PassportRemaining,fa2Briefing:fa2Briefing,fa2Streak:fa2Streak,fa2StreakNext:fa2StreakNext,SITES:SITES,BUILDINGS:BUILDINGS,QUIZ:QUIZ,ACHIEVEMENTS:ACHIEVEMENTS,TECHS:TECHS,CROPS:CROPS,EXPEDITIONS:EXPEDITIONS,SCENARIOS:SCENARIOS,ROLES:ROLES,EVENTS:EVENTS,rest:rest,cleanSolar:cleanSolar,repairAll:repairAll,shelterMode:shelterMode,suitMaintenance:suitMaintenance,setObjectiveMode:setObjectiveMode,resourceHistory:resourceHistory,historyCSV:historyCSV,crewCSV:crewCSV,eventPreview:eventPreview,dryRunBuild:dryRunBuild,alerts:alerts,letterGrade:letterGrade,postMortem:postMortem,dailyChecklist:dailyChecklist,shareText:shareText,achievementProgress:achievementProgress,batteryStatus:batteryStatus,moraleReport:moraleReport,powerForecast:powerForecast,foodCalendar:foodCalendar,buildQueueEta:buildQueueEta,healthReport:healthReport,tutorialHints:tutorialHints,weeklySummary:weeklySummary,avgMorale:avgMorale,researchCost:researchCost,damageOne:damageOne,applyEvent:applyEvent,newGame:newGame,tick:tick,build:build,repair:repair,evaRepair:evaRepair,advise:advise,answerQuiz:answerQuiz,report:report,reportJSON:reportJSON,aliveCount:aliveCount,crewCapacity:crewCapacity,recruit:recruit,computePower:computePower,canBuild:canBuild,research:research,retrain:retrain,setRations:setRations,setCrop:setCrop,setManifest:setManifest,setMissionName:setMissionName,expedition:expedition,forecast:forecast,setScenario:setScenario,powerBreakdown:powerBreakdown,statsSummary:statsSummary,score:score,compareSites:compareSites,cLevel:cLevel,solReport:solReport,netRates:netRates,resourceRunway:resourceRunway,criticalCrew:criticalCrew,unpoweredList:unpoweredList,sciencePlan:sciencePlan,buildPlanCSV:buildPlanCSV,techTreeCSV:techTreeCSV,quizBankStats:quizBankStats,siteComparisonCSV:siteComparisonCSV,endgameProjection:endgameProjection,bestNextBuild:bestNextBuild,stormPrepChecklist:stormPrepChecklist,nightPrepChecklist:nightPrepChecklist,solMilestones:solMilestones,winProbabilityHint:winProbabilityHint,glossaryTerms:glossaryTerms,faqList:faqList,summaryEmailText:summaryEmailText,markdownLog:markdownLog,statsJSON:statsJSON,validateState:validateState,stateHash:stateHash,xpProgress:xpProgress,techRecommend:techRecommend,researchQueueCSV:researchQueueCSV,o2Sheet:o2Sheet,waterSheet:waterSheet,foodSheet:foodSheet,objectiveProgress:objectiveProgress,deadlineCheck:deadlineCheck,firstShortage:firstShortage,nearestAchievements:nearestAchievements,missionTimelineCSV:missionTimelineCSV,subsystemGrades:subsystemGrades,maintenancePlan:maintenancePlan,triviaOfTheSol:triviaOfTheSol,victoryGap:victoryGap,logSearch:logSearch,crewSummary:crewSummary,crewHealthAvg:crewHealthAvg,crewFatigueAvg:crewFatigueAvg,crewXpTotal:crewXpTotal,crewLevels:crewLevels,exhaustedCrew:exhaustedCrew,awayCrew:awayCrew,roleRoster:roleRoster,moraleSpread:moraleSpread,resLevels:resLevels,resLowest:resLowest,resRatios:resRatios,sciencePace:sciencePace,buildingTypes:buildingTypes,damagedList:damagedList,inProgressList:inProgressList,greenhouseList:greenhouseList,cropCoverage:cropCoverage,powerMargin:powerMargin,storeDays:storeDays,shieldInfo:shieldInfo,techsResearched:techsResearched,techsAvailable:techsAvailable,nextTechCost:nextTechCost,quizRecord:quizRecord,achievementPct:achievementPct,solsRemaining:solsRemaining,projectedScience:projectedScience,projectedWin:projectedWin,runwayTable:runwayTable,shortestRunway:shortestRunway,historyAt:historyAt,historyDelta:historyDelta,worstSol:worstSol,bestSol:bestSol,historyTrend:historyTrend,upcomingEvents:upcomingEvents,nextHazard:nextHazard,calendarNote:calendarNote,affordableBuildings:affordableBuildings,researchableNow:researchableNow,actionChecklist:actionChecklist,missionStatusLine:missionStatusLine,dangerScore:dangerScore,winOddsText:winOddsText,crewTableCSV:crewTableCSV,buildingsCSV:buildingsCSV,techCSV:techCSV,scheduleCSV:scheduleCSV,snapshotJSON:snapshotJSON,stateAudit:stateAudit,missionMd:missionMd,quizStatsText:quizStatsText,glossaryR5:glossaryR5,faqR5:faqR5,triviaR5:triviaR5,quizCheck01:quizCheck01,shuffleChoices:shuffleChoices,fa4EvaItems:fa4EvaItems,fa4EvaRound:fa4EvaRound,fa4EvaScore:fa4EvaScore,fa4Light:fa4Light,fa4Grav:fa4Grav,fa4Postcards:fa4Postcards,fa5SiteRound:fa5SiteRound,fa5SiteScore:fa5SiteScore,fa5DockNew:fa5DockNew,fa5DockBurn:fa5DockBurn,fa5RocketRound:fa5RocketRound,fa5RocketCheck:fa5RocketCheck,fa5DayNew:fa5DayNew,fa5DayCats:fa5DayCats,fa5DayScore:fa5DayScore,fa6DvMission:fa6DvMission,fa6DvCalc:fa6DvCalc,fa6DvCheck:fa6DvCheck,fa6WinRound:fa6WinRound,fa6WinScore:fa6WinScore,fa6ConjTasks:fa6ConjTasks,fa6ConjCheck:fa6ConjCheck,fa6PwrScen:fa6PwrScen,fa6PwrCheck:fa6PwrCheck,fa7OxScen:fa7OxScen,fa7OxCheck:fa7OxCheck,fa7RadScen:fa7RadScen,fa7RadLayers:fa7RadLayers,fa7RadCalc:fa7RadCalc,fa7RadCheck:fa7RadCheck,fa7SpinScen:fa7SpinScen,fa7SpinCalc:fa7SpinCalc,fa7SpinCheck:fa7SpinCheck,fa7OrbMission:fa7OrbMission,fa7OrbNotches:fa7OrbNotches,fa7OrbPeriod:fa7OrbPeriod,fa7OrbCheck:fa7OrbCheck,fa8KnowQs:fa8KnowQs,fa8KnowScore:fa8KnowScore,fa8StowScen:fa8StowScen,fa8StowCheck:fa8StowCheck}});
+
+var TRAITS=[
+{k:"greenthumb",name:"Green thumb",desc:"Greenhouses yield 25 percent more food while this astronaut is on their feet."},
+{k:"tinkerer",name:"Tinkerer",desc:"Repairs cost 1 fewer part while this astronaut is on their feet."},
+{k:"optimist",name:"Optimist",desc:"Recovers morale faster on good sols."},
+{k:"pathfinder",name:"Pathfinder",desc:"Brings back 25 percent more science from expeditions."}];
+function traitName(k){var t=TRAITS.filter(function(x){return x.k===k})[0];return t?t.name:""}
+function hasTrait(s,k){return s.crew.some(function(c){return c.health>0&&(c.away||0)<=0&&c.trait===k})}
+function assignTraits(s){s.crew.forEach(function(c,i){if(!c.trait){c.trait=TRAITS[(s.seed+i)%TRAITS.length].k}})}
+var DECISIONS=[
+{title:"Solar flare warning",text:"The Deep Space Network flags a flare arriving in 6 hours. The crew can shelter in the storm core and lose the work day, or keep working through elevated radiation.",
+opts:[{t:"Shelter the crew (lose 4 data, morale +4)",why:"Real crews shelter in the most shielded space and let the storm pass. Science waits; people do not get a second dose budget.",
+fx:function(s){s.res.science=Math.max(0,s.res.science-4);s.crew.forEach(function(c){if(c.health>0){c.morale=Math.min(100,c.morale+4)}})}},
+{t:"Work through it (+5 data, every crew -8 health)",why:"The data comes in, but the dose is real. Radiation exposure is the currency long missions run out of first.",
+fx:function(s){s.res.science+=5;s.totals.science+=5;s.crew.forEach(function(c){if(c.health>0){c.health=Math.max(1,c.health-8)}})}}]},
+{title:"Dust devil track crosses the solar field",text:"Orbital imagery shows a dust devil heading across the panels tomorrow. Covers cost parts; cleaning after costs a sol of output.",
+opts:[{t:"Fit dust covers now (-4 parts)",why:"Prevention beats repair: Apollo and Mars teams both lost more to dust than to any other single wear factor.",
+fx:function(s){s.res.parts=Math.max(0,s.res.parts-4)}},
+{t:"Risk it (the array takes damage)",why:"The devil does not miss. One array comes back scratched and underperforming until repaired.",
+fx:function(s){damageOne(s,"solar")}}]},
+{title:"A crew member asks for a rest day",text:"Fatigue is climbing and the most tired astronaut asks to stand down for a sol. The schedule says no; the medic says yes.",
+opts:[{t:"Grant the rest day (morale +8, -3 data)",why:"NASA flight surgeons treat fatigue as a safety risk, not a comfort issue. Rested crews make fewer expensive mistakes.",
+fx:function(s){s.res.science=Math.max(0,s.res.science-3);s.crew.forEach(function(c){if(c.health>0){c.morale=Math.min(100,c.morale+8);c.fatigue=Math.max(0,(c.fatigue||0)-30)}})}},
+{t:"Push on (+5 data, morale -6)",why:"The goal gets closer and everyone feels the cost. This trade is sometimes right - but it is never free.",
+fx:function(s){s.res.science+=5;s.totals.science+=5;s.crew.forEach(function(c){if(c.health>0){c.morale=Math.max(0,c.morale-6)}})}}]},
+{title:"Earth requests a live school broadcast",text:"A classroom of kids wants twenty minutes live with the crew. The comms window overlaps the science schedule.",
+opts:[{t:"Do the broadcast (morale +6, -3 data)",why:"Outreach is written into real mission plans: it lifts the crew and the next generation of engineers at once.",
+fx:function(s){s.res.science=Math.max(0,s.res.science-3);s.crew.forEach(function(c){if(c.health>0){c.morale=Math.min(100,c.morale+6)}})}},
+{t:"Decline politely (+4 data, morale -3)",why:"The schedule holds and the numbers look better. The crew notices what got priority.",
+fx:function(s){s.res.science+=4;s.totals.science+=4;s.crew.forEach(function(c){if(c.health>0){c.morale=Math.max(0,c.morale-3)}})}}]},
+{title:"The drill bites into an ice pocket",text:"The auger telemetry shows a rich ice vein two metres down. Careful extraction takes equipment time; a fast pull wastes half of it.",
+opts:[{t:"Careful extraction (+12 water, -3 parts)",why:"Water is oxygen, radiation shielding and rocket fuel in one. Patient extraction is how real ISRU plans are written.",
+fx:function(s){s.res.parts=Math.max(0,s.res.parts-3);s.res.water+=12;s.totals.water+=12}},
+{t:"Fast pull (+6 water)",why:"Half the pocket lost to fracture, but the drill is free for other work tomorrow.",
+fx:function(s){s.res.water+=6;s.totals.water+=6}}]},
+{title:"Pest in the greenhouse",text:"Something is eating the potato tray. Quarantine means losing a tray now; spraying costs supplies and stresses the plants.",
+opts:[{t:"Quarantine the tray (-8 food)",why:"One tray sacrificed to save the crop line. Biosphere 2 learned this the hard way - containment first.",
+fx:function(s){s.res.food=Math.max(0,s.res.food-8)}},
+{t:"Spray it (-2 parts, -2 food)",why:"Cheaper on food, harder on supplies. Both answers are defensible; the wrong answer was ignoring it.",
+fx:function(s){s.res.parts=Math.max(0,s.res.parts-2);s.res.food=Math.max(0,s.res.food-2)}}]}];
+function decisionInfo(s){if(s.pendingDecision===null||s.pendingDecision===undefined){return null}
+var d=DECISIONS[s.pendingDecision%DECISIONS.length];
+return{title:d.title,text:d.text,opts:d.opts.map(function(o){return{t:o.t,why:o.why}})}}
+function applyDecision(s,choice){if(s.pendingDecision===null||s.pendingDecision===undefined){return false}
+var d=DECISIONS[s.pendingDecision%DECISIONS.length];
+var o=d.opts[choice];if(!o){return false}
+o.fx(s);addLog(s,"Captain's call - "+d.title+": "+o.t);
+s.pendingDecision=null;return true}
+return{fa3MarathonNew:fa3MarathonNew,fa3MarathonQ:fa3MarathonQ,fa3MarathonAnswer:fa3MarathonAnswer,fa3Timeline:fa3Timeline,fa3Hunt:fa3Hunt,fa3HuntText:fa3HuntText,fa2Drill:fa2Drill,fa2DrillCount:fa2DrillCount,fa2PassportTotal:fa2PassportTotal,fa2PassportPct:fa2PassportPct,fa2PassportText:fa2PassportText,fa2PassportRemaining:fa2PassportRemaining,fa2Briefing:fa2Briefing,fa2Streak:fa2Streak,fa2StreakNext:fa2StreakNext,SITES:SITES,BUILDINGS:BUILDINGS,QUIZ:QUIZ,ACHIEVEMENTS:ACHIEVEMENTS,TECHS:TECHS,CROPS:CROPS,EXPEDITIONS:EXPEDITIONS,SCENARIOS:SCENARIOS,ROLES:ROLES,EVENTS:EVENTS,rest:rest,cleanSolar:cleanSolar,repairAll:repairAll,shelterMode:shelterMode,suitMaintenance:suitMaintenance,setObjectiveMode:setObjectiveMode,resourceHistory:resourceHistory,historyCSV:historyCSV,crewCSV:crewCSV,eventPreview:eventPreview,dryRunBuild:dryRunBuild,alerts:alerts,letterGrade:letterGrade,postMortem:postMortem,dailyChecklist:dailyChecklist,shareText:shareText,achievementProgress:achievementProgress,batteryStatus:batteryStatus,moraleReport:moraleReport,powerForecast:powerForecast,foodCalendar:foodCalendar,buildQueueEta:buildQueueEta,healthReport:healthReport,tutorialHints:tutorialHints,weeklySummary:weeklySummary,avgMorale:avgMorale,researchCost:researchCost,damageOne:damageOne,applyEvent:applyEvent,newGame:newGame,tick:tick,build:build,repair:repair,evaRepair:evaRepair,advise:advise,answerQuiz:answerQuiz,report:report,reportJSON:reportJSON,aliveCount:aliveCount,crewCapacity:crewCapacity,recruit:recruit,computePower:computePower,canBuild:canBuild,research:research,retrain:retrain,setRations:setRations,setCrop:setCrop,setManifest:setManifest,setMissionName:setMissionName,expedition:expedition,forecast:forecast,setScenario:setScenario,powerBreakdown:powerBreakdown,statsSummary:statsSummary,score:score,compareSites:compareSites,cLevel:cLevel,solReport:solReport,netRates:netRates,resourceRunway:resourceRunway,criticalCrew:criticalCrew,unpoweredList:unpoweredList,sciencePlan:sciencePlan,buildPlanCSV:buildPlanCSV,techTreeCSV:techTreeCSV,quizBankStats:quizBankStats,siteComparisonCSV:siteComparisonCSV,endgameProjection:endgameProjection,bestNextBuild:bestNextBuild,stormPrepChecklist:stormPrepChecklist,nightPrepChecklist:nightPrepChecklist,solMilestones:solMilestones,winProbabilityHint:winProbabilityHint,glossaryTerms:glossaryTerms,faqList:faqList,summaryEmailText:summaryEmailText,markdownLog:markdownLog,statsJSON:statsJSON,validateState:validateState,stateHash:stateHash,xpProgress:xpProgress,techRecommend:techRecommend,researchQueueCSV:researchQueueCSV,o2Sheet:o2Sheet,waterSheet:waterSheet,foodSheet:foodSheet,objectiveProgress:objectiveProgress,deadlineCheck:deadlineCheck,firstShortage:firstShortage,nearestAchievements:nearestAchievements,missionTimelineCSV:missionTimelineCSV,subsystemGrades:subsystemGrades,maintenancePlan:maintenancePlan,triviaOfTheSol:triviaOfTheSol,victoryGap:victoryGap,logSearch:logSearch,crewSummary:crewSummary,crewHealthAvg:crewHealthAvg,crewFatigueAvg:crewFatigueAvg,crewXpTotal:crewXpTotal,crewLevels:crewLevels,exhaustedCrew:exhaustedCrew,awayCrew:awayCrew,roleRoster:roleRoster,moraleSpread:moraleSpread,resLevels:resLevels,resLowest:resLowest,resRatios:resRatios,sciencePace:sciencePace,buildingTypes:buildingTypes,damagedList:damagedList,inProgressList:inProgressList,greenhouseList:greenhouseList,cropCoverage:cropCoverage,powerMargin:powerMargin,storeDays:storeDays,shieldInfo:shieldInfo,techsResearched:techsResearched,techsAvailable:techsAvailable,nextTechCost:nextTechCost,quizRecord:quizRecord,achievementPct:achievementPct,solsRemaining:solsRemaining,projectedScience:projectedScience,projectedWin:projectedWin,runwayTable:runwayTable,shortestRunway:shortestRunway,historyAt:historyAt,historyDelta:historyDelta,worstSol:worstSol,bestSol:bestSol,historyTrend:historyTrend,upcomingEvents:upcomingEvents,nextHazard:nextHazard,calendarNote:calendarNote,affordableBuildings:affordableBuildings,researchableNow:researchableNow,actionChecklist:actionChecklist,missionStatusLine:missionStatusLine,dangerScore:dangerScore,winOddsText:winOddsText,crewTableCSV:crewTableCSV,buildingsCSV:buildingsCSV,techCSV:techCSV,scheduleCSV:scheduleCSV,snapshotJSON:snapshotJSON,stateAudit:stateAudit,missionMd:missionMd,quizStatsText:quizStatsText,glossaryR5:glossaryR5,faqR5:faqR5,triviaR5:triviaR5,quizCheck01:quizCheck01,shuffleChoices:shuffleChoices,fa4EvaItems:fa4EvaItems,fa4EvaRound:fa4EvaRound,fa4EvaScore:fa4EvaScore,fa4Light:fa4Light,fa4Grav:fa4Grav,fa4Postcards:fa4Postcards,fa5SiteRound:fa5SiteRound,fa5SiteScore:fa5SiteScore,fa5DockNew:fa5DockNew,fa5DockBurn:fa5DockBurn,fa5RocketRound:fa5RocketRound,fa5RocketCheck:fa5RocketCheck,fa5DayNew:fa5DayNew,fa5DayCats:fa5DayCats,fa5DayScore:fa5DayScore,fa6DvMission:fa6DvMission,fa6DvCalc:fa6DvCalc,fa6DvCheck:fa6DvCheck,fa6WinRound:fa6WinRound,fa6WinScore:fa6WinScore,fa6ConjTasks:fa6ConjTasks,fa6ConjCheck:fa6ConjCheck,fa6PwrScen:fa6PwrScen,fa6PwrCheck:fa6PwrCheck,fa7OxScen:fa7OxScen,fa7OxCheck:fa7OxCheck,fa7RadScen:fa7RadScen,fa7RadLayers:fa7RadLayers,fa7RadCalc:fa7RadCalc,fa7RadCheck:fa7RadCheck,fa7SpinScen:fa7SpinScen,fa7SpinCalc:fa7SpinCalc,fa7SpinCheck:fa7SpinCheck,fa7OrbMission:fa7OrbMission,fa7OrbNotches:fa7OrbNotches,fa7OrbPeriod:fa7OrbPeriod,fa7OrbCheck:fa7OrbCheck,fa8KnowQs:fa8KnowQs,fa8KnowScore:fa8KnowScore,fa8StowScen:fa8StowScen,fa8StowCheck:fa8StowCheck,TRAITS:TRAITS,traitName:traitName,assignTraits:assignTraits,decisionInfo:decisionInfo,applyDecision:applyDecision}});

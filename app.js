@@ -382,7 +382,7 @@ if(s.sol<4){cl='<div class="bld"><div><strong>Crew roster unlocks at sol 4.</str
 s.crew.forEach(function(c,i){
 var lvl=TrainerEngine.cLevel(c);
 var st=c.health<=0?"DECEASED":(c.away>0?"ON EXPEDITION ("+c.away+" sol)":("H "+Math.round(c.health)+" / M "+Math.round(c.morale)+" / F "+Math.round(c.fatigue||0)+" / Lv"+lvl));
-cl+='<div class="crew"><span>'+c.name+" <small>("+c.role+")</small></span>"+'<button data-rest="'+i+'"'+(c.health<=0||c.away>0?" disabled":"")+">Rest</button>"+'<span class="h'+(c.health<40?" low":"")+'">'+st+"</span>"+'<select data-retrain="'+i+'"><option value="">retrain…</option>'+TrainerEngine.ROLES.map(function(r){return '<option value="'+r+'"'+(r===c.role?" disabled":"")+">"+r+"</option>"}).join("")+"</select></div>"});
+cl+='<div class="crew"><span>'+c.name+" <small>("+c.role+(c.trait?" - "+TrainerEngine.traitName(c.trait):"")+")</small></span>"+'<button data-rest="'+i+'"'+(c.health<=0||c.away>0?" disabled":"")+">Rest</button>"+'<span class="h'+(c.health<40?" low":"")+'">'+st+"</span>"+'<select data-retrain="'+i+'"><option value="">retrain…</option>'+TrainerEngine.ROLES.map(function(r){return '<option value="'+r+'"'+(r===c.role?" disabled":"")+">"+r+"</option>"}).join("")+"</select></div>"});
 $("crewList").innerHTML=cl;
 Array.prototype.forEach.call(document.querySelectorAll("[data-retrain]"),function(sel){
 sel.onchange=function(){if(sel.value){TrainerEngine.retrain(s,parseInt(sel.getAttribute("data-retrain"),10),sel.value);render()}}});
@@ -1599,4 +1599,34 @@ G("stNext").onclick=function(){stI++;G("stNext").hidden=true;stRender()};
 if(window.__featRefresh===undefined){window.__featRefresh={}}
 var prKn=window.__featRefresh.know;window.__featRefresh.know=function(){knRender();if(prKn){prKn()}};
 var prSt=window.__featRefresh.stow;window.__featRefresh.stow=function(){stRender();if(prSt){prSt()}};
+})();
+
+(function(){
+function G(id){return document.getElementById(id)}
+function decRender(){
+var card=G("decCard");if(!card){return}
+var s=window.__gameState?window.__gameState():null;
+var stOv=G("stOv");
+if(stOv&&!stOv.hidden){card.hidden=true;return}
+var d=s?TrainerEngine.decisionInfo(s):null;
+if(!d){card.hidden=true;return}
+card.hidden=false;
+G("decTitle").textContent="Captain's call: "+d.title;
+G("decText").textContent=d.text;
+G("decWhy").textContent="";
+var box=G("decOpts");box.innerHTML="";
+d.opts.forEach(function(o,i){
+var b=document.createElement("button");b.textContent=o.t;
+b.onclick=function(){
+TrainerEngine.applyDecision(s,i);
+G("decWhy").textContent=o.why;
+card.hidden=true;
+if(window.__fx){window.__fx.toast("Call made")}
+if(window.__render){window.__render()}};
+box.appendChild(b)})}
+var prR=window.__render;
+window.__render=function(){if(prR){prR()}decRender()};
+window.__decRender=decRender;
+decRender();
+setInterval(decRender,800);
 })();

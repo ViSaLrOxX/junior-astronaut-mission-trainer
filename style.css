@@ -120,6 +120,13 @@ main.anim .panel:nth-of-type(n+4){animation-delay:.08s}
 @media print{header,#controls,#setup,#viewNav,.wbMenu,#wbBack{display:none}body{background:#fff;color:#000}}
 
 .wbMenu{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+#decCard{grid-column:1/-1;background:rgba(10,19,40,.78);backdrop-filter:blur(10px);border:1px solid rgba(94,234,212,.45);border-radius:10px;padding:12px 14px;color:#dbe7fb;box-shadow:0 10px 34px rgba(0,0,0,.5)}
+#decCard h3{margin:0 0 6px;color:#bfe9ff;font-size:1rem}
+#decCard p{margin:0 0 10px;font-size:.88rem}
+#decOpts{display:grid;gap:8px}
+#decOpts button{text-align:left}
+body.hc #decCard{background:#000;border:2px solid #fff;color:#fff}
+body.hc #decCard h3{color:#fff}
 .wbSub{grid-column:1/-1;margin:10px 0 -4px;font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:#8fa6cc;border-bottom:1px dashed rgba(94,234,212,.25);padding-bottom:4px}
 body.hc .wbSub{color:#fff;border-bottom-color:#fff}
 .wbCard{display:flex;flex-direction:column;align-items:flex-start;gap:2px;background:rgba(255,255,255,.84);backdrop-filter:blur(8px);color:#1c2430;border:1px solid #dfe4ec;border-radius:10px;padding:12px 14px;text-align:left;transition:border-color .15s ease,transform .15s ease,box-shadow .15s ease;clip-path:none}
