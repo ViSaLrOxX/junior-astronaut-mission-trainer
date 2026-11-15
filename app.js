@@ -29,14 +29,14 @@ var musNodes=null;
 var ROOTS={mission:55,learn:49,reports:41.2,setup:61.7};
 var musRoot=ROOTS.setup;
 var musVol=.06;try{musVol=Math.max(0,Math.min(.12,parseFloat(localStorage.getItem("musVol")||".06")))}catch(e){}
-function musPing(){if(!musNodes){return}var f=560+Math.random()*160;
-[[.028,0],[.016,.5],[.008,.12]].forEach(function(p){
-var o=actx.createOscillator();o.type="sine";o.frequency.value=f*(p[1]===.12?2:1);
+function musPing(){if(!musNodes){return}var f=520+Math.random()*180;
+[[.016,0],[.009,.45],[.005,.1]].forEach(function(p){
+var o=actx.createOscillator();o.type="sine";o.frequency.value=p[1]===.1?f*2:f;
 var g=actx.createGain();g.gain.value=0;o.connect(g);g.connect(actx.destination);
 var t0=actx.currentTime+p[1];
-g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime(p[0],t0+.02);g.gain.exponentialRampToValueAtTime(.0001,t0+1.2);
-o.start(t0);o.stop(t0+1.3)})}
-var musMode="hum";try{musMode=localStorage.getItem("musMode")||"hum"}catch(e){}
+g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime(p[0],t0+.03);g.gain.exponentialRampToValueAtTime(.0001,t0+1.8);
+o.start(t0);o.stop(t0+1.9)})}
+var musMode="space";try{musMode=localStorage.getItem("musMode")||"space"}catch(e){}
 function noiseSrc(){
 var nb=actx.createBuffer(1,actx.sampleRate*2,actx.sampleRate);
 var nd=nb.getChannelData(0);for(var i=0;i<nd.length;i++){nd[i]=Math.random()*2-1}
@@ -53,41 +53,39 @@ if(!actx){actx=new (window.AudioContext||window.webkitAudioContext)()}
 if(actx.state==="suspended"){actx.resume()}
 var g=actx.createGain();g.gain.value=0;g.connect(actx.destination);
 var oscs=[],extra=[],ping=null;
-if(musMode==="space"){
-var ns=noiseSrc();
-var bp=actx.createBiquadFilter();bp.type="bandpass";bp.frequency.value=720;bp.Q.value=2.2;
-var ng=actx.createGain();ng.gain.value=.05;
-ns.connect(bp);bp.connect(ng);ng.connect(g);extra.push(ns);
-extra.push(lfoTo(.045,240,bp.frequency));
-oscs.push(drone(musRoot*4,"sine",.06,g));
-oscs.push(drone(musRoot*4.02,"sine",.05,g));
-ping=setInterval(musPing,6500+Math.random()*3000);
-}else if(musMode==="matter"){
-oscs.push(drone(musRoot*.67,"sine",.5,g));
-oscs.push(drone(musRoot*.675,"sine",.5,g));
-oscs.push(drone(musRoot*.335,"triangle",.28,g));
+if(musMode==="matter"){
+oscs.push(drone(musRoot*.5,"sine",.42,g));
+oscs.push(drone(musRoot*.75,"sine",.16,g));
+oscs.push(drone(musRoot*.25,"triangle",.14,g));
 var ns=noiseSrc();
 var nf=actx.createBiquadFilter();nf.type="lowpass";nf.frequency.value=90;
-var ng=actx.createGain();ng.gain.value=.14;
+var ng=actx.createGain();ng.gain.value=.11;
 ns.connect(nf);nf.connect(ng);ng.connect(g);extra.push(ns);
-extra.push(lfoTo(.05,.09,ng.gain));
-}else{
-var filt=actx.createBiquadFilter();filt.type="lowpass";filt.frequency.value=220;filt.connect(g);
-oscs.push(drone(musRoot,"sine",.5,filt));
-oscs.push(drone(musRoot*1.012,"sine",.5,filt));
-oscs.push(drone(musRoot*2,"triangle",.12,filt));
-oscs.push(drone(musRoot/1.5,"triangle",.3,filt));
+extra.push(lfoTo(.03,.035,ng.gain));
+}else if(musMode==="hum"){
+oscs.push(drone(musRoot,"sine",.42,g));
+oscs.push(drone(musRoot*2,"sine",.1,g));
+oscs.push(drone(musRoot*3,"sine",.045,g));
 var ns=noiseSrc();
-var nf=actx.createBiquadFilter();nf.type="lowpass";nf.frequency.value=140;
-var ng=actx.createGain();ng.gain.value=.1;
-ns.connect(nf);nf.connect(ng);ng.connect(filt);extra.push(ns);
-extra.push(lfoTo(.08,.06,ng.gain));
-extra.push(lfoTo(.13,musRoot*.004,oscs[0].frequency));
+var nf=actx.createBiquadFilter();nf.type="lowpass";nf.frequency.value=120;
+var ng=actx.createGain();ng.gain.value=.07;
+ns.connect(nf);nf.connect(ng);ng.connect(g);extra.push(ns);
+extra.push(lfoTo(.035,.025,ng.gain));
+}else{
+oscs.push(drone(musRoot*4,"sine",.05,g));
+oscs.push(drone(musRoot*6,"sine",.03,g));
+oscs.push(drone(musRoot*8,"sine",.02,g));
+var ns=noiseSrc();
+var bp=actx.createBiquadFilter();bp.type="bandpass";bp.frequency.value=720;bp.Q.value=1.6;
+var ng=actx.createGain();ng.gain.value=.035;
+ns.connect(bp);bp.connect(ng);ng.connect(g);extra.push(ns);
+extra.push(lfoTo(.02,140,bp.frequency));
+ping=setTimeout(function tick(){if(!musNodes){return}musPing();musNodes.ping=setTimeout(tick,16000+Math.random()*9000)},12000+Math.random()*6000);
 }
 g.gain.setTargetAtTime(musVol,actx.currentTime,2.5);
 musNodes={g:g,oscs:oscs,extra:extra,ping:ping}}
-function musStop(){if(!musNodes){return}var n=musNodes;musNodes=null;if(n.ping){clearInterval(n.ping)}n.g.gain.setTargetAtTime(0,actx.currentTime,.3);setTimeout(function(){n.oscs.concat(n.extra).forEach(function(o){try{o.stop()}catch(e){}})},1200)}
-function setRoom(v){musRoot=ROOTS[v]||ROOTS.mission;if(musNodes){musNodes.oscs.forEach(function(o,i){var f=musMode==="matter"?musRoot*(i===2?.335:(i===1?.675:.67)):(musMode==="space"?musRoot*(i===1?4.02:4):(i===0?musRoot:(i===1?musRoot*1.012:(i===2?musRoot*2:musRoot/1.5))));o.frequency.setTargetAtTime(f,actx.currentTime,1.2)})}}
+function musStop(){if(!musNodes){return}var n=musNodes;musNodes=null;if(n.ping){clearTimeout(n.ping)}n.g.gain.setTargetAtTime(0,actx.currentTime,.3);setTimeout(function(){n.oscs.concat(n.extra).forEach(function(o){try{o.stop()}catch(e){}})},1200)}
+function setRoom(v){musRoot=ROOTS[v]||ROOTS.mission;if(musNodes){musNodes.oscs.forEach(function(o,i){var f=musMode==="matter"?musRoot*(i===2?.25:(i===1?.75:.5)):(musMode==="hum"?musRoot*(i===2?3:(i===1?2:1)):musRoot*(i===2?8:(i===1?6:4)));o.frequency.setTargetAtTime(f,actx.currentTime,1.2)})}}
 function musModeSet(m){musMode=m;try{localStorage.setItem("musMode",m)}catch(e){};if(musNodes){musStop();musStart()}}
 function musSetVol(v){musVol=Math.max(0,Math.min(.12,v));try{localStorage.setItem("musVol",String(musVol))}catch(e){}if(musNodes){musNodes.g.gain.setTargetAtTime(musVol,actx.currentTime,.15)}}
 var burstP=[];
@@ -226,6 +224,7 @@ var CQUIZ=[
 {q:"Sheltering the crew keeps them safe. What does it cost?",a:["Oxygen and work time","Nothing at all","Rocket fuel"],c:0,why:"Shelter mode uses extra oxygen and pauses outside work."},
 {q:"Why can't Mission Control simply tell you what to do in an emergency?",a:["Radio signals take minutes to cross space","They are asleep","The radio only works at night"],c:0,why:"Radio waves move at light speed, and that still takes minutes between planets - crews must decide alone."}
 ];
+function hudFlash(id){var el=$(id);if(!el||!el.parentElement){return}var chip=el.parentElement;chip.classList.remove("hudFlash");void chip.offsetWidth;chip.classList.add("hudFlash")}
 function render(){
 if(!s){return}
 if(!s.flags){s.flags={}}
@@ -304,7 +303,7 @@ else{s.flags.ctxWhy="Not quite. "+cq.why+" Try again.";sndWrong();render()}
 }else{cc.hidden=true;if(sf){sf.ctxWhy=undefined}}
 var pl=$("partsLine");
 pl.innerHTML="Parts in store: <b>"+s.res.parts+"</b> &middot; spent this mission: "+(s.partsSpent||0);
-var hud=$("hud");if(hud){hud.hidden=false;$("hudSci").textContent=Math.floor(s.res.science);$("hudParts").textContent=s.res.parts}
+var hud=$("hud");if(hud){hud.hidden=false;var hPrev=window.__hudPrev;$("hudSci").textContent=Math.floor(s.res.science);$("hudParts").textContent=s.res.parts;if(hPrev){if(s.res.parts>hPrev.p){hudFlash("hudParts")}if(s.res.science>hPrev.d){hudFlash("hudSci")}}window.__hudPrev={p:s.res.parts,d:s.res.science}}
 var ph=$("partsHelp");
 if(ph){
 var drillN=s.buildings.filter(function(b){return b.type==="drill"&&b.done&&!b.damaged}).length;
@@ -424,6 +423,8 @@ if(!r.correct){var cb=document.querySelector('[data-quiz="'+q.c+'"]');if(cb){cb.
 if(r.correct){sndRight(s.quizStreak);burstFrom(btn)}else{sndWrong()}
 Array.prototype.forEach.call(document.querySelectorAll("[data-quiz]"),function(x){x.disabled=true});
 $("quizFact").textContent=(r.correct?"Correct! +6 parts, +5 data. ":"Not quite. ")+r.fact+(s.quizStreak>1?" Streak: "+s.quizStreak+".":"");
+if(r.correct){$("hudSci").textContent=Math.floor(s.res.science);$("hudParts").textContent=s.res.parts;hudFlash("hudParts");hudFlash("hudSci");window.__hudPrev={p:s.res.parts,d:s.res.science}}
+if(window.__tourEvent){window.__tourEvent(r.correct?"quiz":"quizwrong")}
 setTimeout(function(){qp.hidden=true;if(window.__closeFeat){window.__closeFeat()}if(s.flags&&s.flags.ctxPending!==undefined&&window.__openFeat){window.__openFeat("status")}render()},4200)}});
 }else{qp.hidden=true}
 var quizNow=s.pendingQuiz!==null&&!s.over;
@@ -701,6 +702,8 @@ var lv=$("launchVeil");
 if(lv&&!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches)){lv.hidden=false;void lv.offsetWidth;lv.classList.add("go");setTimeout(function(){lv.classList.remove("go");setTimeout(function(){lv.hidden=true},320)},380)}
 storyArm();
 window.__gameState=function(){return s};
+window.__armQuiz=function(){if(s&&s.pendingQuiz===null&&!s.over){s.pendingQuiz=s.quizIndex%TrainerEngine.QUIZ.length;render()}};
+window.__fx.setRoom("mission");
 $("setup").hidden=true;$("game").hidden=false;render();restoreView();if(window.__applyDiff){window.__applyDiff(s.difficulty)}if(window.__tourEvent){window.__tourEvent("launch")}};
 $("solBtn").onclick=function(){if(!s)return;TrainerEngine.tick(s);sndSol();if(window.__tourEvent){window.__tourEvent("sol")}postTick();render();if(window.__openFeat&&!window.__quizWas){window.__openFeat("status")}var sp=$("statusPanel");sp.classList.remove("pulse");void sp.offsetWidth;sp.classList.add("pulse")};
 $("autoBtn").onclick=function(){
@@ -715,6 +718,7 @@ $("loadBtn").onclick=function(){
 var raw=localStorage.getItem("jamtrainer");
 if(!raw){return}
 s=JSON.parse(raw);
+window.__fx.setRoom("mission");
 $("setup").hidden=true;$("game").hidden=false;render();restoreView();if(window.__applyDiff){window.__applyDiff(s.difficulty)}if(window.__tourEvent){window.__tourEvent("launch")}};
 $("contrastBtn").onclick=function(){document.body.classList.toggle("hc")};
 $("recruitBtn").onclick=function(){if(!s)return;TrainerEngine.recruit(s);render()};
@@ -723,7 +727,7 @@ applySnd();
 function applyTheme(t){if(["teal","amber","violet","crimson"].indexOf(t)<0){t="teal"}document.body.dataset.theme=t;try{localStorage.setItem("btnTheme",t)}catch(e){}}
 var initTheme="teal";try{initTheme=localStorage.getItem("btnTheme")||"teal"}catch(e){}
 if($("themeSel")){$("themeSel").value=initTheme;$("themeSel").onchange=function(){applyTheme($("themeSel").value)};applyTheme(initTheme)}
-if($("musModeSel")){try{$("musModeSel").value=localStorage.getItem("musMode")||"hum"}catch(e){}$("musModeSel").onchange=function(){musModeSet($("musModeSel").value)}}
+if($("musModeSel")){try{$("musModeSel").value=localStorage.getItem("musMode")||"space"}catch(e){}$("musModeSel").onchange=function(){musModeSet($("musModeSel").value)}}
 var idleMins=10;try{var im=parseInt(localStorage.getItem("idleMins")||"10",10);if(im===5||im===10||im===0){idleMins=im}}catch(e){}
 var idleT=null;
 function idleFire(){if(!s){return}var m=$("game");if(m.dataset.feat&&m.dataset.feat!=="quiz"&&window.__closeFeat){window.__closeFeat()}}
@@ -1030,7 +1034,8 @@ var steps=[
 {sel:"#menuMission .wbCard[data-feat='build']",menu:true,wait:"feat:build",text:"Back to the menu. Your turn: open the Build yard."},
 {target:"buildList",text:"Spend parts here. A Solar Array and an O2 Generator are smart first builds."},
 {target:"solBtn",menu:true,wait:"sol",text:"Your turn: press Advance one sol and live your first day."},
-{target:"hud",text:"See the counters at the top? Data and parts, always in view. The + buttons show you how to earn more."},
+{target:"quizPanel",arm:"quiz",wait:"quiz",top:true,text:"Time to earn for real: Mission Control is calling with a real question. Answer it - a right answer pays +6 parts and +5 data, straight into your counters."},
+{target:"hud",text:"See the counters at the top? Your quiz winnings are already in there. Data and parts stay in view, and the + buttons show you how to earn more."},
 {target:"hudPartsPlus",wait:"hudparts",text:"Try it now: tap the + next to Parts."},
 {target:"partsHelp",text:"There it is: every way to get more parts - drills and workshops, salvage trips, pods, quizzes and milestones."},
 {target:"hudSciPlus",menu:true,wait:"hudsci",text:"Now tap the + next to Data."},
@@ -1057,7 +1062,9 @@ window.__closeFeat=closeFeat;
 function showStep(){
 clearGlow();
 var st=steps[cur];
+G("tour").classList.toggle("tourTop",!!st.top);
 if(st.feat){openFeat(st.feat)}else if(st.menu){closeFeat()}
+if(st.arm==="quiz"&&window.__armQuiz){window.__armQuiz()}
 G("tourText").textContent="Step "+(cur+1)+" of "+steps.length+": "+st.text;
 var nb=G("tourNext");
 nb.textContent=cur===steps.length-1?"Done":"Next";
@@ -1072,7 +1079,13 @@ cur++;
 if(cur>=steps.length){tourEnd();return}
 showStep()};
 G("tourSkip").onclick=tourEnd;
-window.__tourEvent=function(name){if(active&&steps[cur].wait===name){cur++;showStep()}};
+window.__tourEvent=function(name){
+if(!active){return}
+if(name==="quizwrong"&&steps[cur].wait==="quiz"){
+if(window.__armQuiz){window.__armQuiz()}
+G("tourText").textContent="Step "+(cur+1)+" of "+steps.length+": Not quite - Mission Control has another question for you. Give this one a try!";
+return}
+if(steps[cur].wait===name){cur++;showStep()}};
 G("helpBtn").onclick=tourStart;
 G("musBtn").onclick=function(){var on=window.__fx.musToggle();G("musBtn").querySelector(".lb").textContent="Music: "+(on?"on":"off")};
 G("musBtn").querySelector(".lb").textContent="Music: "+(window.__fx.musState()?"on":"off");
