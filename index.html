@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Junior Astronaut Mission Trainer</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="stars"></div>
+<header>
+<h1>Junior Astronaut Mission Trainer</h1>
+<p class="tag">Run a real outpost. Balance power, oxygen, water, food and shielding the way mission planners do.</p>
+</header>
+<section id="setup" class="panel">
+<h2>Start a mission</h2>
+<label>Site
+<select id="siteSel">
+<option value="moon">Lunar South Pole</option>
+<option value="mars">Mars, Jezero Rim</option>
+</select></label>
+<label>Class
+<select id="diffSel">
+<option value="cadet">Cadet (easier)</option>
+<option value="explorer" selected>Explorer</option>
+<option value="commander">Commander (harder)</option>
+</select></label>
+<label>Mission seed <input id="seedSel" type="number" value="7" min="1"></label>
+<button id="startBtn">Launch</button>
+</section>
+<main id="game" hidden>
+<section class="panel" id="statusPanel">
+<h2 id="solLine">Sol 0</h2>
+<div id="objective"></div>
+<div id="bars"></div>
+<div id="powerLine"></div>
+</section>
+<section class="panel">
+<h2>Build</h2>
+<div id="buildList"></div>
+<button id="recruitBtn">Recruit crew (25 parts)</button>
+</section>
+<section class="panel">
+<h2>Crew</h2>
+<div id="crewList"></div>
+</section>
+<section class="panel">
+<h2>Outpost</h2>
+<div id="baseList"></div>
+</section>
+<section class="panel" id="quizPanel" hidden>
+<h2>Mission Control Quiz</h2>
+<div id="quizQ"></div>
+<div id="quizOpts"></div>
+<div id="quizFact"></div>
+</section>
+<section class="panel">
+<h2>Log</h2>
+<div id="log"></div>
+</section>
+<div id="controls">
+<button id="solBtn">Advance one sol</button>
+<button id="reportBtn">Download mission report</button>
+<button id="saveBtn">Save</button>
+<button id="loadBtn">Load</button>
+<button id="newBtn">New mission</button>
+</div>
+<div id="endBanner" hidden></div>
+<section class="panel">
+<h2>Achievements</h2>
+<div id="ach"></div>
+</section>
+</main>
+<script src="engine.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
