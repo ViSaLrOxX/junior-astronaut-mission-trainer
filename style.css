@@ -165,7 +165,11 @@ main.wb-open[data-feat="rocket"] section.panel[data-feat="rocket"]:not([hidden])
 main.wb-open[data-feat="dv"] section.panel[data-feat="dv"]:not([hidden]),
 main.wb-open[data-feat="window"] section.panel[data-feat="window"]:not([hidden]),
 main.wb-open[data-feat="conj"] section.panel[data-feat="conj"]:not([hidden]),
-main.wb-open[data-feat="power"] section.panel[data-feat="power"]:not([hidden]){display:block!important;grid-column:1/-1}
+main.wb-open[data-feat="power"] section.panel[data-feat="power"]:not([hidden]),
+main.wb-open[data-feat="oxygen"] section.panel[data-feat="oxygen"]:not([hidden]),
+main.wb-open[data-feat="shield"] section.panel[data-feat="shield"]:not([hidden]),
+main.wb-open[data-feat="spin"] section.panel[data-feat="spin"]:not([hidden]),
+main.wb-open[data-feat="orbit"] section.panel[data-feat="orbit"]:not([hidden]){display:block!important;grid-column:1/-1}
 @keyframes solPulse{0%{box-shadow:0 0 0 0 rgba(32,88,201,.3)}100%{box-shadow:0 0 0 12px rgba(32,88,201,0)}}
 .pulse{animation:solPulse .6s ease-out}
 body.hc .wbCard{background:#000;border-color:#fff}

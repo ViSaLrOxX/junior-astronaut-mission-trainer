@@ -924,4 +924,26 @@ var bad=E.fa6PwrCheck(0,5,20);
 assert(!bad.ok&&bad.problems.length>=2)
 var heavy=E.fa6PwrCheck(0,30,500);
 assert(!heavy.ok&&heavy.problems.join(" ").indexOf("Mass")>=0)});
+T("oxygen garden sizing",function(){
+var ok=E.fa7OxCheck(0,0,4);
+assert(ok.ok,"4 tanks cover the Mars transit with reserve");
+assert(E.fa7OxCheck(0,0,4).supply>=(E.fa7OxScen(0).crew*E.fa7OxScen(0).ppd*E.fa7OxScen(0).days*1.1),"margin check");
+assert(!E.fa7OxCheck(0,300,0).ok,"stored-only under-supply fails");
+assert(!E.fa7OxCheck(0,650,0).ok,"over-mass fails")});
+T("radiation shielding",function(){
+var r=E.fa7RadCheck(0,["poly","reg"]);
+assert(r.ok&&r.dose===180&&r.mass===420,"poly+regolith: 180 mSv at 420 kg");
+assert(!E.fa7RadCheck(0,["alu"]).ok,"aluminium alone leaves the crew over the limit");
+assert(!E.fa7RadCheck(1,["poly","water","reg","alu"]).ok,"all four layers bust the mass limit on the storm shelter")});
+T("spin gravity",function(){
+var s=E.fa7SpinCheck(0,90,2);
+assert(s.ok&&Math.abs(s.g-0.402)<0.01,"90 m at 2 rpm gives Mars gravity");
+assert(s.stars===3,"gentle spin earns 3 stars");
+assert(!E.fa7SpinCheck(0,30,2).ok,"small slow ring is too weak");
+assert(E.fa7SpinCheck(1,230,2).ok,"big ring makes 1 g kindly")});
+T("orbit match",function(){
+assert(E.fa7OrbCheck(0,400).ok,"400 km matches the 93-minute job");
+assert(E.fa7OrbCheck(1,20200).ok,"20200 km matches 12 hours");
+assert(E.fa7OrbCheck(2,35786).ok,"35786 km matches a day");
+assert(!E.fa7OrbCheck(0,3000).ok,"3000 km is far off 93 minutes")});
 process.exit(fail+fail2+fail3+fail4+fail7+(fR8)+(fR9)+(fR10)+(fR11)+(fR12)+(fR13)+(fR14)+(fR15)+(fR16)+(fR17)+(fR18)?1:0);

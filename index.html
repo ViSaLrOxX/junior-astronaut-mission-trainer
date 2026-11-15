@@ -101,6 +101,10 @@
 <button class="wbCard" data-feat="window"><b>Launch window</b><span>When Earth and Mars line up</span></button>
 <button class="wbCard" data-feat="conj"><b>Blackout planner</b><span>Two weeks with no signal from Mars</span></button>
 <button class="wbCard" data-feat="power"><b>Power budget</b><span>Size the array and batteries to last the night</span></button>
+<button class="wbCard" data-feat="oxygen"><b>Oxygen garden</b><span>Balance stored air against algae tanks</span></button>
+<button class="wbCard" data-feat="shield"><b>Radiation shield</b><span>Stack layers to pull the dose under the limit</span></button>
+<button class="wbCard" data-feat="spin"><b>Spin gravity</b><span>Radius and spin rate make artificial g</span></button>
+<button class="wbCard" data-feat="orbit"><b>Orbit match</b><span>Park the satellite at the right altitude</span></button>
 <button class="wbCard" data-feat="sources"><b>Sources</b><span>Which facts are real, which numbers are simulated</span></button>
 </div>
 <div class="wbMenu v-reports" id="menuReports">
@@ -329,6 +333,48 @@
 <button id="pwGo">Run the night</button>
 <p class="hint" id="pwOut"></p>
 <button id="pwNext" hidden>Next site</button>
+</section>
+<section data-feat="oxygen" class="panel v-learn">
+<h2>Oxygen garden</h2>
+<p class="hint" id="oxBrief"></p>
+<p id="oxStat"></p>
+<div class="dpRow"><span>Stored oxygen</span><span class="dpCtl"><button id="oxSm">-</button><b id="oxS"></b><button id="oxSp">+</button></span></div>
+<div class="dpRow"><span>Algae tanks</span><span class="dpCtl"><button id="oxTm">-</button><b id="oxT"></b><button id="oxTp">+</button></span></div>
+<p class="hint" id="oxNow"></p>
+<button id="oxGo">Launch the crew</button>
+<p class="hint" id="oxOut"></p>
+<button id="oxNext" hidden>Next trip</button>
+</section>
+<section data-feat="shield" class="panel v-learn">
+<h2>Radiation shield</h2>
+<p class="hint" id="rdBrief"></p>
+<p id="rdStat"></p>
+<div id="rdList"></div>
+<p class="hint" id="rdNow"></p>
+<button id="rdGo">Fly through</button>
+<p class="hint" id="rdOut"></p>
+<button id="rdNext" hidden>Next shelter</button>
+</section>
+<section data-feat="spin" class="panel v-learn">
+<h2>Spin gravity</h2>
+<p class="hint" id="spBrief"></p>
+<p id="spStat"></p>
+<div class="dpRow"><span>Ring radius</span><span class="dpCtl"><button id="spRm">-</button><b id="spR"></b><button id="spRp">+</button></span></div>
+<div class="dpRow"><span>Spin rate</span><span class="dpCtl"><button id="spSm">-</button><b id="spS"></b><button id="spSp">+</button></span></div>
+<p class="hint" id="spNow"></p>
+<button id="spGo">Spin it up</button>
+<p class="hint" id="spOut"></p>
+<button id="spNext" hidden>Next ring</button>
+</section>
+<section data-feat="orbit" class="panel v-learn">
+<h2>Orbit match</h2>
+<p class="hint" id="obBrief"></p>
+<p id="obStat"></p>
+<div class="dpRow"><span>Altitude</span><span class="dpCtl"><button id="obAm">-</button><b id="obA"></b><button id="obAp">+</button></span></div>
+<p class="hint" id="obNow"></p>
+<button id="obGo">Take the job</button>
+<p class="hint" id="obOut"></p>
+<button id="obNext" hidden>Next job</button>
 </section>
 <div id="endBanner" class="v-mission" hidden></div>
 <div id="toast" hidden></div>

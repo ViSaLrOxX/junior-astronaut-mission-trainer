@@ -1041,7 +1041,11 @@ rocket:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width=
 dv:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 13c4 0 8-4 10-10"/><path d="M12 3h1v1"/><circle cx="4" cy="12" r="1"/></svg>',
 window:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="2"/><path d="M8 1v3M8 12v3M1 8h3M12 8h3"/></svg>',
 conj:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="5" cy="8" r="2.5"/><circle cx="12" cy="8" r="1.5"/><path d="M8 3l1 2M8 13l-1-2" stroke-dasharray="1 1.5"/></svg>',
-power:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M9 2L4 9h3l-1 5 6-8H9z"/></svg>'};
+power:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M9 2L4 9h3l-1 5 6-8H9z"/></svg>',
+oxygen:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="5"/><path d="M6 8a2 2 0 014 0"/></svg>',
+shield:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M8 1l6 3v4c0 4-3 6-6 7-3-1-6-3-6-7V4z"/></svg>',
+spin:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="6"/><path d="M8 8l4-3"/><circle cx="8" cy="8" r="1"/></svg>',
+orbit:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><ellipse cx="8" cy="8" rx="7" ry="3.5"/><circle cx="8" cy="8" r="1.6"/><circle cx="14" cy="6" r="1"/></svg>'};
 document.querySelectorAll(".wbCard").forEach(function(cd){var f=cd.getAttribute("data-feat");if(FEATICONS[f]){var ic=document.createElement("span");ic.className="wi";ic.innerHTML=FEATICONS[f];cd.insertBefore(ic,cd.firstChild)}});
 r580Drill();r580Pass();
 if(reduceMotion){var bg0=document.getElementById("spaceBg");if(bg0){bgCv=bg0;bgX=bg0.getContext("2d");bg0.width=innerWidth;bg0.height=innerHeight;stars=[];for(var si=0;si<160;si++){stars.push({x:Math.random(),y:Math.random(),z:Math.random(),tw:0})}bgStatic()}}
@@ -1455,4 +1459,89 @@ var prDv=window.__featRefresh.dv;window.__featRefresh.dv=function(){dvRender();i
 var prWn=window.__featRefresh.window;window.__featRefresh.window=function(){wnRender();if(prWn){prWn()}};
 var prCj=window.__featRefresh.conj;window.__featRefresh.conj=function(){cjRender();if(prCj){prCj()}};
 var prPw=window.__featRefresh.power;window.__featRefresh.power=function(){pwRender();if(prPw){prPw()}};
+})();
+
+(function(){
+function G(id){return document.getElementById(id)}
+var oxI=0,oxS=0,oxT=0;
+function oxRender(){
+var s=TrainerEngine.fa7OxScen(oxI);
+G("oxBrief").textContent="Trip "+s.round+" of "+s.total+": "+s.name+". "+s.crew+" people for "+s.days+" days; each person breathes "+s.ppd+" kg of oxygen a day. One algae tank makes "+s.tankRate+" kg a day and masses "+s.tankKg+" kg. Stored oxygen is 1 kg per kg. Mass limit "+s.massKg+" kg, and Mission Control wants a 10 percent reserve. "+s.why;
+G("oxS").textContent=oxS+" kg";
+G("oxT").textContent=oxT+(oxT===1?" tank":" tanks");
+var r=TrainerEngine.fa7OxCheck(oxI,oxS,oxT);
+G("oxNow").textContent="Supply "+Math.round(r.supply)+" kg against a need of "+Math.round(r.need)+" kg plus reserve ("+Math.round(r.margin)+" kg). Mass: "+Math.round(r.mass)+" / "+s.massKg+" kg.";
+G("oxOut").textContent=""}
+G("oxSp").onclick=function(){oxS+=50;oxRender()};
+G("oxSm").onclick=function(){oxS=Math.max(0,oxS-50);oxRender()};
+G("oxTp").onclick=function(){oxT++;oxRender()};
+G("oxTm").onclick=function(){oxT=Math.max(0,oxT-1);oxRender()};
+G("oxGo").onclick=function(){
+var r=TrainerEngine.fa7OxCheck(oxI,oxS,oxT);
+G("oxOut").textContent=r.ok?("Everyone breathes, with the reserve intact. "+r.note):r.problems.join(" ");
+if(r.ok){G("oxNext").hidden=false;if(r.stars===3){window.__fx.toast("Perfect air budget!")}}};
+G("oxNext").onclick=function(){oxI++;oxS=0;oxT=0;G("oxNext").hidden=true;oxRender()};
+var rdI=0,rdOn={};
+function rdRender(){
+var s=TrainerEngine.fa7RadScen(rdI);
+G("rdBrief").textContent="Shelter "+s.round+" of "+s.total+": "+s.name+". Unshielded dose "+s.dose+" mSv; get the crew under "+s.target+" mSv within "+s.massKg+" kg of shielding. Layers stack multiplicatively. "+s.why;
+var list=G("rdList");list.innerHTML="";
+rdOn={};
+TrainerEngine.fa7RadLayers().forEach(function(l){
+var b=document.createElement("button");b.className="cjTask";b.textContent=l.t+" ("+l.kg+" kg)";
+b.onclick=function(){rdOn[l.k]=!rdOn[l.k];b.classList.toggle("on",!!rdOn[l.k]);rdNow()};
+list.appendChild(b)});
+rdNow();G("rdOut").textContent=""}
+function rdNow(){
+var s=TrainerEngine.fa7RadScen(rdI);
+var keys=Object.keys(rdOn).filter(function(k){return rdOn[k]});
+var c=TrainerEngine.fa7RadCalc(rdI,keys);
+G("rdNow").textContent="Dose "+c.dose+" mSv against a "+s.target+" mSv limit. Shielding mass: "+c.mass+" / "+s.massKg+" kg."}
+G("rdGo").onclick=function(){
+var keys=Object.keys(rdOn).filter(function(k){return rdOn[k]});
+var r=TrainerEngine.fa7RadCheck(rdI,keys);
+G("rdOut").textContent=r.ok?("The crew rides it out safely. "+r.note):r.problems.join(" ");
+if(r.ok){G("rdNext").hidden=false;if(r.stars===3){window.__fx.toast("Perfect shielding!")}}};
+G("rdNext").onclick=function(){rdI++;G("rdNext").hidden=true;rdRender()};
+var spI=0,spR=50,spS=2;
+function spRender(){
+var s=TrainerEngine.fa7SpinScen(spI);
+G("spBrief").textContent="Ring "+s.round+" of "+s.total+": "+s.name+". Target "+s.targetG+" g within 10 percent. Comfort limit "+s.comfortRpm+" rpm; 2 rpm or slower is kind. "+s.why;
+G("spR").textContent=spR+" m";
+G("spS").textContent=spS.toFixed(1)+" rpm";
+var g=TrainerEngine.fa7SpinCalc(spI,spR,spS);
+G("spNow").textContent="This ring makes "+g.toFixed(2)+" g. Gravity grows with spin squared times radius: a small ring must spin fast, a big one can afford to go slow.";
+G("spOut").textContent=""}
+G("spRp").onclick=function(){spR=Math.min(300,spR+10);spRender()};
+G("spRm").onclick=function(){spR=Math.max(10,spR-10);spRender()};
+G("spSp").onclick=function(){spS=Math.min(6,spS+.5);spRender()};
+G("spSm").onclick=function(){spS=Math.max(.5,spS-.5);spRender()};
+G("spGo").onclick=function(){
+var r=TrainerEngine.fa7SpinCheck(spI,spR,spS);
+G("spOut").textContent=r.ok?("Gravity on target. "+r.note):r.problems.join(" ");
+if(r.ok){G("spNext").hidden=false;if(r.stars===3){window.__fx.toast("Perfect spin!")}}};
+G("spNext").onclick=function(){spI++;spR=50;spS=2;G("spNext").hidden=true;spRender()};
+var obI=0,obN=0;
+function obRender(){
+var m=TrainerEngine.fa7OrbMission(obI);
+G("obBrief").textContent="Job "+m.round+" of "+m.total+": "+m.name+". The contract wants one orbit every "+m.targetMin+" minutes, within 3 percent. "+m.why;
+var notches=TrainerEngine.fa7OrbNotches();
+if(obN>=notches.length){obN=notches.length-1}
+G("obA").textContent=notches[obN].toLocaleString()+" km";
+var p=TrainerEngine.fa7OrbPeriod(notches[obN]);
+G("obNow").textContent="At "+notches[obN].toLocaleString()+" km one orbit takes "+Math.round(p)+" minutes. Higher orbits are slower: Kepler says the period grows with the radius to the power of 1.5.";
+G("obOut").textContent=""}
+G("obAp").onclick=function(){var n=TrainerEngine.fa7OrbNotches();obN=Math.min(n.length-1,obN+1);obRender()};
+G("obAm").onclick=function(){obN=Math.max(0,obN-1);obRender()};
+G("obGo").onclick=function(){
+var alt=TrainerEngine.fa7OrbNotches()[obN];
+var r=TrainerEngine.fa7OrbCheck(obI,alt);
+G("obOut").textContent=(r.ok?"Contract won. ":"Not this altitude. ")+r.note;
+if(r.ok){G("obNext").hidden=false;if(r.stars===3){window.__fx.toast("Perfect orbit!")}}};
+G("obNext").onclick=function(){obI++;obN=0;G("obNext").hidden=true;obRender()};
+if(window.__featRefresh===undefined){window.__featRefresh={}}
+var prOx=window.__featRefresh.oxygen;window.__featRefresh.oxygen=function(){oxRender();if(prOx){prOx()}};
+var prRd=window.__featRefresh.shield;window.__featRefresh.shield=function(){rdRender();if(prRd){prRd()}};
+var prSp=window.__featRefresh.spin;window.__featRefresh.spin=function(){spRender();if(prSp){prSp()}};
+var prOb=window.__featRefresh.orbit;window.__featRefresh.orbit=function(){obRender();if(prOb){prOb()}};
 })();
