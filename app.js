@@ -222,7 +222,7 @@ if(window.__rankSeen===undefined){window.__rankSeen=ri}
 if(ri>window.__rankSeen){window.__rankSeen=ri;sndRank();showToast("Promoted to "+cur[1]+"! Keep going, commander.");burstFrom(el)}
 var pct=next?Math.min(100,Math.round(100*(sc-cur[0])/(next[0]-cur[0]))):100;
 el.innerHTML="<span>Rank: <b>"+cur[1]+"</b> ("+sc+" XP)"+(next?" &middot; "+(next[0]-sc)+" XP to "+next[1]:" &middot; top rank")+'</span><span class="rankBar"><span class="fill" style="width:'+pct+'%"></span></span>'}
-window.__fx={burstFrom:burstFrom,setRoom:setRoom,musSetVol:musSetVol,musVolGet:function(){return musVol},musState:function(){return musOn},musToggle:function(){musOn=!musOn;try{localStorage.setItem("musOn",musOn?"1":"0")}catch(e){}if(musOn){musStart()}else{musStop()}return musOn},armAutoStart:function(){document.addEventListener("pointerdown",function once(){document.removeEventListener("pointerdown",once);if(musOn){musStart()}},{once:true})}}
+window.__fx={burstFrom:burstFrom,setRoom:setRoom,musSetVol:musSetVol,musVolGet:function(){return musVol},musState:function(){return musOn},musToggle:function(){musOn=!musOn;try{localStorage.setItem("musOn",musOn?"1":"0")}catch(e){}if(musOn){musStart()}else{musStop()}return musOn},armAutoStart:function(){var unlock=function(){if(!musOn){return}if(!actx){try{actx=new (window.AudioContext||window.webkitAudioContext)()}catch(e){return}}if(actx.state==="suspended"){actx.resume()}musStart()};document.addEventListener("pointerdown",unlock);document.addEventListener("touchend",unlock);document.addEventListener("click",unlock)}}
 function applySnd(){$("sndBtn").querySelector(".lb").textContent="Sound: "+(sndOn?"on":"off")}
 
 function download(name,text,type){
