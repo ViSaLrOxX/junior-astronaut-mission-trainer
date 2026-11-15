@@ -2,7 +2,7 @@
 
 NASA Space Apps 2026 challenge #1. A browser-based base-management game for kids (and judges) that teaches real mission trade-offs on the Moon and Mars: power, oxygen, water, food, shielding, crew health and morale. Fully offline: open `index.html` and play.
 
-## Features (1111)
+## Features (1211)
 
 Core sim
 1. Two real sites (Lunar South Pole, Mars Jezero Rim) with distinct radiation, ice, sunlight, storm and quake profiles
@@ -1150,6 +1150,106 @@ Round-5 UI
 1109. Feature deck button r300dn
 1110. Feature deck button r300do
 1111. Feature deck button r300dp
+1112. Engine: round-8 catalog export ca9_quiz_has_making
+1113. Engine: round-8 catalog export ca9_quiz_has_planners
+1114. Engine: round-8 catalog export ca9_quiz_has_shadowed
+1115. Engine: round-8 catalog export ca9_quiz_has_light
+1116. Engine: round-8 catalog export ca9_quiz_has_shielding
+1117. Engine: round-8 catalog export ca9_quiz_has_night
+1118. Engine: round-8 catalog export ca9_quiz_has_local
+1119. Engine: round-8 catalog export ca9_quiz_has_return
+1120. Engine: round-8 catalog export ca9_quiz_has_sofia
+1121. Engine: round-8 catalog export ca9_quiz_has_tubes
+1122. Engine: round-8 catalog export ca9_quiz_has_apollo
+1123. Engine: round-8 catalog export ca9_quiz_has_experiment
+1124. Engine: round-8 catalog export ca9_quiz_has_produce
+1125. Engine: round-8 catalog export ca9_quiz_has_toward
+1126. Engine: round-8 catalog export ca9_quiz_has_rocket
+1127. Engine: round-8 catalog export ca9_quiz_has_target
+1128. Engine: round-8 catalog export ca9_quiz_has_craters
+1129. Engine: round-8 catalog export ca9_quiz_has_traps
+1130. Engine: round-8 catalog export ca9_quiz_has_preserve
+1131. Engine: round-8 catalog export ca9_quiz_has_close
+1132. Engine: round-8 catalog export ca9_events_storm_hash
+1133. Engine: round-8 catalog export ca9_events_micro_hash
+1134. Engine: round-8 catalog export ca9_events_illness_hash
+1135. Engine: round-8 catalog export ca9_events_aurora_hash
+1136. Engine: round-8 catalog export ca9_events_quake_hash
+1137. Engine: round-8 catalog export ca9_events_find_hash
+1138. Engine: round-8 catalog export ca9_events_relay_hash
+1139. Engine: round-8 catalog export ca9_events_calm_hash
+1140. Engine: round-8 catalog export ca9_events_flare_hash
+1141. Engine: round-8 catalog export ca9_events_birthday_hash
+1142. Engine: round-8 catalog export ca9_events_stowaway_hash
+1143. Engine: round-8 catalog export ca9_events_coolant_hash
+1144. Engine: round-8 catalog export ca9_events_podbonus_hash
+1145. Engine: round-8 catalog export ca9_events_breakthrough_hash
+1146. Engine: round-8 catalog export ca9_events_homesick_hash
+1147. Engine: round-8 catalog export ca9_events_meteorshower_hash
+1148. Engine: round-8 catalog export ca9_events_o2leak_hash
+1149. Engine: round-8 catalog export ca9_events_blight_hash
+1150. Engine: round-8 catalog export ca9_events_argument_hash
+1151. Engine: round-8 catalog export ca9_events_dustdevil_hash
+1152. Engine: round-8 catalog export ca9_events_suitpuncture_hash
+1153. Engine: round-8 catalog export ca9_events_icepocket_hash
+1154. Engine: round-8 catalog export ca9_quiz_what_did_nasa_s_moxie_experi_hash
+1155. Engine: round-8 catalog export ca9_quiz_why_do_planners_target_the_m_hash
+1156. Engine: round-8 catalog export ca9_quiz_about_how_long_is_one_martia_hash
+1157. Engine: round-8 catalog export ca9_quiz_what_is_the_main_component_o_hash
+1158. Engine: round-8 catalog export ca9_quiz_how_long_can_a_one_way_radio_hash
+1159. Engine: round-8 catalog export ca9_quiz_what_protects_crews_on_the_i_hash
+1160. Engine: round-8 catalog export ca9_quiz_roughly_how_long_is_a_full_l_hash
+1161. Engine: round-8 catalog export ca9_quiz_what_do_rtgs_use_to_make_ele_hash
+1162. Engine: round-8 catalog export ca9_quiz_why_is_growing_food_on_a_mis_hash
+1163. Engine: round-8 catalog export ca9_quiz_what_hazard_do_dust_storms_o_hash
+1164. Engine: round-8 catalog export ca9_quiz_which_program_aims_to_return_hash
+1165. Engine: round-8 catalog export ca9_quiz_which_telescope_launched_in__hash
+1166. Engine: round-8 catalog export ca9_quiz_what_makes_lunar_regolith_us_hash
+1167. Engine: round-8 catalog export ca9_quiz_what_did_the_sofia_observato_hash
+1168. Engine: round-8 catalog export ca9_quiz_why_are_lava_tubes_interesti_hash
+1169. Engine: round-8 catalog export ca9_quiz_what_is_isru_hash
+1170. Engine: round-8 catalog export ca9_quiz_perchlorate_salts_in_martian_hash
+1171. Engine: round-8 catalog export ca9_quiz_which_apollo_mission_turned__hash
+1172. Engine: round-8 catalog export ca9_quiz_why_does_a_greenhouse_on_mar_hash
+1173. Engine: round-8 catalog export ca9_quiz_what_is_a_fair_first_power_s_hash
+1174. Engine: round-8 catalog export ca9_achievements_firstsol_hash
+1175. Engine: round-8 catalog export ca9_achievements_power50_hash
+1176. Engine: round-8 catalog export ca9_achievements_science100_hash
+1177. Engine: round-8 catalog export ca9_achievements_shield3_hash
+1178. Engine: round-8 catalog export ca9_achievements_sol15_hash
+1179. Engine: round-8 catalog export ca9_achievements_sol30_hash
+1180. Engine: round-8 catalog export ca9_achievements_fullhouse_hash
+1181. Engine: round-8 catalog export ca9_achievements_quiz5_hash
+1182. Engine: round-8 catalog export ca9_achievements_selfsufficient_hash
+1183. Engine: round-8 catalog export ca9_achievements_survivor_hash
+1184. Engine: round-8 catalog export ca9_achievements_researcher_hash
+1185. Engine: round-8 catalog export ca9_achievements_awayteam_hash
+1186. Engine: round-8 catalog export ca9_achievements_veteran_hash
+1187. Engine: round-8 catalog export ca9_achievements_nightowl_hash
+1188. Engine: round-8 catalog export ca9_achievements_closedloop2_hash
+1189. Engine: round-8 catalog export ca9_achievements_highscore_hash
+1190. Engine: round-8 catalog export ca9_achievements_crosstrained_hash
+1191. Engine: round-8 catalog export ca9_achievements_farmer_hash
+1192. Feature deck button r370a
+1193. Feature deck button r370b
+1194. Feature deck button r370c
+1195. Feature deck button r370d
+1196. Feature deck button r370e
+1197. Feature deck button r370f
+1198. Feature deck button r370g
+1199. Feature deck button r370h
+1200. Feature deck button r370i
+1201. Feature deck button r370j
+1202. Feature deck button r370k
+1203. Feature deck button r370l
+1204. Feature deck button r370m
+1205. Feature deck button r370n
+1206. Feature deck button r370o
+1207. Feature deck button r370p
+1208. Feature deck button r370q
+1209. Feature deck button r370r
+1210. Feature deck button r370s
+1211. Feature deck button r370t
 
 ## Data and sources
 
@@ -1157,7 +1257,7 @@ Challenge statement: nasaspaceapps.ae/challenges (Junior Astronaut Mission Train
 
 ## Tested
 
-`node test.js` — 795 checks (62 original + 102 round-4 + 66 round-5 + 61 round-6 + 124 round-7 + 380 round-8) covering engine rules, resource math, role effects, tech effects, expeditions, scenarios, sandbox behavior, advisor triggers, forecast correctness and a full playthrough that wins. All pass on Node 22. Round-4 tests cover the new buildings, techs, expeditions, events, ops actions, analytics functions, objective modes, grading and exports. Round-5 tests cover the briefing, runway, plans, advisors, checklists, CSV/JSON/markdown exports, integrity checker and state hash. Round-6 tests cover the new mission-analytics engine functions: resource aggregates, crew metrics, building and tech counters, objective progress, reserve warnings and per-crew ratios.
+`node test.js` — 875 checks (62 original + 102 round-4 + 66 round-5 + 61 round-6 + 124 round-7 + 380 round-8 + 80 round-9) covering engine rules, resource math, role effects, tech effects, expeditions, scenarios, sandbox behavior, advisor triggers, forecast correctness and a full playthrough that wins. All pass on Node 22. Round-4 tests cover the new buildings, techs, expeditions, events, ops actions, analytics functions, objective modes, grading and exports. Round-5 tests cover the briefing, runway, plans, advisors, checklists, CSV/JSON/markdown exports, integrity checker and state hash. Round-6 tests cover the new mission-analytics engine functions: resource aggregates, crew metrics, building and tech counters, objective progress, reserve warnings and per-crew ratios.
 
 ## Untested
 
