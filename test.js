@@ -816,4 +816,17 @@ assert(na.length>0&&na.length<=3);
 na.forEach(function(x){assert(x.pct>=0&&x.pct<=100)});
 for(var j=1;j<na.length;j++){assert(na[j-1].pct>=na[j].pct)}});
 console.log(pass+" total assertions passed, "+fail+" failed");
+T("workshop sinters regolith into parts and logs it",function(){
+var s=E.newGame("moon",7,"explorer");
+s.buildings.push({type:"workshop",done:true,damaged:false,solsLeft:0});
+s.res.regolith=25;
+var p=s.res.parts;
+E.tick(s);
+assert(s.res.parts>p);
+assert(s.log.some(function(l){return l.msg.indexOf("sintered")>=0}))});
+T("advisor flags scarce parts with ways to get more",function(){
+var s=E.newGame("moon",7,"explorer");
+s.res.parts=4;
+var tips=E.advise(s);
+assert(tips.some(function(t){return t.indexOf("Parts are scarce")>=0&&t.indexOf("Workshop")>=0}))});
 process.exit(fail+fail2+fail3+fail4+fail7+(fR8)+(fR9)+(fR10)+(fR11)+(fR12)+(fR13)+(fR14)+(fR15)+(fR16)+(fR17)+(fR18)?1:0);

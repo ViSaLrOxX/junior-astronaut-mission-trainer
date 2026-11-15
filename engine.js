@@ -289,7 +289,7 @@ if(def.shield){if(s.res.regolith>=def.regolithUse){s.res.regolith-=def.regolithU
 for(var nb=0;nb<s.buildings.length;nb++){var nbb=s.buildings[nb];
 if(!nbb.done||nbb.damaged){continue}
 var ndef=BUILDINGS[nbb.type];
-if(ndef.workshop&&s.res.regolith>=10){var made=s.techs.sintering?4:3;s.res.regolith-=10;s.res.parts+=made}
+if(ndef.workshop&&s.res.regolith>=10){var made=s.techs.sintering?4:3;s.res.regolith-=10;s.res.parts+=made;addLog(s,"Workshop sintered 10 regolith into "+made+" parts.")}
 if(ndef.o2small&&s.res.water>=(ndef.waterUse||0)){s.res.water-=(ndef.waterUse||0);s.res.o2+=ndef.o2small;s.res.food+=ndef.foodSmall}
 if(ndef.moraleBoost){for(var mc=0;mc<s.crew.length;mc++){if(s.crew[mc].health>0){s.crew[mc].morale=Math.min(100,s.crew[mc].morale+ndef.moraleBoost)}}}
 if(ndef.gymHeal){for(var gc=0;gc<s.crew.length;gc++){if(s.crew[gc].health>0){s.crew[gc].health=Math.min(100,s.crew[gc].health+ndef.gymHeal)}}}}
@@ -566,6 +566,7 @@ if(s.shieldLevel<1&&s.sol>3){tips.push("No shielding yet: drill regolith and run
 var damaged=s.buildings.filter(function(b){return b.damaged}).length;
 if(damaged>0){tips.push(damaged+" damaged building(s): repair from stores or send an EVA (cheaper but risky).")}
 if(s.res.science<s.objectiveScience*0.3&&s.sol>s.objectiveSols*0.5){tips.push("Science is behind schedule: Labs and a Comms Dish multiply returns.")}
+if(s.res.parts<10){var per=s.techs.sintering?4:3;tips.push("Parts are scarce: a Regolith Drill digs regolith and a Regolith Workshop sinters every 10 regolith into "+per+" parts each sol. Debris Salvage expeditions bring back 12, resupply pods land more, and Mission Control quiz answers pay +6.")}
 var tired=s.crew.filter(function(c){return c.health>0&&(c.fatigue||0)>60}).length;
 if(tired>0){tips.push(tired+" crew are exhausted: hold off on EVAs and expeditions until they recover.")}
 if(Object.keys(s.techs).length===0&&s.res.science>=30&&s.sol>8){tips.push("You have enough science to research a technology: solar efficiency or water recycling pay off early.")}
