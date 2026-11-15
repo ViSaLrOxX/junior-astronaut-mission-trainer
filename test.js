@@ -894,4 +894,34 @@ assert(!sc2.ok&&sc2.problems.some(function(p){return p.indexOf("Sleep")===0}));
 var d3=E.fa5DayNew();d3.sci=2;d3.rest=10;
 var sc3=E.fa5DayScore(d3);
 assert(sc3.ok&&sc3.stars===1)});
+T("delta-v budget math",function(){
+var m=E.fa6DvMission(1);
+var minP=m.dry*(Math.exp(m.need/m.ve)-1);
+var ok=E.fa6DvCheck(1,minP*1.1);
+assert(ok.ok&&E.fa6DvCalc(1,minP*1.1)>=m.need)
+var bad=E.fa6DvCheck(1,minP*0.4);
+assert(!bad.ok)
+var stars=E.fa6DvCheck(1,minP*1.02);
+assert(stars.ok&&stars.stars===3)});
+T("launch window rounds",function(){
+var r=E.fa6WinRound(0);
+assert(r.total===3&&r.opts.length===3)
+assert(E.fa6WinScore(0,0).ok&&!E.fa6WinScore(0,1).ok)
+assert(E.fa6WinScore(1,0).ok&&E.fa6WinScore(2,0).ok)});
+T("conjunction checklist",function(){
+var tasks=E.fa6ConjTasks();
+assert(tasks.length===7)
+assert(E.fa6ConjCheck([0,1,2,3]).ok)
+assert(!E.fa6ConjCheck([0,1,2,3,4]).ok)
+var miss=E.fa6ConjCheck([0,1,4]);
+assert(!miss.ok&&miss.missing.length===2&&miss.extra.length===1)});
+T("power budget sizing",function(){
+var s=E.fa6PwrScen(0);
+assert(s.total===2)
+var good=E.fa6PwrCheck(0,12,75);
+assert(good.ok)
+var bad=E.fa6PwrCheck(0,5,20);
+assert(!bad.ok&&bad.problems.length>=2)
+var heavy=E.fa6PwrCheck(0,30,500);
+assert(!heavy.ok&&heavy.problems.join(" ").indexOf("Mass")>=0)});
 process.exit(fail+fail2+fail3+fail4+fail7+(fR8)+(fR9)+(fR10)+(fR11)+(fR12)+(fR13)+(fR14)+(fR15)+(fR16)+(fR17)+(fR18)?1:0);

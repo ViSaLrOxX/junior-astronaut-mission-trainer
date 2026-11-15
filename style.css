@@ -161,7 +161,11 @@ main.wb-open[data-feat="cards"] section.panel[data-feat="cards"]:not([hidden]),
 main.wb-open[data-feat="scout"] section.panel[data-feat="scout"]:not([hidden]),
 main.wb-open[data-feat="dayplan"] section.panel[data-feat="dayplan"]:not([hidden]),
 main.wb-open[data-feat="dock"] section.panel[data-feat="dock"]:not([hidden]),
-main.wb-open[data-feat="rocket"] section.panel[data-feat="rocket"]:not([hidden]){display:block!important;grid-column:1/-1}
+main.wb-open[data-feat="rocket"] section.panel[data-feat="rocket"]:not([hidden]),
+main.wb-open[data-feat="dv"] section.panel[data-feat="dv"]:not([hidden]),
+main.wb-open[data-feat="window"] section.panel[data-feat="window"]:not([hidden]),
+main.wb-open[data-feat="conj"] section.panel[data-feat="conj"]:not([hidden]),
+main.wb-open[data-feat="power"] section.panel[data-feat="power"]:not([hidden]){display:block!important;grid-column:1/-1}
 @keyframes solPulse{0%{box-shadow:0 0 0 0 rgba(32,88,201,.3)}100%{box-shadow:0 0 0 12px rgba(32,88,201,0)}}
 .pulse{animation:solPulse .6s ease-out}
 body.hc .wbCard{background:#000;border-color:#fff}
@@ -466,3 +470,9 @@ main.wb-open[data-feat="walk"] section.panel[data-feat="walk"]:not([hidden]){dis
 #rkStack{min-height:40px;border:1px dashed var(--edge);border-radius:10px;padding:8px;margin-bottom:10px;display:flex;flex-direction:column-reverse;gap:6px}
 #rkStack .rkPart{border:1px solid var(--accent);border-radius:8px;padding:6px 10px;text-align:center;background:rgba(94,234,212,.1)}
 #rkList{display:flex;flex-direction:column;gap:6px}
+
+.cjTask{display:block;width:100%;text-align:left;margin:4px 0}
+.cjTask.on{border-color:var(--accent);background:rgba(94,234,212,.12)}
+.wnOpt{display:block;width:100%;text-align:left;margin:4px 0}
+.wnOpt.ok{border-color:#7be0a8;background:rgba(123,224,168,.12)}
+.wnOpt.no{border-color:#e08a8a;background:rgba(224,138,138,.1)}

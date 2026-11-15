@@ -97,6 +97,10 @@
 <button class="wbCard" data-feat="dayplan"><b>Crew day planner</b><span>Fit sleep, exercise and science into one sol</span></button>
 <button class="wbCard" data-feat="dock"><b>Docking approach</b><span>Brake in time to meet the station</span></button>
 <button class="wbCard" data-feat="rocket"><b>Build the rocket</b><span>Stack the stages in the right order</span></button>
+<button class="wbCard" data-feat="dv"><b>Delta-v budget</b><span>Fuel a mission with the rocket equation</span></button>
+<button class="wbCard" data-feat="window"><b>Launch window</b><span>When Earth and Mars line up</span></button>
+<button class="wbCard" data-feat="conj"><b>Blackout planner</b><span>Two weeks with no signal from Mars</span></button>
+<button class="wbCard" data-feat="power"><b>Power budget</b><span>Size the array and batteries to last the night</span></button>
 <button class="wbCard" data-feat="sources"><b>Sources</b><span>Which facts are real, which numbers are simulated</span></button>
 </div>
 <div class="wbMenu v-reports" id="menuReports">
@@ -291,6 +295,40 @@
 <h2>Postcards</h2>
 <p class="hint">Notes from the crew, unlocked as the mission grows.</p>
 <div id="cardList"></div>
+</section>
+<section data-feat="dv" class="panel v-learn">
+<h2>Delta-v budget</h2>
+<p class="hint" id="dvBrief"></p>
+<p id="dvStat"></p>
+<div class="dpRow"><span>Propellant loaded</span><span class="dpCtl"><button id="dvMinus">-</button><b id="dvProp"></b><button id="dvPlus">+</button></span></div>
+<p class="hint" id="dvNow"></p>
+<button id="dvGo">Fly it</button>
+<p class="hint" id="dvOut"></p>
+<button id="dvNext" hidden>Next mission</button>
+</section>
+<section data-feat="window" class="panel v-learn">
+<h2>Launch window</h2>
+<p class="hint" id="wnBrief"></p>
+<div id="wnList"></div>
+<p class="hint" id="wnOut"></p>
+</section>
+<section data-feat="conj" class="panel v-learn">
+<h2>Blackout planner</h2>
+<p class="hint">Every 26 months the Sun passes between Earth and Mars and radio goes silent for about two weeks. Pick everything the team must do before the blackout - no more, no less - then submit the plan.</p>
+<div id="cjList"></div>
+<button id="cjGo">Submit the plan</button>
+<p class="hint" id="cjOut"></p>
+</section>
+<section data-feat="power" class="panel v-learn">
+<h2>Power budget</h2>
+<p class="hint" id="pwBrief"></p>
+<p id="pwStat"></p>
+<div class="dpRow"><span>Solar array</span><span class="dpCtl"><button id="pwAm">-</button><b id="pwA"></b><button id="pwAp">+</button></span></div>
+<div class="dpRow"><span>Battery bank</span><span class="dpCtl"><button id="pwBm">-</button><b id="pwB"></b><button id="pwBp">+</button></span></div>
+<p class="hint" id="pwNow"></p>
+<button id="pwGo">Run the night</button>
+<p class="hint" id="pwOut"></p>
+<button id="pwNext" hidden>Next site</button>
 </section>
 <div id="endBanner" class="v-mission" hidden></div>
 <div id="toast" hidden></div>

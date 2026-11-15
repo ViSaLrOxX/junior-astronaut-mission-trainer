@@ -1037,7 +1037,11 @@ cards:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="
 scout:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="7" cy="7" r="4"/><path d="M10 10l4 4"/></svg>',
 dayplan:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="6"/><path d="M8 4v4l3 2"/></svg>',
 dock:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="6" width="5" height="4"/><rect x="10" y="6" width="4" height="4"/><path d="M7 8h3"/></svg>',
-rocket:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M8 2l2 4v6H6V6z"/><path d="M6 12l-2 2M10 12l2 2"/></svg>'};;
+rocket:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M8 2l2 4v6H6V6z"/><path d="M6 12l-2 2M10 12l2 2"/></svg>',
+dv:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 13c4 0 8-4 10-10"/><path d="M12 3h1v1"/><circle cx="4" cy="12" r="1"/></svg>',
+window:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="2"/><path d="M8 1v3M8 12v3M1 8h3M12 8h3"/></svg>',
+conj:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="5" cy="8" r="2.5"/><circle cx="12" cy="8" r="1.5"/><path d="M8 3l1 2M8 13l-1-2" stroke-dasharray="1 1.5"/></svg>',
+power:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M9 2L4 9h3l-1 5 6-8H9z"/></svg>'};
 document.querySelectorAll(".wbCard").forEach(function(cd){var f=cd.getAttribute("data-feat");if(FEATICONS[f]){var ic=document.createElement("span");ic.className="wi";ic.innerHTML=FEATICONS[f];cd.insertBefore(ic,cd.firstChild)}});
 r580Drill();r580Pass();
 if(reduceMotion){var bg0=document.getElementById("spaceBg");if(bg0){bgCv=bg0;bgX=bg0.getContext("2d");bg0.width=innerWidth;bg0.height=innerHeight;stars=[];for(var si=0;si<160;si++){stars.push({x:Math.random(),y:Math.random(),z:Math.random(),tw:0})}bgStatic()}}
@@ -1374,3 +1378,81 @@ G("guide").hidden=false;
 showChooser()};
 })();
 
+
+(function(){
+function G(id){return document.getElementById(id)}
+var dvI=0,dvProp=0;
+function dvRender(){
+var m=TrainerEngine.fa6DvMission(dvI);
+G("dvBrief").textContent="Mission "+m.round+" of "+m.total+": "+m.name+". The ship has a dry mass of "+m.dry+" "+m.unit+" and engines with an exhaust speed of "+m.ve+" km/s. The trip needs "+m.need+" km/s of delta-v.";
+dvProp=Math.round(dvProp/dvStepV(m))*dvStepV(m);
+if(dvProp<0){dvProp=0}
+G("dvProp").textContent=dvProp+" "+m.unit;
+G("dvNow").textContent="This load gives "+TrainerEngine.fa6DvCalc(dvI,dvProp).toFixed(2)+" km/s of delta-v (needs "+m.need+").";
+G("dvOut").textContent=""}
+function dvStepV(m){return Math.max(.5,Math.round(m.dry*(Math.exp(m.need/m.ve)-1)/40)*2)/2}
+G("dvPlus").onclick=function(){dvProp+=dvStepV(TrainerEngine.fa6DvMission(dvI));dvRender()};
+G("dvMinus").onclick=function(){dvProp-=dvStepV(TrainerEngine.fa6DvMission(dvI));if(dvProp<0){dvProp=0}dvRender()};
+G("dvGo").onclick=function(){
+var r=TrainerEngine.fa6DvCheck(dvI,dvProp);
+var m=TrainerEngine.fa6DvMission(dvI);
+G("dvOut").textContent=(r.ok?"Mission feasible: "+r.dv.toFixed(2)+" km/s on board. "+r.note:"Not feasible: "+r.note)+(r.ok?" The leanest load for this trip is about "+r.minProp.toFixed(1)+" "+m.unit+".":"");
+if(r.ok){G("dvNext").hidden=false;if(r.stars===3){window.__fx.toast("Perfect budget!")}}};
+G("dvNext").onclick=function(){dvI++;dvProp=0;G("dvNext").hidden=true;dvRender()};
+var wnI=0;
+function wnRender(){
+var r=TrainerEngine.fa6WinRound(wnI);
+G("wnBrief").textContent="Question "+r.round+" of "+r.total+": "+r.prompt;
+var list=G("wnList");list.innerHTML="";
+r.opts.forEach(function(t,i){
+var b=document.createElement("button");b.className="wnOpt";b.textContent=t;
+b.onclick=function(){
+var s=TrainerEngine.fa6WinScore(wnI,i);
+b.classList.add(s.ok?"ok":"no");
+b.disabled=true;
+G("wnOut").textContent=s.why;
+if(s.ok){Array.prototype.forEach.call(list.children,function(x){x.disabled=true});
+setTimeout(function(){wnI++;if(wnI>=WIN_TOTAL()){G("wnBrief").textContent="All three answered. Windows rule the Mars calendar.";G("wnList").innerHTML="";G("wnOut").textContent="";wnI=0}else{wnRender()}},2200)}};
+list.appendChild(b)})}
+function WIN_TOTAL(){return TrainerEngine.fa6WinRound(0).total}
+var cjPicked={};
+function cjRender(){
+var list=G("cjList");list.innerHTML="";
+cjPicked={};
+TrainerEngine.fa6ConjTasks().forEach(function(t,i){
+var b=document.createElement("button");b.className="cjTask";b.textContent=t;
+b.onclick=function(){cjPicked[i]=!cjPicked[i];b.classList.toggle("on",!!cjPicked[i])};
+list.appendChild(b)});
+G("cjOut").textContent=""}
+G("cjGo").onclick=function(){
+var picks=Object.keys(cjPicked).filter(function(k){return cjPicked[k]}).map(function(k){return parseInt(k,10)});
+var r=TrainerEngine.fa6ConjCheck(picks);
+var msg="";
+if(r.missing.length){msg+="Still to do: "+r.missing.join("; ")+". "}
+if(r.extra.length){msg+="Cut these: "+r.extra.join("; ")+". "}
+if(r.ok){msg=r.note;window.__fx.toast("Blackout plan approved!")}
+G("cjOut").textContent=msg};
+var pwI=0,pwA=4,pwB=40;
+function pwRender(){
+var s=TrainerEngine.fa6PwrScen(pwI);
+G("pwBrief").textContent="Site "+s.round+" of "+s.total+": "+s.name+". Daylight runs "+s.lightH+" h, darkness "+s.darkH+" h. Day load "+s.dayKW+" kW, night load "+s.nightKW+" kW (heaters). Mass limit "+s.massKg+" kg; arrays are "+s.solarKg+" kg per kW, batteries "+s.battKg+" kg per kWh. "+s.why;
+G("pwA").textContent=pwA+" kW";
+G("pwB").textContent=pwB+" kWh";
+var r=TrainerEngine.fa6PwrCheck(pwI,pwA,pwB);
+G("pwNow").textContent="Array makes "+Math.round(r.genKWh)+" kWh per cycle, base needs "+Math.round(r.needKWh)+" kWh; night draws "+Math.round(r.nightKWh)+" kWh from "+pwB+" kWh of batteries. Mass: "+Math.round(r.mass)+" / "+s.massKg+" kg.";
+G("pwOut").textContent=""}
+G("pwAp").onclick=function(){pwA++;pwRender()};
+G("pwAm").onclick=function(){pwA=Math.max(0,pwA-1);pwRender()};
+G("pwBp").onclick=function(){pwB+=10;pwRender()};
+G("pwBm").onclick=function(){pwB=Math.max(0,pwB-10);pwRender()};
+G("pwGo").onclick=function(){
+var r=TrainerEngine.fa6PwrCheck(pwI,pwA,pwB);
+G("pwOut").textContent=r.ok?("The base survives the night. "+r.note):r.problems.join(" ");
+if(r.ok){G("pwNext").hidden=false;if(r.stars===3){window.__fx.toast("Perfect sizing!")}}};
+G("pwNext").onclick=function(){pwI++;G("pwNext").hidden=true;pwA=4;pwB=40;pwRender()};
+if(window.__featRefresh===undefined){window.__featRefresh={}}
+var prDv=window.__featRefresh.dv;window.__featRefresh.dv=function(){dvRender();if(prDv){prDv()}};
+var prWn=window.__featRefresh.window;window.__featRefresh.window=function(){wnRender();if(prWn){prWn()}};
+var prCj=window.__featRefresh.conj;window.__featRefresh.conj=function(){cjRender();if(prCj){prCj()}};
+var prPw=window.__featRefresh.power;window.__featRefresh.power=function(){pwRender();if(prPw){prPw()}};
+})();
